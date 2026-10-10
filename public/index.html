@@ -163,7 +163,7 @@
   .q-legend span { font-size: .72rem; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
   .q-body { overflow: auto; flex: 1; min-height: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); grid-auto-rows: max-content; align-content: start; padding-right: 2px; }
   .modal-card > .modal-head, .modal-card > .q-toolbar, .modal-card > .hint { flex-shrink: 0; }
-  .q-map { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
+  .q-map { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); align-self: start; }
   .q-map h3 { margin: 0; padding: 8px 12px; font-size: .95rem; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
   .q-map h3 small { font-weight: 500; color: var(--dim); font-size: .72rem; }
   .q-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 12px; font-size: .84rem; border-bottom: 1px solid rgba(0,0,0,.06); }
@@ -179,6 +179,18 @@
   [data-theme="dark"] .q-item { border-bottom-color: rgba(255,255,255,.06); }
   [data-theme="dark"] .q-item .tag { background: rgba(255,255,255,.14); }
   .q-empty { color: var(--dim); font-size: .85rem; padding: 20px; text-align: center; grid-column: 1 / -1; }
+  .q-pickbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .82rem; margin-bottom: 10px; padding: 8px 10px; border-radius: 10px; background: var(--soft); border: 1px solid var(--card-border); flex-shrink: 0; }
+  .q-pickbar b { color: var(--primary); }
+  .q-item label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; color: inherit; font-size: inherit; margin: 0; }
+  .q-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; margin: 0; }
+  .q-item.picked { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .q-map h3 .q-all { font-size: .7rem; padding: 2px 8px; min-height: 0; margin-left: auto; margin-right: 8px; }
+  .q-inline { margin-top: 12px; border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 12px; background: var(--tile-bg); }
+  .q-inline summary { cursor: pointer; font-weight: 700; font-size: .92rem; list-style: none; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .q-inline summary::-webkit-details-marker { display: none; }
+  .q-inline summary::after { content: "▸"; margin-left: auto; color: var(--dim); transition: transform .2s; }
+  .q-inline[open] summary::after { transform: rotate(90deg); }
+  .q-body-inline { overflow: visible; flex: none; max-height: none; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
   .modal-card .table-wrap { margin-top: 0; max-height: none; flex: 1; min-height: 0; }
   .table-wrap { max-height: 320px; overflow: auto; margin-top: 12px; border: 1px solid var(--card-border); border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
@@ -336,12 +348,32 @@
           </div>
           <div class="hint">未填時間 = 無限期。</div>
         </div>
+        <label style="margin-top:14px;">每日任務數（可直接輸入，或展開下方任務表勾選自動統計）</label>
         <div class="tasks">
           <div class="task"><b>90 級每日任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
           <div class="task"><b>100 級每日任務</b><label>達成任務數</label><input type="number" id="task100" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="100"></small></div>
           <div class="task"><b>105 級每日任務</b><label>達成任務數</label><input type="number" id="task105" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="105"></small></div>
           <div class="task"><b>110 級每日任務</b><label>達成任務數</label><input type="number" id="task110" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="110"></small></div>
         </div>
+        <details class="q-inline" id="questInline">
+          <summary>📋 從任務表勾選 <span class="hint" id="inlinePickInfo" style="display:inline; margin:0 0 0 6px;"></span></summary>
+          <div class="q-toolbar" style="margin-top:10px;">
+            <div class="seg questSeg">
+              <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
+              <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
+              <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
+              <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
+            </div>
+            <div class="q-legend">
+              <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-expert">專家級</span>
+            </div>
+          </div>
+          <div class="q-pickbar">
+            <span class="questPickInfo"></span>
+            <button class="btn-ghost" onclick="clearPicked()">清除勾選</button>
+          </div>
+          <div class="q-body q-body-inline questBody"></div>
+        </details>
       </div>
 
       <div class="card">
@@ -404,7 +436,7 @@
       <button class="btn-ghost" onclick="closeQuests()">✕</button>
     </div>
     <div class="q-toolbar">
-      <div class="seg" id="questSeg">
+      <div class="seg questSeg">
         <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
         <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
         <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
@@ -414,8 +446,12 @@
         <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-expert">專家級</span>
       </div>
     </div>
-    <div class="hint" id="questExpInfo" style="margin:6px 0 10px;"></div>
-    <div class="q-body" id="questBody"></div>
+    <div class="hint" id="questExpInfo" style="margin:6px 0 6px;"></div>
+    <div class="q-pickbar">
+      <span class="questPickInfo"></span>
+      <button class="btn-ghost" onclick="clearPicked()">清除勾選</button>
+    </div>
+    <div class="q-body questBody"></div>
   </div>
 </div>
 
@@ -493,7 +529,7 @@ function setRateMode(m, recalc = true) { rateMode = m; refreshStepUI(); if (reca
 // ===== 模式（% / 數值） =====
 const modes = { old: 'pct', new: 'pct' };
 const canon = { old: null, new: null };   // 精確的等級內已累積經驗
-const fmtPct = p => String(+p.toFixed(6));
+const fmtPct = p => String(+p.toFixed(1));
 
 function syncCanon(rec) {
   const lv = parseInt($(rec + 'Lv').value) || 1;
@@ -509,7 +545,7 @@ function setMode(rec, mode, convert = true) {
   }
   modes[rec] = mode;
   $(rec + 'ValLabel').innerText = mode === 'pct' ? '經驗 %' : '經驗數值';
-  input.step = mode === 'pct' ? '0.0001' : '1';
+  input.step = mode === 'pct' ? '0.1' : '1';
   input.inputMode = mode === 'pct' ? 'decimal' : 'numeric';
   input.placeholder = mode === 'pct' ? '例如 37.52' : '例如 123456789';
   document.querySelectorAll(`.seg[data-rec="${rec}"] button`).forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -537,7 +573,7 @@ function refreshHints() {
     const r = readRecord(rec);
     if (r.error) { h.innerText = r.error; h.classList.add('err'); input.classList.add('invalid'); continue; }
     h.classList.remove('err'); input.classList.remove('invalid');
-    h.innerText = modes[rec] === 'pct' ? `≈ ${fmt(r.expInLv)} / ${fmt(r.need)} EXP` : `≈ ${r.pct.toFixed(4)} %（升級需 ${fmt(r.need)}）`;
+    h.innerText = modes[rec] === 'pct' ? `≈ ${fmt(r.expInLv)} / ${fmt(r.need)} EXP` : `≈ ${r.pct.toFixed(1)} %（升級需 ${fmt(r.need)}）`;
   }
 }
 
@@ -710,7 +746,7 @@ function calculate() {
   $('status').classList.add('hidden');
   $('resultBody').classList.remove('hidden');
   $('rCurLv').innerText = `Lv ${r2.lv}`;
-  $('rCurPct').innerText = r2.pct.toFixed(4) + ' %';
+  $('rCurPct').innerText = r2.pct.toFixed(1) + ' %';
   $('rBar').style.width = Math.min(100, r2.pct).toFixed(2) + '%';
   $('rCurExp').innerText = `${fmt(r2.expInLv)} / ${fmt(r2.need)} EXP　距離升級 ${fmt(nextNeed)}`;
 
@@ -821,6 +857,7 @@ function updateTaskInfo() {
 function onChange() {
   $('serverBox').style.display = $('serverOn').checked ? 'block' : 'none';
   updateTaskInfo();
+  if (typeof updatePickBar === 'function' && $('inlinePickInfo')) updatePickBar();
   save();
   calculate();
 }
@@ -828,7 +865,7 @@ function onChange() {
 // ===== 儲存 / 載入 =====
 const KEY = 'roz-exp-calc-v2';
 function save() {
-  const data = { grind, rateMode, modes, fields: {}, potions: [] };
+  const data = { grind, rateMode, picked: [...picked], modes, fields: {}, potions: [] };
   document.querySelectorAll('[data-save]').forEach(el => data.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value);
   document.querySelectorAll('.potion-row').forEach(row => data.potions.push({
     name: potionName(row),
@@ -844,6 +881,7 @@ function load() {
     for (const rec of ['old', 'new']) if (data.modes && data.modes[rec]) setMode(rec, data.modes[rec], false);
     if (typeof data.grind === 'boolean') grind = data.grind;
     if (data.rateMode === 'direct' || data.rateMode === 'track') rateMode = data.rateMode;
+    if (Array.isArray(data.picked)) data.picked.forEach(id => picked.add(id));
     refreshStepUI();
   }
   refreshStepUI();
@@ -961,23 +999,56 @@ function currentTaskMult() {
   }
   return mult;
 }
+// 勾選任務 → 自動統計 100/105/110 任務數（任務數欄位仍可手動輸入）
+const picked = new Set();          // 已勾選任務的 id（地圖索引-項目索引）
+QUESTS.forEach((m, mi) => m.items.forEach((it, ii) => it.id = `${mi}-${ii}`));
+const ALL_ITEMS = QUESTS.flatMap(m => m.items);
+function pickedCounts() {
+  const c = { 100: 0, 105: 0, 110: 0 };
+  for (const it of ALL_ITEMS) if (picked.has(it.id)) c[it.lv]++;
+  return c;
+}
+function applyPicked() {
+  const c = pickedCounts();
+  $('task100').value = c[100]; $('task105').value = c[105]; $('task110').value = c[110];
+}
+function togglePick(id, on) {
+  if (on) picked.add(id); else picked.delete(id);
+  document.querySelectorAll(`.q-item[data-id="${id}"]`).forEach(el => { el.classList.toggle('picked', on); el.querySelector('input').checked = on; });
+  applyPicked(); onChange(); updatePickBar();
+}
+function pickMap(mi, on) {
+  QUESTS[mi].items.filter(i => questLv === 'all' || String(i.lv) === questLv).forEach(i => on ? picked.add(i.id) : picked.delete(i.id));
+  applyPicked(); onChange(); renderQuests();
+}
+function clearPicked() { picked.clear(); applyPicked(); onChange(); renderQuests(); }
+function updatePickBar() {
+  const c = pickedCounts(), mult = currentTaskMult();
+  const total = (c[100] * TASK_BASE[100] + c[105] * TASK_BASE[105] + c[110] * TASK_BASE[110]) * mult;
+  document.querySelectorAll('.questPickInfo').forEach(el => el.innerHTML = `已勾選 <b>${picked.size}</b> 個：100 級 <b>${c[100]}</b>・105 級 <b>${c[105]}</b>・110 級 <b>${c[110]}</b>・每日合計 <b>${fmt(total)}</b> EXP`);
+  $('inlinePickInfo').innerText = picked.size ? `已勾選 ${picked.size} 個（100 級 ${c[100]}・105 級 ${c[105]}・110 級 ${c[110]}）` : '';
+}
 function renderQuests() {
   const mult = currentTaskMult();
+  updatePickBar();
   $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
     [100, 105, 110].map(lv => `${lv} 級 ${fmt(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmt(TASK_BASE[lv] * mult)}</b>`).join('・');
-  document.querySelectorAll('#questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
-  const body = $('questBody'); body.innerHTML = '';
-  let total = 0;
-  for (const m of QUESTS) {
-    const items = m.items.filter(i => questLv === 'all' || String(i.lv) === questLv);
-    if (!items.length) continue;
-    total += items.length;
-    const div = document.createElement('div'); div.className = 'q-map';
-    div.innerHTML = `<h3>${m.map}<small>${items.length} 個</small></h3>` + items.map(i =>
-      `<div class="q-item q-${i.d}"><span>${i.k ? '<span class="kill">[打怪]</span>' : ''}${i.n}</span><span class="tag">${i.lv} 級・${fmt(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
-    body.appendChild(div);
-  }
-  if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
+  document.querySelectorAll('.questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
+  document.querySelectorAll('.questBody').forEach(body => {
+    body.innerHTML = '';
+    let total = 0;
+    QUESTS.forEach((m, mi) => {
+      const items = m.items.filter(i => questLv === 'all' || String(i.lv) === questLv);
+      if (!items.length) return;
+      total += items.length;
+      const allOn = items.every(i => picked.has(i.id));
+      const div = document.createElement('div'); div.className = 'q-map';
+      div.innerHTML = `<h3>${m.map}<button class="btn-ghost q-all" onclick="pickMap(${mi}, ${!allOn})">${allOn ? '取消全選' : '全選'}</button><small>${items.length} 個</small></h3>` + items.map(i =>
+        `<div class="q-item q-${i.d}${picked.has(i.id) ? ' picked' : ''}" data-id="${i.id}"><label><input type="checkbox" ${picked.has(i.id) ? 'checked' : ''} onchange="togglePick('${i.id}', this.checked)"><span>${i.k ? '<span class="kill">[打怪]</span>' : ''}${i.n}</span></label><span class="tag">${i.lv} 級・${fmt(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
+      body.appendChild(div);
+    });
+    if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
+  });
 }
 function setQuestLv(lv) { questLv = lv; renderQuests(); }
 function openQuests() { renderQuests(); $('questModal').classList.add('open'); }
@@ -1003,6 +1074,7 @@ function toggleTheme() {
 }
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 load();
+renderQuests();
 </script>
 </body>
 </html>
