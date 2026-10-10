@@ -130,6 +130,8 @@
   .note { font-size: .76rem; color: var(--dim); margin: 10px 0 0; }
 
   /* chips / tasks */
+  .check { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--text); cursor: pointer; margin: 0; }
+  .check input { width: 16px; height: 16px; accent-color: var(--primary); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--input-border); background: var(--input-bg); font-size: .85rem; cursor: pointer; user-select: none; color: var(--text); }
   .chip input { display: none; }
@@ -297,6 +299,10 @@
           <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="serverOn" data-save>伺服器加成</label>
         </div>
+        <div class="grind-only" style="margin-top:10px;">
+          <label class="check"><input type="checkbox" id="grindBuff" onchange="setGrindBuff(this.checked)"> 掛機時薪也套用持續型加成</label>
+          <div class="hint" id="grindBuffHint"></div>
+        </div>
         <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffPotion" data-save>每日任務時使用 EXPUP 藥水 <span class="pct">+50%</span></label>
@@ -433,8 +439,15 @@ const pad = n => String(n).padStart(2, '0');
 // ===== 是否掛機 =====
 let grind = true;
 let rateMode = 'track';   // 'track' = 兩筆紀錄追蹤, 'direct' = 直接輸入每小時經驗
+// 掛機時薪是否套用持續型加成：直接輸入預設套用（填的是未加成數值）；兩筆紀錄預設不套用（實測值已含）
+const grindBuffBy = { direct: true, track: false };
+function setGrindBuff(v) { grindBuffBy[rateMode] = !!v; refreshStepUI(); onChange(); }
 function refreshStepUI() {
   document.body.classList.toggle('no-grind', !grind);
+  $('grindBuff').checked = grindBuffBy[rateMode];
+  $('grindBuffHint').innerText = rateMode === 'direct'
+    ? '填的時薪若已含加成請取消勾選。'
+    : '兩筆紀錄算出的時薪通常已含加成，當時沒開加成才勾選。';
   document.body.classList.toggle('rate-direct', rateMode === 'direct');
   document.querySelectorAll('#grindSeg button').forEach(b => b.classList.toggle('active', (b.dataset.g === '1') === grind));
   document.querySelectorAll('#rateSeg button').forEach(b => b.classList.toggle('active', b.dataset.m === rateMode));
@@ -642,9 +655,15 @@ function calculate() {
       return Infinity;
     };
   }
-  const hoursGrind = exp => expPerHour > 0 ? exp / expPerHour : Infinity;                 // 純掛機
+  // 掛機時薪（可選擇是否套用角色/帳號/伺服器加成；EXPUP 不套用在掛機）
+  const grindBuff = grind && grindBuffBy[rateMode];
+  const grindMultNo = grindBuff ? 1 + (($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0)) : 1;
+  const grindMultSrv = grindBuff ? grindMultNo + serverPct : 1;
+  const grindNo = expPerHour * grindMultNo, grindSrv = expPerHour * grindMultSrv;
+  const grindNow = srvActiveNow ? grindSrv : grindNo;
+  const hoursGrind = timeline(grindNo, grindSrv);                                           // 純掛機
   const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                               // 只靠每日任務
-  const hoursCombined = timeline(expPerHour + dailyNoSrv / 24, expPerHour + dailySrv / 24); // 每日任務 + 24h 掛機
+  const hoursCombined = timeline(grindNo + dailyNoSrv / 24, grindSrv + dailySrv / 24);      // 每日任務 + 24h 掛機
 
   // 主要推估：掛機模式 = 掛機 + 每日任務；非掛機模式 = 每日任務
   const hoursFor = grind ? hoursCombined : hoursTask;
@@ -661,8 +680,9 @@ function calculate() {
   $('rBar').style.width = Math.min(100, r2.pct).toFixed(2) + '%';
   $('rCurExp').innerText = `${fmt(r2.expInLv)} / ${fmt(r2.need)} EXP　距離升級 ${fmt(nextNeed)}`;
 
-  $('rRate').innerText = fmt(expPerHour);
+  $('rRate').innerText = fmt(grindNow);
   $('rRateSub').innerText = tracking ? `觀測 ${fmtDur(diffMin / 60)}，共獲得 ${fmt(gained)} EXP` : '手動輸入';
+  if (grindBuff && grindNow !== expPerHour) $('rRateSub').innerText += `・${fmt(expPerHour)} × ${(grindNow / expPerHour).toFixed(2)}`;
   $('rNextK').innerText = `升至下一級（${modeLabel}）`;
   $('rTargetK').innerText = `到達 Lv ${targetLv}（${modeLabel}）`;
   $('msTitle').innerText = `升級里程碑（${modeLabel}）`;
@@ -687,7 +707,7 @@ function calculate() {
     $('rCombinedSub').innerText = '經驗無增長';
   }
   if (grind && taskBase) {
-    $('rRateSub').innerText += `・每日合計 ${fmt(expPerHour * 24 + dailyNow)} EXP（任務 ${fmt(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
+    $('rRateSub').innerText += `・每日合計 ${fmt(grindNow * 24 + dailyNow)} EXP（任務 ${fmt(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
   }
 
   // ---- 伺服器加成狀態 ----
@@ -743,7 +763,7 @@ function calculate() {
   if (tgtRow) tgtRow.className = 'target';
 
   $('qRateK').innerText = grind ? '每小時經驗' : '每日任務經驗';
-  $('qRate').innerText = fmt(grind ? expPerHour : dailyNow);
+  $('qRate').innerText = fmt(grind ? grindNow : dailyNow);
   $('qTarget').innerText = ok(hToTarget) ? fmtDur(hToTarget) : '—';
 }
 
@@ -775,7 +795,7 @@ function onChange() {
 // ===== 儲存 / 載入 =====
 const KEY = 'roz-exp-calc-v2';
 function save() {
-  const data = { grind, rateMode, modes, fields: {}, potions: [] };
+  const data = { grind, rateMode, grindBuffBy, modes, fields: {}, potions: [] };
   document.querySelectorAll('[data-save]').forEach(el => data.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value);
   document.querySelectorAll('.potion-row').forEach(row => data.potions.push({
     name: potionName(row),
@@ -791,6 +811,7 @@ function load() {
     for (const rec of ['old', 'new']) if (data.modes && data.modes[rec]) setMode(rec, data.modes[rec], false);
     if (typeof data.grind === 'boolean') grind = data.grind;
     if (data.rateMode === 'direct' || data.rateMode === 'track') rateMode = data.rateMode;
+    if (data.grindBuffBy) Object.assign(grindBuffBy, data.grindBuffBy);
     refreshStepUI();
   }
   refreshStepUI();
