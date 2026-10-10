@@ -964,7 +964,9 @@ function currentTaskMult() {
   return mult;
 }
 function renderQuests() {
-  $('questExpInfo').innerText = `基礎經驗（未加成）每次：100 級 ${fmt(TASK_BASE[100])}・105 級 ${fmt(TASK_BASE[105])}・110 級 ${fmt(TASK_BASE[110])}`;
+  const mult = currentTaskMult();
+  $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
+    [100, 105, 110].map(lv => `${lv} 級 ${fmt(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmt(TASK_BASE[lv] * mult)}</b>`).join('・');
   document.querySelectorAll('#questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
   const body = $('questBody'); body.innerHTML = '';
   let total = 0;
@@ -974,7 +976,7 @@ function renderQuests() {
     total += items.length;
     const div = document.createElement('div'); div.className = 'q-map';
     div.innerHTML = `<h3>${m.map}<small>${items.length} 個</small></h3>` + items.map(i =>
-      `<div class="q-item q-${i.d}"><span>${i.k ? '<span class="kill">[打怪]</span>' : ''}${i.n}</span><span class="tag">${i.lv} 級・${fmt(TASK_BASE[i.lv])}</span></div>`).join('');
+      `<div class="q-item q-${i.d}"><span>${i.k ? '<span class="kill">[打怪]</span>' : ''}${i.n}</span><span class="tag">${i.lv} 級・${fmt(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
     body.appendChild(div);
   }
   if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
