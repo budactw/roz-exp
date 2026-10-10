@@ -253,7 +253,7 @@
     <div class="row">
       <button class="btn-ghost" onclick="openQuests()">📋 每日任務表</button>
       <button class="btn-ghost" onclick="openExpTable()">📊 經驗表</button>
-      <button class="btn-ghost" id="numBtn" onclick="toggleNum()" title="切換縮寫 / 完整數字">🔢 完整數字</button>
+      <button class="btn-ghost" id="numBtn" onclick="toggleNum()" title="點擊切換縮寫 / 完整數字">🔢 數字：縮寫</button>
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
       <button class="btn-ghost" onclick="resetAll()" title="輸入會自動儲存在此瀏覽器，按此全部清除">🗑 清除資料</button>
     </div>
@@ -1085,7 +1085,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeExpTa
 // ===== 數字顯示（縮寫 / 完整）=====
 function applyNum(full) {
   document.body.classList.toggle('full-num', full);
-  $('numBtn').innerText = full ? '🔢 縮寫數字' : '🔢 完整數字';
+  $('numBtn').innerText = full ? '🔢 數字：完整' : '🔢 數字：縮寫';
 }
 function toggleNum() {
   const full = !document.body.classList.contains('full-num');
