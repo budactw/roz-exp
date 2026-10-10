@@ -742,11 +742,15 @@ function calculate() {
       return Infinity;
     };
   }
-  // 掛機時薪一律視為實際值（直接輸入或兩筆紀錄實測），不再乘步驟 2 的加成；加成只影響每日任務
-  const grindBuff = false;
-  const grindMultNo = grindBuff ? 1 + (($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0)) : 1;
-  const grindMultSrv = grindBuff ? grindMultNo + serverPct : 1;
-  const grindNo = expPerHour * grindMultNo, grindSrv = expPerHour * grindMultSrv;
+  // 掛機時薪視為「目前狀態」的實際值。伺服器加成有期限：
+  //   加成進行中 → 結束後時薪換算為 × m0/(m0+srv)；加成尚未開始 → 開始後時薪 × (m0+srv)/m0
+  //   m0 = 1 + 角色 + 帳號（持續型，不會消失）；EXPUP 不算進掛機
+  const m0 = 1 + ($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0);
+  let grindNo = expPerHour, grindSrv = expPerHour;
+  if (serverOn && serverPct > 0) {
+    if (srvActiveNow) grindNo = expPerHour * m0 / (m0 + serverPct);
+    else grindSrv = expPerHour * (m0 + serverPct) / m0;
+  }
   const grindNow = srvActiveNow ? grindSrv : grindNo;
   const hoursGrind = timeline(grindNo, grindSrv);                                           // 純掛機
   const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                               // 只靠每日任務
@@ -768,7 +772,7 @@ function calculate() {
   $('rCurExp').innerHTML = `${fmtC(r2.expInLv)} / ${fmtC(r2.need)} EXP　距離升級 ${fmtC(nextNeed)}`;
 
   $('rRate').innerHTML = fmtC(grindNow);
-  $('rRateSub').innerHTML = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmtC(gained)} EXP（已含加成）` : `手動輸入（實際值，不套用加成）`;
+  $('rRateSub').innerHTML = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmtC(gained)} EXP（已含加成）` : `手動輸入（目前實際值）`;
   $('rNextK').innerText = `升至下一級（${modeLabel}）`;
   $('rTargetK').innerText = `到達 Lv ${targetLv}（${modeLabel}）`;
   $('msTitle').innerText = `升級里程碑（${modeLabel}）`;
@@ -791,6 +795,11 @@ function calculate() {
   } else {
     $('rCombined').innerText = '—';
     $('rCombinedSub').innerText = '經驗無增長';
+  }
+  if (grind && serverOn && serverPct > 0 && grindNo !== grindSrv && (srvActiveNow ? !!be : bsH > 0)) {
+    $('rRateSub').innerHTML += srvActiveNow
+      ? `・伺服器加成結束後約 ${fmtC(grindNo)}／小時`
+      : `・伺服器加成開始後約 ${fmtC(grindSrv)}／小時`;
   }
   if (grind && taskBase) {
     $('rRateSub').innerHTML += `・每日合計 ${fmtC(grindNow * 24 + dailyNow)} EXP（任務 ${fmtC(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
