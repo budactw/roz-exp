@@ -172,11 +172,9 @@
   .q-item .kill { font-size: .7rem; opacity: .75; margin-right: 4px; }
   .q-easy   { background: #fff59d; color: #3d3400; }
   .q-time   { background: #bcd3ef; color: #0d2a4d; }
-  .q-strong { background: #f4c2c2; color: #5a1414; }
   .q-expert { background: #c9b8e8; color: #2b1452; }
   [data-theme="dark"] .q-easy   { background: rgba(255,245,157,.22); color: #fff3a3; }
   [data-theme="dark"] .q-time   { background: rgba(120,170,230,.25); color: #cfe2ff; }
-  [data-theme="dark"] .q-strong { background: rgba(240,120,120,.25); color: #ffc9c9; }
   [data-theme="dark"] .q-expert { background: rgba(170,130,230,.28); color: #e3d4ff; }
   [data-theme="dark"] .q-item { border-bottom-color: rgba(255,255,255,.06); }
   [data-theme="dark"] .q-item .tag { background: rgba(255,255,255,.14); }
@@ -413,7 +411,7 @@
         <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
       </div>
       <div class="q-legend">
-        <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-strong">強度要求</span><span class="q-expert">專家級</span>
+        <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-expert">專家級</span>
       </div>
     </div>
     <div class="hint" id="questExpInfo" style="margin:6px 0 10px;"></div>
@@ -871,7 +869,7 @@ function copyText(text, btn) {
 }
 
 // ===== 每日任務整理表 =====
-// lv: 任務等級（1.2E = 100 級、2.9E = 105 級）；d: easy 簡單輕鬆 / time 要花時間 / strong 強度要求 / expert 專家級；k: 打怪任務
+// lv: 任務等級（1.2E = 100 級、2.9E = 105 級）；d: easy 簡單輕鬆 / time 要花時間 / expert 專家級；k: 打怪任務
 const QUESTS = [
   { map: '朱諾', items: [
     { n: '送便當', lv: 100, d: 'easy' },
