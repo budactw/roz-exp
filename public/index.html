@@ -1057,7 +1057,7 @@ function renderQuests() {
       const allOn = items.every(i => picked.has(i.id));
       const div = document.createElement('div'); div.className = 'q-map';
       div.innerHTML = `<h3>${m.map}<button class="btn-ghost q-all" onclick="pickMap(${mi}, ${!allOn})">${allOn ? '取消全選' : '全選'}</button><small>${items.length} 個</small></h3>` + items.map(i =>
-        `<div class="q-item q-${i.d}${picked.has(i.id) ? ' picked' : ''}" data-id="${i.id}"><label><input type="checkbox" ${picked.has(i.id) ? 'checked' : ''} onchange="togglePick('${i.id}', this.checked)"><span><span class="qt qt-${i.t}">${QTYPE[i.t]}</span>${i.n}</span></label><span class="tag">${i.lv} 級・${fmtC(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
+        `<div class="q-item q-${i.d}${picked.has(i.id) ? ' picked' : ''}" data-id="${i.id}"><label><input type="checkbox" ${picked.has(i.id) ? 'checked' : ''} onchange="togglePick('${i.id}', this.checked)"><span><span class="qt qt-${i.t}">${QTYPE[i.t]}</span>${i.n}</span></label><span class="tag">${i.lv} 級・${cn(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
       body.appendChild(div);
     });
     if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
