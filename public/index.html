@@ -280,7 +280,7 @@
           </div>
         </div>
         <div class="grind-only direct-only" style="margin-bottom:12px; max-width:360px;">
-          <label>每小時掛機經驗（EXP / 小時，未含加成）</label>
+          <label>每小時掛機經驗（EXP / 小時，實際獲得值）</label>
           <input type="number" id="rateInput" min="0" step="1" inputmode="numeric" placeholder="例如 885573173" data-save>
           <div class="hint" id="rateHint"></div>
         </div>
@@ -742,8 +742,8 @@ function calculate() {
       return Infinity;
     };
   }
-  // 掛機時薪：直接輸入的數值套用角色/帳號/伺服器加成；兩筆紀錄的實測值已含加成不再乘。EXPUP 不套用在掛機
-  const grindBuff = grind && rateMode === 'direct';
+  // 掛機時薪一律視為實際值（直接輸入或兩筆紀錄實測），不再乘步驟 2 的加成；加成只影響每日任務
+  const grindBuff = false;
   const grindMultNo = grindBuff ? 1 + (($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0)) : 1;
   const grindMultSrv = grindBuff ? grindMultNo + serverPct : 1;
   const grindNo = expPerHour * grindMultNo, grindSrv = expPerHour * grindMultSrv;
@@ -768,7 +768,7 @@ function calculate() {
   $('rCurExp').innerHTML = `${fmtC(r2.expInLv)} / ${fmtC(r2.need)} EXP　距離升級 ${fmtC(nextNeed)}`;
 
   $('rRate').innerHTML = fmtC(grindNow);
-  $('rRateSub').innerHTML = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmtC(gained)} EXP（已含加成）` : `輸入 ${fmtC(expPerHour)} × ${(grindNow / expPerHour || 1).toFixed(2)} 加成`;
+  $('rRateSub').innerHTML = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmtC(gained)} EXP（已含加成）` : `手動輸入（實際值，不套用加成）`;
   $('rNextK').innerText = `升至下一級（${modeLabel}）`;
   $('rTargetK').innerText = `到達 Lv ${targetLv}（${modeLabel}）`;
   $('msTitle').innerText = `升級里程碑（${modeLabel}）`;
