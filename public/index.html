@@ -907,10 +907,10 @@ function copyText(text, btn) {
 }
 
 // ===== 每日任務整理表 =====
-// lv: 任務等級（1.2E = 100 級、2.9E = 105 級）；d: easy 簡單輕鬆 / time 要花時間 / expert 專家級；k: 打怪任務
+// lv: 任務等級；d: easy 簡單輕鬆 / time 要花時間 / expert 專家級；t: kill 打怪 / item 交材料 / talk 對話 / deliver 運送
 const QUESTS = [
   { map: '朱諾', items: [
-    { n: '送便當', lv: 100, d: 'easy', t: 'talk' },
+    { n: '送便當', lv: 100, d: 'easy', t: 'deliver' },
     { n: '打向日葵 + 螳螂 10', lv: 100, d: 'easy', t: 'kill' },
     { n: '營地任務', lv: 100, d: 'easy', t: 'talk' },
     { n: '魔羌 10 + 魔羌角 10', lv: 100, d: 'easy', t: 'kill' },
@@ -944,7 +944,7 @@ const QUESTS = [
   { map: '鋼鐵之都', items: [
     { n: '找小狗', lv: 100, d: 'easy', t: 'talk' },
     { n: '關發電機', lv: 100, d: 'easy', t: 'talk' },
-    { n: '送便當', lv: 100, d: 'easy', t: 'talk' },
+    { n: '送便當', lv: 100, d: 'easy', t: 'deliver' },
     { n: '老奶奶（朱畢特、煤礦、結晶）', lv: 100, d: 'easy', t: 'item' },
     { n: '金屬波利 × 20 + 摩爾 × 10', lv: 100, d: 'time', t: 'kill' },
     { n: '廢氣魔 × 20', lv: 100, d: 'time', t: 'kill' },
@@ -958,9 +958,9 @@ const QUESTS = [
     { n: '四色礦魔石 × 10', lv: 100, d: 'expert', t: 'kill' },
   ]},
   { map: '企業之都', items: [
-    { n: '送貨木材', lv: 105, d: 'easy', t: 'item' },
-    { n: '送貨磚頭', lv: 105, d: 'easy', t: 'item' },
-    { n: '送貨鞭子', lv: 105, d: 'easy', t: 'item' },
+    { n: '送貨木材', lv: 105, d: 'easy', t: 'deliver' },
+    { n: '送貨磚頭', lv: 105, d: 'easy', t: 'deliver' },
+    { n: '送貨鞭子', lv: 105, d: 'easy', t: 'deliver' },
     { n: '收集犯人的手鍊 × 20', lv: 105, d: 'easy', t: 'item' },
     { n: '草精 × 20', lv: 105, d: 'time', t: 'kill' },
     { n: '灰森靈 × 20', lv: 105, d: 'time', t: 'kill' },
@@ -985,7 +985,7 @@ const QUESTS = [
     { n: '闇神工匠 × 10（研三）', lv: 110, d: 'expert', t: 'kill' },
   ]},
 ];
-const QTYPE = { kill: '打怪', item: '交材料', talk: '對話' };
+const QTYPE = { kill: '打怪', item: '交材料', talk: '對話', deliver: '運送' };
 let questLv = 'all';
 const fmtE = n => (n / 1e8).toFixed(1) + 'E';   // 1E = 1 億
 function currentTaskMult() {
