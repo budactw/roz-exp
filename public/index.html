@@ -883,7 +883,7 @@ function updateTaskInfo() {
 function onChange() {
   $('serverBox').style.display = $('serverOn').checked ? 'block' : 'none';
   updateTaskInfo();
-  if (typeof updatePickBar === 'function' && $('inlinePickInfo')) updatePickBar();
+  if (typeof updatePickBar === 'function' && $('inlinePickInfo')) { updatePickBar(); refreshQuestTags(); }
   save();
   calculate();
 }
@@ -1077,6 +1077,16 @@ function renderQuests() {
     });
     if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
   });
+}
+// 加成改變時只更新標籤與說明，不重建清單
+function refreshQuestTags() {
+  const mult = currentTaskMult();
+  document.querySelectorAll('.q-item').forEach(el => {
+    const it = ALL_ITEMS.find(i => i.id === el.dataset.id); if (!it) return;
+    el.querySelector('.tag').innerHTML = `${it.lv} 級・${fmtS(TASK_BASE[it.lv] * mult)}`;
+  });
+  if ($('questExpInfo')) $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
+    [100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
 }
 function setQuestLv(lv) { questLv = lv; renderQuests(); }
 function openQuests() { renderQuests(); $('questModal').classList.add('open'); }
