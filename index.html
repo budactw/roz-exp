@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<style>
+  :root {
+    --bg: #eef2f8;
+    --bg-glow: radial-gradient(circle at 20% -10%, rgba(0,114,255,.18), transparent 50%), radial-gradient(circle at 90% 10%, rgba(121,40,202,.14), transparent 45%);
+    --card: rgba(255,255,255,.78);
+    --card-border: rgba(0,114,255,.22);
+    --card-glow: 0 0 0 1px rgba(255,255,255,.6) inset, 0 10px 30px rgba(15,23,42,.08);
+    --text: #0f172a;
+    --dim: #5b6b84;
+    --primary: #0072ff;
+    --cyan: #00a6c7;
+    --purple: #7928ca;
+    --green: #00ab55;
+    --danger: #e11d48;
+    --input-bg: rgba(255,255,255,.92);
+    --input-border: #cbd5e1;
+    --soft: rgba(0,114,255,.08);
+    --seg-bg: #e2e8f0;
+    --seg-active: linear-gradient(135deg, #0072ff, #7928ca);
+    --tile-bg: rgba(255,255,255,.7);
+    --result-bg: rgba(255,255,255,.85);
+    --bar-bg: #e2e8f0;
+    --table-head: rgba(241,245,249,.95);
+    --row-hover: rgba(0,114,255,.06);
+  }
+  [data-theme="dark"] {
+    --bg: #070b14;
+    --bg-glow: radial-gradient(circle at 20% -10%, rgba(0,242,254,.14), transparent 45%), radial-gradient(circle at 90% 10%, rgba(121,40,202,.22), transparent 45%);
+    --card: rgba(13,20,36,.72);
+    --card-border: rgba(0,242,254,.22);
+    --card-glow: 0 0 0 1px rgba(0,242,254,.05) inset, 0 10px 40px rgba(0,0,0,.45), 0 0 24px rgba(0,242,254,.06);
+    --text: #e8eefc;
+    --dim: #8da0bf;
+    --primary: #00f2fe;
+    --cyan: #00f2fe;
+    --purple: #a66cff;
+    --green: #00ff87;
+    --danger: #ff5c7a;
+    --input-bg: rgba(5,9,18,.85);
+    --input-border: #243654;
+    --soft: rgba(0,242,254,.08);
+    --seg-bg: #141d33;
+    --seg-active: linear-gradient(135deg, #00c6ff, #7928ca);
+    --tile-bg: rgba(9,14,27,.75);
+    --result-bg: rgba(10,16,30,.8);
+    --bar-bg: #1a2540;
+    --table-head: rgba(13,20,36,.98);
+    --row-hover: rgba(0,242,254,.06);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; padding: 18px 14px 90px;
+    font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg); background-image: var(--bg-glow); background-attachment: fixed;
+    color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  /* header */
+  .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  h1 { font-size: 1.5rem; margin: 0; letter-spacing: .5px; display: flex; align-items: center; gap: 8px; }
+  h1 .bolt { color: var(--cyan); filter: drop-shadow(0 0 8px var(--cyan)); }
+  h1 small { font-size: .78rem; color: var(--dim); font-weight: 500; margin-left: 6px; }
+  h2 { font-size: 1rem; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; letter-spacing: .3px; }
+  h2 .n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--seg-active); color: #fff; font-size: .75rem; align-items: center; justify-content: center; font-weight: 700; }
+
+  /* layout */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 980px) {
+    .layout { grid-template-columns: minmax(0, 1fr) 400px; align-items: start; }
+    .side { position: sticky; top: 16px; }
+  }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: var(--card-glow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .card:last-child { margin-bottom: 0; }
+
+  /* inputs */
+  label { display: block; font-size: .8rem; color: var(--dim); margin-bottom: 4px; }
+  input[type=number], input[type=text], input[type=date] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--input-border); border-radius: 10px;
+    background: var(--input-bg); color: var(--text); font-size: 1rem; font-family: inherit; min-height: 42px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--soft); }
+  input.invalid { border-color: var(--danger); }
+  .grid-2 { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > input { flex: 1; min-width: 0; }
+  button { font-family: inherit; cursor: pointer; border: none; border-radius: 10px; font-size: .9rem; min-height: 42px; }
+  .btn-now { padding: 0 14px; background: var(--soft); color: var(--primary); font-weight: 700; white-space: nowrap; border: 1px solid var(--card-border); }
+  .btn-ghost { padding: 0 12px; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); min-height: 36px; font-size: .85rem; }
+  .btn-add { margin-top: 8px; padding: 0 14px; background: transparent; color: var(--green); border: 1px dashed var(--green); font-weight: 600; min-height: 38px; }
+  .btn-del { padding: 0 12px; background: transparent; color: var(--danger); border: 1px solid var(--input-border); }
+
+  /* date-time picker */
+  .dt { display: grid; grid-template-columns: auto auto auto auto 1fr; gap: 6px; align-items: center; }
+  .dt input[type=date] { grid-column: 1 / -1; min-width: 0; padding: 10px 10px; }
+  .dt select { padding: 10px 6px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: 1rem; font-family: inherit; min-height: 42px; font-variant-numeric: tabular-nums; }
+  .dt select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--soft); }
+  .dt .colon { color: var(--dim); font-weight: 700; }
+  .dt .btn-now { padding: 0 12px; }
+  .dt .btn-del { padding: 0 10px; min-height: 42px; justify-self: start; }
+
+  /* records */
+  .records { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .records { grid-template-columns: 1fr 1fr; } }
+  .record { background: var(--tile-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; }
+  .record-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
+  .record-title b { font-size: .92rem; color: var(--primary); }
+  .seg { display: inline-flex; background: var(--seg-bg); border-radius: 9px; padding: 3px; gap: 2px; }
+  .seg button { padding: 0 11px; min-height: 30px; background: transparent; color: var(--dim); font-size: .8rem; font-weight: 700; border-radius: 7px; }
+  .seg button.active { background: var(--seg-active); color: #fff; box-shadow: 0 2px 8px rgba(0,114,255,.3); }
+  .ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; font-weight: 600; }
+  body.no-grind .grind-only { display: none !important; }
+  body.rate-direct .track-only { display: none !important; }
+  body:not(.rate-direct) .direct-only { display: none !important; }
+  .hint { font-size: .76rem; color: var(--dim); margin-top: 6px; min-height: 1.2em; }
+  .hint.err { color: var(--danger); }
+  .note { font-size: .76rem; color: var(--dim); margin: 10px 0 0; }
+
+  /* chips / tasks */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--input-border); background: var(--input-bg); font-size: .85rem; cursor: pointer; user-select: none; color: var(--text); }
+  .chip input { display: none; }
+  .chip:has(input:checked) { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .chip .pct { opacity: .8; font-size: .78rem; }
+  .server-grid { display: grid; gap: 12px; grid-template-columns: 130px minmax(230px, 1fr) minmax(230px, 1fr); align-items: start; }
+  @media (max-width: 700px) { .server-grid { grid-template-columns: 1fr; } }
+  .tasks { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
+  @media (max-width: 760px) { .tasks { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .tasks { grid-template-columns: 1fr; } }
+  .task { background: var(--tile-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; }
+  .task b { color: var(--primary); font-size: .85rem; display: block; margin-bottom: 6px; }
+  .task small { color: var(--dim); font-size: .72rem; display: block; margin-top: 4px; line-height: 1.5; white-space: nowrap; }
+  .task small b { color: var(--primary); font-weight: 700; }
+  .divider { border: 0; border-top: 1px dashed var(--card-border); margin: 14px 0; }
+
+  /* potions */
+  .potion-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+  body.rate-direct .potion-row { grid-template-columns: 1.4fr 1fr auto; }
+  @media (max-width: 560px) { .potion-row, body.rate-direct .potion-row { grid-template-columns: 1fr 1fr auto; } .potion-row > :first-child { grid-column: 1 / -1; } }
+
+  /* exp table modal */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(2,6,16,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
+  .modal.open { display: flex; }
+  .modal-card { width: 100%; max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-glow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .modal-card .table-wrap { margin-top: 0; max-height: none; flex: 1; min-height: 0; }
+  .table-wrap { max-height: 320px; overflow: auto; margin-top: 12px; border: 1px solid var(--card-border); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+  th { position: sticky; top: 0; background: var(--table-head); color: var(--dim); font-weight: 600; z-index: 1; }
+  td:first-child, th:first-child { text-align: left; }
+  tbody tr:hover { background: var(--row-hover); }
+  tr.cur td { color: var(--primary); font-weight: 700; }
+  tr.target td { color: var(--green); font-weight: 700; }
+
+  /* results */
+  .result { background: var(--result-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; box-shadow: var(--card-glow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .result h2 { margin-bottom: 10px; }
+  .status { font-size: .82rem; color: var(--dim); padding: 10px 12px; border-radius: 10px; background: var(--soft); border: 1px dashed var(--card-border); }
+  .status.err { color: var(--danger); border-color: var(--danger); background: transparent; }
+  .tiles { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 12px; }
+  .tile { background: var(--tile-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; }
+  .tile.wide { grid-column: 1 / -1; }
+  .tile .k { font-size: .74rem; color: var(--dim); margin-bottom: 4px; }
+  .tile .v { font-size: 1.15rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1.25; word-break: break-all; }
+  .tile .v.g { color: var(--green); }
+  .tile .v.p { color: var(--purple); }
+  .tile .s { font-size: .74rem; color: var(--dim); margin-top: 3px; }
+  .progress { margin-top: 12px; }
+  .progress .top { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; }
+  .progress .top b { font-size: 1.05rem; color: var(--primary); }
+  .bar { height: 12px; background: var(--bar-bg); border-radius: 6px; overflow: hidden; margin: 6px 0 4px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--purple)); width: 0; transition: width .4s; box-shadow: 0 0 10px var(--cyan); }
+  .lines { font-size: .85rem; margin-top: 10px; }
+  .lines div { padding: 4px 0; }
+  .lines .v { font-weight: 700; color: var(--primary); }
+  .sec-title { font-size: .8rem; font-weight: 700; color: var(--dim); margin: 14px 0 6px; letter-spacing: .5px; text-transform: uppercase; }
+  .milestones .table-wrap { max-height: 280px; margin-top: 0; }
+  .milestones table { font-size: .78rem; }
+  .milestones th, .milestones td { padding: 6px 7px; }
+  .hidden { display: none !important; }
+
+  /* mobile quick bar */
+  .quickbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: var(--card); border-top: 1px solid var(--card-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 20; align-items: center; justify-content: space-between; gap: 10px; }
+  .quickbar .qv { font-size: .78rem; color: var(--dim); line-height: 1.2; }
+  .quickbar .qv b { display: block; font-size: 1rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .quickbar button { padding: 0 16px; background: var(--seg-active); color: #fff; font-weight: 700; min-height: 40px; }
+  @media (max-width: 979px) { .quickbar { display: flex; } }
+  .foot { text-align: center; color: var(--dim); font-size: .75rem; margin-top: 24px; }
+  .recruit { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; padding: 8px 14px; border-radius: 999px; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); font-size: .85rem; }
+  .recruit b { color: var(--primary); font-family: ui-monospace, Menlo, monospace; }
+  .btn-copy { padding: 0 10px; min-height: 26px; font-size: .75rem; background: var(--seg-active); color: #fff; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1><span class="bolt">⚡</span> RO樂園升級經驗試算</h1>
+    <div class="row">
+      <button class="btn-ghost" onclick="openExpTable()">📊 經驗表</button>
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+      <button class="btn-ghost" onclick="resetAll()" title="輸入會自動儲存在此瀏覽器，按此全部清除">🗑 清除資料</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- ===== 左欄：輸入 ===== -->
+    <div class="main">
+
+      <div class="card">
+        <h2><span class="n">1</span> 🎮 掛機設定</h2>
+        <div class="ask">
+          <span>你有在掛機練功嗎？</span>
+          <div class="seg" id="grindSeg">
+            <button type="button" data-g="1" class="active" onclick="setGrind(true)">是，有掛機</button>
+            <button type="button" data-g="0" onclick="setGrind(false)">否，只做每日任務</button>
+          </div>
+        </div>
+        <div class="ask grind-only">
+          <span>每小時經驗怎麼取得？</span>
+          <div class="seg" id="rateSeg">
+            <button type="button" data-m="track" class="active" onclick="setRateMode('track')">兩筆紀錄追蹤</button>
+            <button type="button" data-m="direct" onclick="setRateMode('direct')">直接輸入</button>
+          </div>
+        </div>
+        <div class="grind-only direct-only" style="margin-bottom:12px; max-width:360px;">
+          <label>每小時掛機經驗（EXP / 小時）</label>
+          <input type="number" id="rateInput" min="0" step="1" inputmode="numeric" placeholder="例如 885573173" data-save>
+          <div class="hint" id="rateHint"></div>
+        </div>
+        <div class="records">
+          <div class="record grind-only track-only" id="rec-old">
+            <div class="record-title">
+              <b>先前紀錄</b>
+              <div class="seg" data-rec="old">
+                <button type="button" data-mode="pct" class="active" onclick="setMode('old','pct')">%</button>
+                <button type="button" data-mode="exp" onclick="setMode('old','exp')">經驗數值</button>
+              </div>
+            </div>
+            <label>紀錄時間</label>
+            <div class="dt" data-id="oldTime" style="margin-bottom:10px;"></div>
+            <input type="hidden" id="oldTime" data-save>
+            <div class="grid-2">
+              <div><label>等級</label><input type="number" id="oldLv" value="1" min="1" max="119" inputmode="numeric" data-save oninput="syncCanon('old')"></div>
+              <div><label id="oldValLabel">經驗 %</label><input type="number" id="oldVal" value="0" min="0" step="any" inputmode="decimal" data-save oninput="syncCanon('old')"></div>
+            </div>
+            <div class="hint" id="oldHint"></div>
+          </div>
+
+          <div class="record" id="rec-new">
+            <div class="record-title">
+              <b id="newTitle">當前紀錄</b>
+              <div class="seg" data-rec="new">
+                <button type="button" data-mode="pct" class="active" onclick="setMode('new','pct')">%</button>
+                <button type="button" data-mode="exp" onclick="setMode('new','exp')">經驗數值</button>
+              </div>
+            </div>
+            <div class="grind-only track-only">
+            <label>紀錄時間</label>
+            <div class="dt" data-id="newTime" style="margin-bottom:10px;"></div>
+            <input type="hidden" id="newTime" data-save>
+            </div>
+            <div class="grid-2">
+              <div><label>等級</label><input type="number" id="newLv" value="1" min="1" max="119" inputmode="numeric" data-save oninput="syncCanon('new')"></div>
+              <div><label id="newValLabel">經驗 %</label><input type="number" id="newVal" value="0" min="0" step="any" inputmode="decimal" data-save oninput="syncCanon('new')"></div>
+            </div>
+            <div class="hint" id="newHint"></div>
+          </div>
+        </div>
+
+        <div class="grind-only">
+        <hr class="divider">
+        <label style="font-weight:700; color:var(--text); margin-bottom:8px;">🧪 補品消耗（選填）</label>
+        <div id="potions"></div>
+        <button class="btn-add" onclick="addPotion()">＋ 新增補品</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">2</span> 📅 經驗加成與每日任務</h2>
+        <label>持續型加成</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
+          <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
+          <label class="chip"><input type="checkbox" id="serverOn" data-save>伺服器加成</label>
+        </div>
+        <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="buffPotion" data-save>每日任務時使用 EXPUP 藥水 <span class="pct">+50%</span></label>
+        </div>
+        <p class="note" style="margin-top:6px;">只套用在每日任務，掛機不計。</p>
+        <div class="hint" id="multInfo" style="margin-top:10px; font-weight:700; color:var(--primary);"></div>
+        <div id="serverBox" style="margin-top:10px;">
+          <div class="server-grid">
+            <div><label>伺服器經驗加成 %</label><input type="number" id="serverPct" value="0" min="0" step="1" inputmode="numeric" data-save placeholder="50"></div>
+            <div><label>開始時間（選填）</label><div class="dt" data-id="serverStart"></div><input type="hidden" id="serverStart" data-save></div>
+            <div><label>結束時間（選填）</label><div class="dt" data-id="serverEnd"></div><input type="hidden" id="serverEnd" data-save></div>
+          </div>
+          <div class="hint">未填時間 = 無限期。</div>
+        </div>
+        <div class="tasks">
+          <div class="task"><b>90 級每日任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
+          <div class="task"><b>100 級每日任務</b><label>達成任務數</label><input type="number" id="task100" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="100"></small></div>
+          <div class="task"><b>105 級每日任務</b><label>達成任務數</label><input type="number" id="task105" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="105"></small></div>
+          <div class="task"><b>110 級每日任務</b><label>達成任務數</label><input type="number" id="task110" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="110"></small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">3</span> 🎯 目標等級</h2>
+        <div class="row" style="max-width:320px;">
+          <input type="number" id="targetLv" value="120" min="2" max="120" inputmode="numeric" data-save>
+          <button class="btn-now" onclick="$('targetLv').value=120; onChange()">MAX</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== 右欄：結果 ===== -->
+    <div class="side" id="resultAnchor">
+      <div class="result">
+        <h2>📈 分析結果</h2>
+        <div class="status" id="status">填入資料後結果會自動更新。</div>
+
+        <div id="resultBody" class="hidden">
+          <div class="progress">
+            <div class="top"><span>目前 <b id="rCurLv"></b></span><span id="rCurPct" style="font-weight:700;color:var(--primary)"></span></div>
+            <div class="bar"><div id="rBar"></div></div>
+            <div class="hint" id="rCurExp" style="margin-top:0"></div>
+          </div>
+
+          <div class="tiles">
+            <div class="tile wide grind-only"><div class="k">每小時獲得經驗（純掛機）</div><div class="v" id="rRate"></div><div class="s" id="rRateSub"></div></div>
+            <div class="tile"><div class="k" id="rNextK">升至下一級</div><div class="v" id="rNext"></div><div class="s" id="rNextSub"></div></div>
+            <div class="tile"><div class="k" id="rTargetK">到達目標</div><div class="v" id="rTarget"></div><div class="s" id="rTargetSub"></div></div>
+            <div class="tile wide grind-only"><div class="k" id="rCombinedK">每日任務 + 每天 24h 掛機 → 到達目標</div><div class="v p" id="rCombined"></div><div class="s" id="rCombinedSub"></div></div>
+          </div>
+
+          <div class="lines" id="rServer"></div>
+          <div class="lines" id="rPotion"></div>
+
+          <div class="sec-title" id="msTitle">升級里程碑（純掛機）</div>
+          <div class="milestones">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>等級</th><th>還需經驗</th><th>累計時間</th><th>預計到達</th></tr></thead>
+                <tbody id="msBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺</div>
+  </div>
+</div>
+
+<div class="modal" id="expModal" onclick="if(event.target===this) closeExpTable()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <b>📊 內建等級經驗表 (Lv 1 - 120)</b>
+      <button class="btn-ghost" onclick="closeExpTable()">✕</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>等級</th><th>升到下一級所需</th><th>累積總經驗</th></tr></thead>
+        <tbody id="expBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="quickbar">
+  <div class="qv"><span id="qRateK">每小時經驗</span><b id="qRate">—</b></div>
+  <div class="qv">到達目標<b id="qTarget">—</b></div>
+  <button onclick="document.getElementById('resultAnchor').scrollIntoView({behavior:'smooth'})">看結果 ↓</button>
+</div>
+
+<script>
+// EXP_DATA[lv] = 從 lv-1 升到 lv 所需經驗
+const EXP_DATA = {
+  1:0, 2:2443, 3:2711, 4:3009, 5:3339, 6:3706, 7:4113, 8:4565, 9:5067, 10:5624,
+  11:6242, 12:6928, 13:7690, 14:8535, 15:9473, 16:10515, 17:11671, 18:12954, 19:14378, 20:15959,
+  21:17714, 22:19662, 23:21824, 24:24224, 25:26888, 26:29845, 27:33127, 28:36770, 29:40814, 30:45303,
+  31:50286, 32:55817, 33:61956, 34:68771, 35:76335, 36:84731, 37:94051, 38:104396, 39:115879, 40:128625,
+  41:142773, 42:158478, 43:175910, 44:195260, 45:216738, 46:240579, 47:267042, 48:296416, 49:329021, 50:365213,
+  51:434603, 52:1037509, 53:1525139, 54:2241953, 55:3295672, 56:4844639, 57:7121618, 58:10468780, 59:15389107, 60:22621987,
+  61:25789065, 62:29399534, 63:33515469, 64:38207635, 65:43556704, 66:49654642, 67:56606292, 68:64531173, 69:73565537, 70:83864712,
+  71:94767124, 72:107086850, 73:121008141, 74:136739199, 75:154515294, 76:174602283, 77:197300579, 78:222949654, 79:251933109, 80:284684413,
+  81:318846542, 82:357108127, 83:399961102, 84:447956434, 85:501711206, 86:561916551, 87:629346536, 88:704868120, 89:789452294, 90:884186569,
+  91:990288957, 92:1109123631, 93:1242218466, 94:1391284681, 95:1558238842, 96:1745227503, 97:1954654803, 98:2189213379, 99:2451919884, 100:2746149262,
+  101:3295379114, 102:3954454936, 103:4745345923, 104:5694415107, 105:6833298128, 106:8199957753, 107:9839949303, 108:11807939163, 109:14169526995, 110:17003432394,
+  111:20404118872, 112:24484942646, 113:29381931175, 114:35258317410, 115:42309980892, 116:50771977070, 117:60926372484, 118:73111646980, 119:87733976376, 120:105280771651
+};
+const MAX_LV = 120;
+const BASE_EXP_90 = 8850000, BASE_EXP_100 = 54166667, BASE_EXP_105 = 136226815;
+const BASE_EXP_110 = 374075509 / 2.2; // ≈170,034,322，由全加成(角色10%+帳號10%+EXPUP50%+伺服器50% = ×2.2)觀測值 374,075,509 回推
+const CUM = {};
+(function(){ let s = 0; for (let lv = 1; lv <= MAX_LV; lv++) { s += EXP_DATA[lv]; CUM[lv] = s; } })();
+const needFor = lv => EXP_DATA[lv + 1] || 0;
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+
+// 經驗表
+(function(){
+  const tb = $('expBody');
+  for (let lv = 1; lv <= MAX_LV; lv++) {
+    const tr = tb.insertRow(); tr.id = 'exp-' + lv;
+    tr.insertCell().innerText = lv;
+    tr.insertCell().innerText = lv < MAX_LV ? fmt(needFor(lv)) : '—';
+    tr.insertCell().innerText = fmt(CUM[lv]);
+  }
+})();
+
+// ===== 是否掛機 =====
+let grind = true;
+let rateMode = 'track';   // 'track' = 兩筆紀錄追蹤, 'direct' = 直接輸入每小時經驗
+function refreshStepUI() {
+  document.body.classList.toggle('no-grind', !grind);
+  document.body.classList.toggle('rate-direct', rateMode === 'direct');
+  document.querySelectorAll('#grindSeg button').forEach(b => b.classList.toggle('active', (b.dataset.g === '1') === grind));
+  document.querySelectorAll('#rateSeg button').forEach(b => b.classList.toggle('active', b.dataset.m === rateMode));
+  $('newTitle').innerText = (grind && rateMode === 'track') ? '當前紀錄' : '目前狀態';
+}
+function setGrind(v, recalc = true) { grind = !!v; refreshStepUI(); if (recalc) onChange(); }
+function setRateMode(m, recalc = true) { rateMode = m; refreshStepUI(); if (recalc) onChange(); }
+
+// ===== 模式（% / 數值） =====
+const modes = { old: 'pct', new: 'pct' };
+const canon = { old: null, new: null };   // 精確的等級內已累積經驗
+const fmtPct = p => String(+p.toFixed(6));
+
+function syncCanon(rec) {
+  const lv = parseInt($(rec + 'Lv').value) || 1;
+  const raw = parseFloat($(rec + 'Val').value);
+  canon[rec] = isNaN(raw) ? null : (modes[rec] === 'pct' ? raw / 100 * needFor(lv) : raw);
+  onChange();
+}
+function setMode(rec, mode, convert = true) {
+  const input = $(rec + 'Val');
+  const need = needFor(parseInt($(rec + 'Lv').value) || 1);
+  if (convert && modes[rec] !== mode && canon[rec] !== null && need > 0) {
+    input.value = mode === 'exp' ? Math.round(canon[rec]) : fmtPct(canon[rec] / need * 100);
+  }
+  modes[rec] = mode;
+  $(rec + 'ValLabel').innerText = mode === 'pct' ? '經驗 %' : '經驗數值';
+  input.step = mode === 'pct' ? '0.0001' : '1';
+  input.inputMode = mode === 'pct' ? 'decimal' : 'numeric';
+  input.placeholder = mode === 'pct' ? '例如 37.52' : '例如 123456789';
+  document.querySelectorAll(`.seg[data-rec="${rec}"] button`).forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  if (convert) onChange();
+}
+function readRecord(rec) {
+  const lv = parseInt($(rec + 'Lv').value);
+  const raw = parseFloat($(rec + 'Val').value);
+  if (!Number.isInteger(lv) || lv < 1 || lv >= MAX_LV) return { error: '等級必須介於 1 ~ 119' };
+  if (isNaN(raw) || raw < 0) return { error: '請輸入經驗值' };
+  const need = needFor(lv);
+  let pct, expInLv;
+  if (modes[rec] === 'pct') {
+    if (raw >= 100) return { error: '經驗 % 必須小於 100' };
+    pct = raw; expInLv = need * raw / 100;
+  } else {
+    if (raw >= need) return { error: `數值必須小於 ${fmt(need)}（Lv ${lv} 升級所需）` };
+    expInLv = raw; pct = raw / need * 100;
+  }
+  return { lv, pct, expInLv, need, total: CUM[lv] + expInLv };
+}
+function refreshHints() {
+  for (const rec of ['old', 'new']) {
+    const h = $(rec + 'Hint'), input = $(rec + 'Val');
+    const r = readRecord(rec);
+    if (r.error) { h.innerText = r.error; h.classList.add('err'); input.classList.add('invalid'); continue; }
+    h.classList.remove('err'); input.classList.remove('invalid');
+    h.innerText = modes[rec] === 'pct' ? `≈ ${fmt(r.expInLv)} / ${fmt(r.need)} EXP` : `≈ ${r.pct.toFixed(4)} %（升級需 ${fmt(r.need)}）`;
+  }
+}
+
+// ===== 時間（日期 + 時 + 分 下拉，寫回隱藏欄位 YYYY-MM-DDTHH:MM）=====
+const dtWidgets = {};
+function buildDt(box) {
+  const id = box.dataset.id, hidden = $(id);
+  const opts = n => Array.from({ length: n }, (_, i) => `<option value="${pad(i)}">${pad(i)}</option>`).join('');
+  box.innerHTML = `<input type="date" class="dt-date"><select class="dt-h">${opts(24)}</select><span class="colon">:</span><select class="dt-m">${opts(60)}</select><button type="button" class="btn-now">現在</button><button type="button" class="btn-del" title="清除">✕</button>`;
+  const date = box.querySelector('.dt-date'), h = box.querySelector('.dt-h'), m = box.querySelector('.dt-m');
+  const write = () => { hidden.value = date.value ? `${date.value}T${h.value}:${m.value}` : ''; onChange(); };
+  const read = () => {
+    const v = hidden.value || '';
+    const mt = v.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/);
+    date.value = mt ? mt[1] : ''; h.value = mt ? mt[2] : '00'; m.value = mt ? mt[3] : '00';
+  };
+  date.addEventListener('change', write); h.addEventListener('change', write); m.addEventListener('change', write);
+  box.querySelector('.btn-now').addEventListener('click', () => setNow(id));
+  box.querySelector('.btn-del').addEventListener('click', () => { hidden.value = ''; read(); onChange(); });
+  dtWidgets[id] = { read };
+  read();
+}
+document.querySelectorAll('.dt').forEach(buildDt);
+function refreshDt() { Object.values(dtWidgets).forEach(w => w.read()); }
+function setNow(id) {
+  const d = new Date();
+  $(id).value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  refreshDt();
+  onChange();
+}
+function fmtDur(hours) {
+  if (!(hours > 0)) return '0 分鐘';
+  const totalMin = Math.round(hours * 60);
+  const d = Math.floor(totalMin / 1440), h = Math.floor((totalMin % 1440) / 60), m = totalMin % 60;
+  if (d >= 30) return `${(totalMin / 1440).toFixed(1)} 天`;
+  const parts = [];
+  if (d) parts.push(`${d} 天`);
+  if (h) parts.push(`${h} 小時`);
+  if (!d && (m || !parts.length)) parts.push(`${m} 分`);
+  return parts.join(' ') || '0 分';
+}
+function fmtDays(hours) { return hours >= 24 ? `約 ${(hours / 24).toFixed(1)} 天` : ''; }
+function fmtEta(base, hours) {
+  const d = new Date(base.getTime() + hours * 3600000);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const date = `${sameYear ? '' : d.getFullYear() + '/'}${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+  return hours >= 24 * 30 ? date : `${date} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ===== 補品 =====
+function potionName(row) { return row.querySelector('.p-name').value.trim(); }
+function addPotion(data = {}) {
+  const div = document.createElement('div');
+  div.className = 'potion-row';
+  div.innerHTML = `
+    <div><label>補品名稱</label><input type="text" class="p-name" placeholder="例如: 紅色藥水"></div>
+    <div class="track-only"><label>先前數量</label><input type="number" class="p-old" min="0" inputmode="numeric" placeholder="先前"></div>
+    <div class="track-only"><label>當前數量</label><input type="number" class="p-new" min="0" inputmode="numeric" placeholder="當前"></div>
+    <div class="direct-only"><label>每小時消耗量</label><input type="number" class="p-rate" min="0" inputmode="numeric" placeholder="個 / 小時"></div>
+    <button class="btn-del" title="刪除" onclick="this.closest('.potion-row').remove(); onChange();">✕</button>`;
+  div.querySelector('.p-name').value = data.name || '';
+  div.querySelector('.p-old').value = data.old ?? '';
+  div.querySelector('.p-new').value = data.new ?? '';
+  div.querySelector('.p-rate').value = data.rate ?? '';
+  div.querySelectorAll('input').forEach(i => i.addEventListener('input', onChange));
+  $('potions').appendChild(div);
+}
+
+// ===== 計算 =====
+function setStatus(msg, isErr) {
+  const s = $('status');
+  s.innerText = msg; s.classList.toggle('err', !!isErr); s.classList.remove('hidden');
+  $('resultBody').classList.add('hidden');
+  $('qRate').innerText = '—'; $('qTarget').innerText = '—';
+}
+
+function calculate() {
+  refreshHints();
+  document.querySelectorAll('#expBody tr').forEach(tr => tr.className = '');
+
+  const r2 = readRecord('new');
+  if (r2.error) return setStatus((grind ? '當前紀錄：' : '目前狀態：') + r2.error, true);
+
+  let t2 = new Date(), diffMin = 0, gained = 0, expPerHour = 0;
+  const tracking = grind && rateMode === 'track';
+  if (grind && rateMode === 'direct') {
+    const v = parseFloat($('rateInput').value);
+    if (isNaN(v) || v < 0) return setStatus('請輸入每小時掛機經驗。');
+    expPerHour = v;
+  }
+  if (tracking) {
+    const t1 = new Date($('oldTime').value); t2 = new Date($('newTime').value);
+    if (isNaN(t1) || isNaN(t2)) return setStatus('請填入先前與當前的紀錄時間。');
+    diffMin = (t2 - t1) / 60000;
+    if (diffMin <= 0) return setStatus('當前紀錄時間必須晚於先前紀錄時間。', true);
+    const r1 = readRecord('old');
+    if (r1.error) return setStatus('先前紀錄：' + r1.error, true);
+    if (r2.total < r1.total) return setStatus('當前經驗不能低於先前紀錄。', true);
+    gained = r2.total - r1.total;
+    expPerHour = gained / diffMin * 60;
+  }
+
+  const targetLv = parseInt($('targetLv').value);
+  if (!Number.isInteger(targetLv) || targetLv < 2 || targetLv > MAX_LV) return setStatus('目標等級必須介於 2 ~ 120。', true);
+  if (targetLv <= r2.lv) return setStatus('目標等級必須高於當前等級。', true);
+
+  const nextNeed = r2.need - r2.expInLv;
+  const remainToTarget = CUM[targetLv] - r2.total;
+
+  // ---- 加成倍率（伺服器加成另外處理，因為有期間限制）----
+  let baseMult = 1;
+  if ($('buffChar').checked) baseMult += .10;
+  if ($('buffAcc').checked) baseMult += .10;
+  if ($('buffPotion').checked) baseMult += .50;
+  const serverOn = $('serverOn').checked;
+  const serverPct = serverOn ? (parseFloat($('serverPct').value) || 0) / 100 : 0;
+  const c90 = parseInt($('task90').value) || 0, c100 = parseInt($('task100').value) || 0, c105 = parseInt($('task105').value) || 0, c110 = parseInt($('task110').value) || 0;
+  const taskBase = BASE_EXP_90 * c90 + BASE_EXP_100 * c100 + BASE_EXP_105 * c105 + BASE_EXP_110 * c110;
+  const dailyNoSrv = taskBase * baseMult;                 // 無伺服器加成
+  const dailySrv = taskBase * (baseMult + serverPct);     // 含伺服器加成
+
+  // ---- 伺服器加成期間（相對於推估起點 t2 的小時數；未填 = 無限）----
+  const bs = serverOn && $('serverStart').value ? new Date($('serverStart').value) : null;
+  const be = serverOn && $('serverEnd').value ? new Date($('serverEnd').value) : null;
+  if (bs && be && be <= bs) return setStatus('伺服器加成的結束時間必須晚於開始時間。', true);
+  const bsH = bs ? (bs - t2) / 3.6e6 : -Infinity;
+  const beH = be ? (be - t2) / 3.6e6 : Infinity;
+  const srvActiveNow = serverOn && bsH <= 0 && beH > 0;
+  const dailyNow = srvActiveNow ? dailySrv : dailyNoSrv;
+
+  // 依加成期間分段累積：回傳「獲得 exp 需要幾小時」的函式
+  function timeline(rateNo, rateSrv) {
+    const segs = [];
+    if (serverOn) {
+      if (bsH > 0) segs.push({ len: bsH, rate: rateNo });
+      const s0 = Math.max(bsH, 0);
+      if (beH > s0) segs.push({ len: beH - s0, rate: rateSrv });
+    }
+    segs.push({ len: Infinity, rate: rateNo });
+    return exp => {
+      let h = 0, rem = exp;
+      for (const sg of segs) {
+        if (rem <= 0) return h;
+        if (sg.rate <= 0) { if (sg.len === Infinity) return Infinity; h += sg.len; continue; }
+        const cap = sg.rate * sg.len;
+        if (rem <= cap) return h + rem / sg.rate;
+        rem -= cap; h += sg.len;
+      }
+      return Infinity;
+    };
+  }
+  const hoursGrind = exp => expPerHour > 0 ? exp / expPerHour : Infinity;                 // 純掛機
+  const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                               // 只靠每日任務
+  const hoursCombined = timeline(expPerHour + dailyNoSrv / 24, expPerHour + dailySrv / 24); // 每日任務 + 24h 掛機
+
+  // 主要推估：掛機模式 = 掛機 + 每日任務；非掛機模式 = 每日任務
+  const hoursFor = grind ? hoursCombined : hoursTask;
+  const modeLabel = grind ? (taskBase ? '掛機＋每日' : '純掛機') : '每日任務';
+  const hToNext = hoursFor(nextNeed), hToTarget = hoursFor(remainToTarget);
+  const hGrindOnly = hoursGrind(remainToTarget);
+  const ok = h => Number.isFinite(h);
+
+  // ---- 輸出 ----
+  $('status').classList.add('hidden');
+  $('resultBody').classList.remove('hidden');
+  $('rCurLv').innerText = `Lv ${r2.lv}`;
+  $('rCurPct').innerText = r2.pct.toFixed(4) + ' %';
+  $('rBar').style.width = Math.min(100, r2.pct).toFixed(2) + '%';
+  $('rCurExp').innerText = `${fmt(r2.expInLv)} / ${fmt(r2.need)} EXP　距離升級 ${fmt(nextNeed)}`;
+
+  $('rRate').innerText = fmt(expPerHour);
+  $('rRateSub').innerText = tracking ? `觀測 ${fmtDur(diffMin / 60)}，共獲得 ${fmt(gained)} EXP` : '手動輸入';
+  $('rNextK').innerText = `升至下一級（${modeLabel}）`;
+  $('rTargetK').innerText = `到達 Lv ${targetLv}（${modeLabel}）`;
+  $('msTitle').innerText = `升級里程碑（${modeLabel}）`;
+  if (ok(hToTarget)) {
+    $('rNext').innerText = fmtDur(hToNext);
+    $('rNextSub').innerText = `Lv ${r2.lv + 1}・${fmtEta(t2, hToNext)}`;
+    $('rTarget').innerText = fmtDur(hToTarget);
+    $('rTargetSub').innerText = `${fmtDays(hToTarget)}${fmtDays(hToTarget) ? '・' : ''}${fmtEta(t2, hToTarget)}`;
+  } else {
+    $('rNext').innerText = '—'; $('rNextSub').innerText = grind ? '經驗無增長' : '尚未填每日任務';
+    $('rTarget').innerText = '—'; $('rTargetSub').innerText = `還差 ${fmt(remainToTarget)} EXP`;
+  }
+  // 參考值：純掛機（不做每日任務）
+  const cmpTile = $('rCombined').closest('.tile');
+  cmpTile.classList.toggle('hidden', !(grind && taskBase > 0));
+  $('rCombinedK').innerText = `純掛機（不做每日任務）→ 到達 Lv ${targetLv}`;
+  if (ok(hGrindOnly)) {
+    $('rCombined').innerText = fmtDur(hGrindOnly);
+    $('rCombinedSub').innerText = `${fmtDays(hGrindOnly)}${fmtDays(hGrindOnly) ? '・' : ''}${fmtEta(t2, hGrindOnly)}`;
+  } else {
+    $('rCombined').innerText = '—';
+    $('rCombinedSub').innerText = '經驗無增長';
+  }
+  if (grind && taskBase) {
+    $('rRateSub').innerText += `・每日合計 ${fmt(expPerHour * 24 + dailyNow)} EXP（任務 ${fmt(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
+  }
+
+  // ---- 伺服器加成狀態 ----
+  if (serverOn && serverPct > 0) {
+    const range = `${bs ? fmtEta(bs, 0) : '不限'} ～ ${be ? fmtEta(be, 0) : '不限'}`;
+    let state;
+    if (beH <= 0) state = '<span class="v" style="color:var(--danger)">已結束</span>，推估以無伺服器加成計算';
+    else if (bsH > 0) state = `尚未開始，${fmtDur(bsH)}後生效`;
+    else if (be) state = `進行中，剩 <span class="v">${fmtDur(beH)}</span>`;
+    else state = '進行中，無限期';
+    const dailyLine = (taskBase && be && beH > 0) ? `<div>每日任務：加成期間 <span class="v">${fmt(dailySrv)}</span> EXP／結束後 <span class="v">${fmt(dailyNoSrv)}</span> EXP</div>` : '';
+    $('rServer').innerHTML = `<div class="sec-title" style="margin-top:12px">伺服器加成 +${(serverPct * 100).toFixed(0)}%</div><div>${range}　${state}</div>${dailyLine}`;
+  } else {
+    $('rServer').innerHTML = '';
+  }
+
+  // ---- 補品（掛機模式：追蹤 = 先前/當前數量；直接輸入 = 每小時消耗量）----
+  const lines = [];
+  if (grind) document.querySelectorAll('.potion-row').forEach(row => {
+    const name = potionName(row) || '補品';
+    let perHour;
+    if (tracking) {
+      const o = row.querySelector('.p-old').value, n = row.querySelector('.p-new').value;
+      if (o === '' || n === '') return;
+      const used = parseFloat(o) - parseFloat(n);
+      if (isNaN(used)) return;
+      if (used < 0) { lines.push(`【${name}】<span class="v" style="color:var(--danger)">當前數量不能高於先前數量</span>`); return; }
+      perHour = used / diffMin * 60;
+    } else {
+      const v = parseFloat(row.querySelector('.p-rate').value);
+      if (isNaN(v) || v < 0) return;
+      perHour = v;
+    }
+    lines.push(`【${name}】每小時 <span class="v">${fmt(perHour)}</span> 個${ok(hToTarget) ? `，到 Lv ${targetLv} 約需 <span class="v">${fmt(perHour * hToTarget)}</span> 個` : ''}`);
+  });
+  $('rPotion').innerHTML = lines.length ? `<div class="sec-title" style="margin-top:12px">補品消耗</div>` + lines.map(l => `<div>${l}</div>`).join('') : '';
+
+  // ---- 里程碑 ----
+  const tb = $('msBody'); tb.innerHTML = '';
+  let cumExp = 0;
+  for (let lv = r2.lv + 1; lv <= targetLv; lv++) {
+    cumExp += (lv === r2.lv + 1) ? nextNeed : EXP_DATA[lv];
+    const h = hoursFor(cumExp);
+    const tr = tb.insertRow();
+    if (lv === targetLv) tr.className = 'target';
+    tr.insertCell().innerText = lv;
+    tr.insertCell().innerText = fmt(cumExp);
+    tr.insertCell().innerText = ok(h) ? fmtDur(h) : '—';
+    tr.insertCell().innerText = ok(h) ? fmtEta(t2, h) : '—';
+  }
+  const curRow = $('exp-' + r2.lv), tgtRow = $('exp-' + targetLv);
+  if (curRow) curRow.className = 'cur';
+  if (tgtRow) tgtRow.className = 'target';
+
+  $('qRateK').innerText = grind ? '每小時經驗' : '每日任務經驗';
+  $('qRate').innerText = fmt(grind ? expPerHour : dailyNow);
+  $('qTarget').innerText = ok(hToTarget) ? fmtDur(hToTarget) : '—';
+}
+
+const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110 };
+function updateTaskInfo() {
+  let mult = 1;
+  if ($('buffChar').checked) mult += .10;
+  if ($('buffAcc').checked) mult += .10;
+  if ($('buffPotion').checked) mult += .50;
+  if ($('serverOn').checked) {
+    const now = Date.now();
+    const bs = $('serverStart').value ? new Date($('serverStart').value).getTime() : -Infinity;
+    const be = $('serverEnd').value ? new Date($('serverEnd').value).getTime() : Infinity;
+    if (bs <= now && now < be) mult += (parseFloat($('serverPct').value) || 0) / 100;
+  }
+  document.querySelectorAll('.task-info').forEach(el => {
+    const base = TASK_BASE[el.dataset.lv];
+    el.innerHTML = `基礎 ${fmt(base)}<br>加成後 <b>${fmt(base * mult)}</b>`;
+  });
+  $('multInfo').innerText = `目前每日任務倍率 ×${mult.toFixed(2)}`;
+}
+function onChange() {
+  $('serverBox').style.display = $('serverOn').checked ? 'block' : 'none';
+  updateTaskInfo();
+  save();
+  calculate();
+}
+
+// ===== 儲存 / 載入 =====
+const KEY = 'roz-exp-calc-v2';
+function save() {
+  const data = { grind, rateMode, modes, fields: {}, potions: [] };
+  document.querySelectorAll('[data-save]').forEach(el => data.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value);
+  document.querySelectorAll('.potion-row').forEach(row => data.potions.push({
+    name: potionName(row),
+    old: row.querySelector('.p-old').value, new: row.querySelector('.p-new').value, rate: row.querySelector('.p-rate').value }));
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+function load() {
+  let data; try { data = JSON.parse(localStorage.getItem(KEY)); } catch {}
+  if (data) {
+    for (const [id, v] of Object.entries(data.fields || {})) { const el = $(id); if (!el) continue; if (el.type === 'checkbox') el.checked = v; else el.value = v; }
+    (data.potions || []).forEach(addPotion);
+    refreshDt();
+    for (const rec of ['old', 'new']) if (data.modes && data.modes[rec]) setMode(rec, data.modes[rec], false);
+    if (typeof data.grind === 'boolean') grind = data.grind;
+    if (data.rateMode === 'direct' || data.rateMode === 'track') rateMode = data.rateMode;
+    refreshStepUI();
+  }
+  refreshStepUI();
+  if (!document.querySelector('.potion-row')) addPotion();
+  for (const rec of ['old', 'new']) {
+    const lv = parseInt($(rec + 'Lv').value) || 1, raw = parseFloat($(rec + 'Val').value);
+    canon[rec] = isNaN(raw) ? null : (modes[rec] === 'pct' ? raw / 100 * needFor(lv) : raw);
+  }
+  onChange();
+}
+function resetAll() {
+  if (!confirm('確定要清除所有輸入資料嗎？')) return;
+  localStorage.removeItem(KEY);
+  location.reload();
+}
+document.querySelectorAll('[data-save]').forEach(el => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', onChange));
+
+// ===== 複製 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+
+// ===== 經驗表彈窗 =====
+function openExpTable() {
+  $('expModal').classList.add('open');
+  const cur = document.querySelector('#expBody tr.cur');
+  if (cur) cur.scrollIntoView({ block: 'center' });
+}
+function closeExpTable() { $('expModal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExpTable(); });
+
+// ===== 主題 =====
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', t); applyTheme(t);
+}
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+load();
+</script>
+</body>
+</html>
