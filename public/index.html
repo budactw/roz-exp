@@ -239,7 +239,7 @@
           </div>
         </div>
         <div class="grind-only direct-only" style="margin-bottom:12px; max-width:360px;">
-          <label>每小時掛機經驗（EXP / 小時）</label>
+          <label>每小時掛機經驗（EXP / 小時，未含加成）</label>
           <input type="number" id="rateInput" min="0" step="1" inputmode="numeric" placeholder="例如 885573173" data-save>
           <div class="hint" id="rateHint"></div>
         </div>
@@ -298,10 +298,6 @@
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="serverOn" data-save>伺服器加成</label>
-        </div>
-        <div class="grind-only" style="margin-top:10px;">
-          <label class="check"><input type="checkbox" id="grindBuff" onchange="setGrindBuff(this.checked)"> 掛機時薪也套用持續型加成</label>
-          <div class="hint" id="grindBuffHint"></div>
         </div>
         <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
         <div class="chips">
@@ -439,15 +435,8 @@ const pad = n => String(n).padStart(2, '0');
 // ===== 是否掛機 =====
 let grind = true;
 let rateMode = 'track';   // 'track' = 兩筆紀錄追蹤, 'direct' = 直接輸入每小時經驗
-// 掛機時薪是否套用持續型加成：直接輸入預設套用（填的是未加成數值）；兩筆紀錄預設不套用（實測值已含）
-const grindBuffBy = { direct: true, track: false };
-function setGrindBuff(v) { grindBuffBy[rateMode] = !!v; refreshStepUI(); onChange(); }
 function refreshStepUI() {
   document.body.classList.toggle('no-grind', !grind);
-  $('grindBuff').checked = grindBuffBy[rateMode];
-  $('grindBuffHint').innerText = rateMode === 'direct'
-    ? '填的時薪若已含加成請取消勾選。'
-    : '兩筆紀錄算出的時薪通常已含加成，當時沒開加成才勾選。';
   document.body.classList.toggle('rate-direct', rateMode === 'direct');
   document.querySelectorAll('#grindSeg button').forEach(b => b.classList.toggle('active', (b.dataset.g === '1') === grind));
   document.querySelectorAll('#rateSeg button').forEach(b => b.classList.toggle('active', b.dataset.m === rateMode));
@@ -655,8 +644,8 @@ function calculate() {
       return Infinity;
     };
   }
-  // 掛機時薪（可選擇是否套用角色/帳號/伺服器加成；EXPUP 不套用在掛機）
-  const grindBuff = grind && grindBuffBy[rateMode];
+  // 掛機時薪：直接輸入的數值套用角色/帳號/伺服器加成；兩筆紀錄的實測值已含加成不再乘。EXPUP 不套用在掛機
+  const grindBuff = grind && rateMode === 'direct';
   const grindMultNo = grindBuff ? 1 + (($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0)) : 1;
   const grindMultSrv = grindBuff ? grindMultNo + serverPct : 1;
   const grindNo = expPerHour * grindMultNo, grindSrv = expPerHour * grindMultSrv;
@@ -681,8 +670,7 @@ function calculate() {
   $('rCurExp').innerText = `${fmt(r2.expInLv)} / ${fmt(r2.need)} EXP　距離升級 ${fmt(nextNeed)}`;
 
   $('rRate').innerText = fmt(grindNow);
-  $('rRateSub').innerText = tracking ? `觀測 ${fmtDur(diffMin / 60)}，共獲得 ${fmt(gained)} EXP` : '手動輸入';
-  if (grindBuff && grindNow !== expPerHour) $('rRateSub').innerText += `・${fmt(expPerHour)} × ${(grindNow / expPerHour).toFixed(2)}`;
+  $('rRateSub').innerText = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmt(gained)} EXP（已含加成）` : `輸入 ${fmt(expPerHour)} × ${(grindNow / expPerHour || 1).toFixed(2)} 加成`;
   $('rNextK').innerText = `升至下一級（${modeLabel}）`;
   $('rTargetK').innerText = `到達 Lv ${targetLv}（${modeLabel}）`;
   $('msTitle').innerText = `升級里程碑（${modeLabel}）`;
@@ -795,7 +783,7 @@ function onChange() {
 // ===== 儲存 / 載入 =====
 const KEY = 'roz-exp-calc-v2';
 function save() {
-  const data = { grind, rateMode, grindBuffBy, modes, fields: {}, potions: [] };
+  const data = { grind, rateMode, modes, fields: {}, potions: [] };
   document.querySelectorAll('[data-save]').forEach(el => data.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value);
   document.querySelectorAll('.potion-row').forEach(row => data.potions.push({
     name: potionName(row),
@@ -811,7 +799,6 @@ function load() {
     for (const rec of ['old', 'new']) if (data.modes && data.modes[rec]) setMode(rec, data.modes[rec], false);
     if (typeof data.grind === 'boolean') grind = data.grind;
     if (data.rateMode === 'direct' || data.rateMode === 'track') rateMode = data.rateMode;
-    if (data.grindBuffBy) Object.assign(grindBuffBy, data.grindBuffBy);
     refreshStepUI();
   }
   refreshStepUI();
