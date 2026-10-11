@@ -1,0 +1,65 @@
+// 回報問題 API：POST /api/report → 轉送到 Discord Webhook
+// 其他路徑由靜態資源（public/）處理
+const MAX_LEN = 1500;
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname !== '/api/report') return env.ASSETS.fetch(request);
+    if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
+
+    // 只接受同網域送來的請求
+    const origin = request.headers.get('Origin') || '';
+    if (origin && new URL(origin).host !== url.host) return json({ ok: false, error: 'origin' }, 403);
+
+    // 速率限制：每個 IP 每分鐘 2 次
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (env.REPORT_LIMIT) {
+      const { success } = await env.REPORT_LIMIT.limit({ key: ip });
+      if (!success) return json({ ok: false, error: 'rate' }, 429);
+    }
+
+    let body;
+    try { body = await request.json(); } catch { return json({ ok: false, error: 'json' }, 400); }
+    const kind = body.kind === 'auto' ? 'auto' : 'user';
+    const text = String(body.text || '').trim().slice(0, MAX_LEN);
+    const contact = String(body.contact || '').trim().slice(0, 100);
+    const page = String(body.page || '').slice(0, 200);
+    const ua = String(body.ua || '').slice(0, 200);
+    const viewport = String(body.viewport || '').slice(0, 40);
+    const state = String(body.state || '').slice(0, 1200);
+    if (kind === 'user' && text.length < 3) return json({ ok: false, error: 'empty' }, 400);
+    if (body.hp) return json({ ok: true });   // 蜜罐欄位有值 → 機器人，假裝成功
+
+    const title = kind === 'auto' ? '⚠️ 自動錯誤回報' : '🐞 使用者回報';
+    const payload = {
+      username: 'RO樂園工具回報',
+      embeds: [{
+        title,
+        description: text || '（無描述）',
+        color: kind === 'auto' ? 0xf59e0b : 0x3b82f6,
+        fields: [
+          { name: '頁面', value: page || '—', inline: false },
+          { name: '聯絡方式', value: contact || '—', inline: true },
+          { name: '螢幕', value: viewport || '—', inline: true },
+          { name: '瀏覽器', value: ua || '—', inline: false },
+          { name: '當時資料', value: state ? '```json\n' + state + '\n```' : '—', inline: false },
+        ],
+        footer: { text: `IP ${ip.replace(/\.\d+$/, '.x')}` },
+        timestamp: new Date().toISOString(),
+      }],
+    };
+
+    if (!env.DISCORD_WEBHOOK) {
+      console.log('[report] (no DISCORD_WEBHOOK set) ' + JSON.stringify(payload));
+      return json({ ok: true, dev: true });
+    }
+    const r = await fetch(env.DISCORD_WEBHOOK, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!r.ok) return json({ ok: false, error: 'discord ' + r.status }, 502);
+    return json({ ok: true });
+  },
+};
+
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+}
