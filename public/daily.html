@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園每日任務｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=2">
+<style>
+  /* ===== 每日任務頁專用 ===== */
+  .chars { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .chars .chip { user-select: none; }
+  .summary { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); margin-top: 12px; }
+  .summary .tile { padding: 10px 12px; }
+  .summary .tile .v { font-size: 1.3rem; }
+  .reset-info { font-size: .78rem; color: var(--dim); margin-top: 8px; }
+
+  .region { border: 1px solid var(--card-border); border-radius: 12px; background: var(--tile-bg); margin-bottom: 12px; overflow: hidden; }
+  .region > h3 { margin: 0; padding: 10px 12px; font-size: .95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--card-border); }
+  .region > h3 .prog { font-size: .75rem; color: var(--dim); font-weight: 500; }
+  .region > h3 .acts { margin-left: auto; display: flex; gap: 6px; }
+  .region > h3 .acts button { min-height: 28px; padding: 0 10px; font-size: .74rem; }
+  .qrow { border-bottom: 1px solid var(--card-border); }
+  .qrow:last-child { border-bottom: 0; }
+  .qrow .main { display: flex; align-items: center; gap: 8px; padding: 8px 12px; flex-wrap: wrap; }
+  .qrow .name { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .qrow .name .lv { font-size: .7rem; color: var(--dim); }
+  .qrow .name .arrow { color: var(--dim); font-size: .75rem; transition: transform .2s; }
+  .qrow.open .name .arrow { transform: rotate(90deg); }
+  .qrow .states { display: inline-flex; background: var(--seg-bg); border-radius: 9px; padding: 3px; gap: 2px; }
+  .qrow .states button { min-height: 30px; padding: 0 10px; font-size: .78rem; font-weight: 700; border-radius: 7px; background: transparent; color: var(--dim); }
+  .qrow .states button.on-none { background: var(--card); color: var(--text); }
+  .qrow .states button.on-done { background: #f6c343; color: #3d2a00; }
+  .qrow .states button.on-turned { background: var(--green); color: #fff; }
+  .qrow.st-done .main { background: rgba(246,195,67,.16); }
+  .qrow.st-turned .main { background: rgba(0,171,85,.12); }
+  .qrow.st-turned .name > span.t { text-decoration: line-through; color: var(--dim); }
+  .qrow .detail { display: none; padding: 6px 12px 12px 12px; font-size: .84rem; color: var(--text); border-top: 1px dashed var(--card-border); background: var(--card); }
+  .qrow.open .detail { display: block; }
+  .detail .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+  .detail .k { color: var(--dim); font-size: .76rem; min-width: 3.2em; }
+  .navi { font-family: ui-monospace, Menlo, monospace; font-size: .8rem; background: var(--soft); border: 1px solid var(--card-border); border-radius: 6px; padding: 2px 8px; }
+  .btn-copy { padding: 0 10px; min-height: 26px; font-size: .74rem; background: var(--seg-active); color: #fff; border-radius: 999px; }
+  .qt { font-size: .66rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; white-space: nowrap; border: 1px solid currentColor; opacity: .85; }
+
+  .mats { display: grid; gap: 6px; }
+  .mat { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--tile-bg); font-size: .9rem; cursor: pointer; }
+  .mat input { width: 16px; height: 16px; accent-color: var(--green); flex-shrink: 0; }
+  .mat .q { margin-left: auto; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .mat.ok { opacity: .55; }
+  .mat.ok .n { text-decoration: line-through; }
+  .mat .from { font-size: .72rem; color: var(--dim); flex-basis: 100%; padding-left: 24px; }
+  .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
+
+  .route .region > h3 { background: var(--soft); }
+  .route .step { padding: 8px 12px; border-bottom: 1px solid var(--card-border); font-size: .86rem; }
+  .route .step:last-child { border-bottom: 0; }
+  .route .step b { display: block; margin-bottom: 2px; }
+  .route .tip { padding: 8px 12px; font-size: .78rem; color: var(--dim); background: var(--soft); }
+  .route .step.turned { opacity: .5; }
+
+  .sel-region { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
+  .sel-region h3 { margin: 0; padding: 8px 12px; font-size: .9rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
+  .sel-region h3 .acts { margin-left: auto; display: flex; gap: 6px; }
+  .sel-region h3 .acts button { min-height: 26px; padding: 0 8px; font-size: .72rem; }
+  .sel-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: .84rem; border-bottom: 1px solid rgba(0,0,0,.05); cursor: pointer; }
+  .sel-item:last-child { border-bottom: 0; }
+  .sel-item input { width: 16px; height: 16px; accent-color: var(--primary); }
+  [data-theme="dark"] .sel-item { border-bottom-color: rgba(255,255,255,.06); }
+  .modal-card .q-body { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  @media (max-width: 520px) { .summary { grid-template-columns: 1fr 1fr 1fr; gap: 6px; } .summary .tile .v { font-size: 1.05rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1><span class="bolt">✅</span> RO樂園每日任務 <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a class="active" href="daily.html">✅ 每日任務</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+    </div>
+  </div>
+
+  <!-- 角色 -->
+  <div class="card">
+    <h2>👤 角色</h2>
+    <div class="chars" id="chars"></div>
+    <div class="summary">
+      <div class="tile"><div class="k">今日任務</div><div class="v" id="sumTotal">0</div></div>
+      <div class="tile"><div class="k">已完成（待還）</div><div class="v" style="color:#d19a00" id="sumDone">0</div></div>
+      <div class="tile"><div class="k">已還</div><div class="v g" id="sumTurned">0</div></div>
+    </div>
+    <div class="reset-info" id="resetInfo"></div>
+  </div>
+
+  <div class="layout">
+    <div class="main">
+      <!-- 今日任務 -->
+      <div class="card">
+        <h2><span class="n">1</span> 📋 今日任務
+          <span class="row" style="margin-left:auto; gap:6px;">
+            <button class="btn-sm" onclick="openSelect()">✏️ 編輯清單</button>
+            <button class="btn-ghost" onclick="resetToday()" title="把今天的狀態全部清回未做">↺ 清除今日</button>
+          </span>
+        </h2>
+        <div id="board"></div>
+      </div>
+
+      <!-- 路線指引 -->
+      <div class="card route">
+        <h2><span class="n">2</span> 🗺️ 路線指引
+          <label class="check" style="margin-left:auto; font-size:.8rem;"><input type="checkbox" id="routeAll" onchange="render()"> 顯示全部任務</label>
+        </h2>
+        <div id="route"></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <!-- 材料 -->
+      <div class="card">
+        <h2>🎒 要帶的材料</h2>
+        <div class="mats" id="mats"></div>
+        <div class="sec-title" id="optTitle" style="margin-top:14px;">視情況需要（隨機支線）</div>
+        <div class="mats" id="optMats"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　任務資料參考 <a href="https://ro-zero-site.pages.dev/quests" target="_blank" rel="noopener" style="color:var(--primary)">RO補給站</a></div>
+  </div>
+</div>
+
+<!-- 編輯每日清單 -->
+<div class="modal" id="selModal" onclick="if(event.target===this) closeSelect()">
+  <div class="modal-card modal-wide">
+    <div class="modal-head">
+      <b>✏️ 編輯「<span id="selCharName"></span>」的每日清單</b>
+      <button class="btn-ghost" onclick="closeSelect()">✕</button>
+    </div>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。清單會記住，每天只重置完成狀態。</div>
+    <div class="q-body" id="selBody"></div>
+  </div>
+</div>
+
+<script src="quests-data.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const ALL = QUEST_DB.flatMap(r => r.quests.map(q => ({ ...q, region: r.region, rlv: r.lv })));
+const BY_ID = Object.fromEntries(ALL.map(q => [q.id, q]));
+const pad = n => String(n).padStart(2, '0');
+
+// ===== 每日 04:00 重置：以「現在減 4 小時」的日期當作今天的 key =====
+function dayKey(d = new Date()) { const t = new Date(d.getTime() - 4 * 3600e3); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; }
+function nextReset() { const d = new Date(); const r = new Date(d); r.setHours(4, 0, 0, 0); if (r <= d) r.setDate(r.getDate() + 1); return r; }
+
+// ===== 狀態 =====
+const KEY = 'roz-daily-v1';
+let S = { cur: null, chars: {} };
+function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY)) || S; } catch {}
+  if (!Object.keys(S.chars).length) addChar('角色 1', false);
+  if (!S.chars[S.cur]) S.cur = Object.keys(S.chars)[0];
+  rollover();
+}
+function cur() { return S.chars[S.cur]; }
+function rollover() {
+  const k = dayKey(); let changed = false;
+  for (const c of Object.values(S.chars)) if (c.day !== k) { c.day = k; c.st = {}; c.mats = {}; changed = true; }
+  if (changed) save();
+}
+setInterval(() => { rollover(); render(); }, 60000);
+
+// ===== 角色 =====
+function addChar(name, prompt_ = true) {
+  if (prompt_) { name = prompt('角色名稱', ''); if (!name) return; }
+  const id = 'c' + Date.now().toString(36);
+  S.chars[id] = { name: name.trim(), sel: [], st: {}, mats: {}, day: dayKey() };
+  S.cur = id; save(); render();
+}
+function renameChar() { const n = prompt('新的角色名稱', cur().name); if (n && n.trim()) { cur().name = n.trim(); save(); render(); } }
+function deleteChar() {
+  if (Object.keys(S.chars).length <= 1) { alert('至少要保留一個角色。'); return; }
+  if (!confirm(`確定刪除「${cur().name}」？此角色的清單與紀錄會一併刪除。`)) return;
+  delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0]; save(); render();
+}
+function switchChar(id) { S.cur = id; save(); render(); }
+
+// ===== 任務狀態 =====
+function setState(qid, st) { const c = cur(); if (st === 'none') delete c.st[qid]; else c.st[qid] = st; save(); render(); }
+function setRegionState(region, st) {
+  const c = cur();
+  ALL.filter(q => q.region === region && c.sel.includes(q.id)).forEach(q => { if (st === 'none') delete c.st[q.id]; else c.st[q.id] = st; });
+  save(); render();
+}
+function resetToday() { if (!confirm('把今天的完成狀態與材料勾選全部清除？')) return; cur().st = {}; cur().mats = {}; save(); render(); }
+function toggleMat(name) { const c = cur(); if (c.mats[name]) delete c.mats[name]; else c.mats[name] = true; save(); render(); }
+const openRows = new Set();
+function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
+
+// ===== 編輯清單 =====
+function openSelect() { renderSelect(); $('selModal').classList.add('open'); }
+function closeSelect() { $('selModal').classList.remove('open'); render(); }
+function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
+function selRegion(region, on) { const c = cur(); ALL.filter(q => q.region === region).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
+function renderSelect() {
+  const c = cur(); $('selCharName').innerText = c.name;
+  $('selBody').innerHTML = QUEST_DB.map(r => {
+    const all = r.quests.every(q => c.sel.includes(q.id));
+    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}</small><span class="acts"><button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
+      r.quests.map(q => `<label class="sel-item"><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span>${q.name}</label>`).join('') + '</div>';
+  }).join('');
+}
+
+// ===== 畫面 =====
+const navi = q => q.map && q.x != null && /^[a-z0-9_]+$/.test(q.map) ? `/navi ${q.map} ${q.x}/${q.y}` : '';
+const esc = s => String(s).replace(/'/g, '&#39;');
+function render() {
+  const c = cur();
+  // 角色列
+  $('chars').innerHTML = Object.entries(S.chars).map(([id, ch]) =>
+    `<span class="chip ${id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}</span>`).join('') +
+    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button><button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>`;
+
+  // 今日任務
+  const sel = ALL.filter(q => c.sel.includes(q.id));
+  const done = sel.filter(q => c.st[q.id] === 'done').length, turned = sel.filter(q => c.st[q.id] === 'turned').length;
+  $('sumTotal').innerText = sel.length; $('sumDone').innerText = done; $('sumTurned').innerText = turned;
+  const nr = nextReset();
+  $('resetInfo').innerText = `每日 04:00 自動重置。下次重置：${pad(nr.getMonth() + 1)}/${pad(nr.getDate())} 04:00`;
+
+  const board = $('board');
+  if (!sel.length) { board.innerHTML = `<div class="empty">還沒有設定清單，按「✏️ 編輯清單」勾選這個角色每天要做的任務。</div>`; }
+  else {
+    board.innerHTML = QUEST_DB.map(r => {
+      const qs = r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
+      const t = qs.filter(q => c.st[q.id] === 'turned').length, d = qs.filter(q => c.st[q.id] === 'done').length;
+      return `<div class="region"><h3>${r.region} <span class="prog">已還 ${t}／完成 ${d}／共 ${qs.length}</span>
+          <span class="acts"><button class="btn-ghost" onclick="setRegionState('${r.region}','done')">全部完成</button><button class="btn-ghost" onclick="setRegionState('${r.region}','turned')">全部已還</button><button class="btn-ghost" onclick="setRegionState('${r.region}','none')">清除</button></span></h3>` +
+        qs.map(q => {
+          const st = c.st[q.id] || 'none'; const nv = navi(q);
+          return `<div class="qrow st-${st} ${openRows.has(q.id) ? 'open' : ''}">
+            <div class="main">
+              <div class="name" onclick="toggleRow('${q.id}')"><span class="arrow">▸</span><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="t">${q.name}</span><span class="lv">Lv ${r.lv}</span></div>
+              <div class="states">
+                <button class="${st === 'none' ? 'on-none' : ''}" onclick="setState('${q.id}','none')">未做</button>
+                <button class="${st === 'done' ? 'on-done' : ''}" onclick="setState('${q.id}','done')">已完成</button>
+                <button class="${st === 'turned' ? 'on-turned' : ''}" onclick="setState('${q.id}','turned')">已還</button>
+              </div>
+            </div>
+            <div class="detail">
+              <div class="row"><span class="k">目標</span><span>${q.goal || '—'}</span></div>
+              ${q.npc ? `<div class="row"><span class="k">NPC</span><span>${q.npc}${q.map ? `（${q.map} ${q.x},${q.y}）` : ''}</span>${nv ? `<code class="navi">${nv}</code><button class="btn-copy" onclick="copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
+              ${q.mats ? `<div class="row"><span class="k">材料</span><span>${q.mats.map(m => `${m.n} ×${m.q}`).join('、')}</span></div>` : ''}
+              ${q.optMats ? `<div class="row"><span class="k">視情況</span><span>${q.optMats.map(m => `${m.n} ×${m.q}`).join('、')}</span></div>` : ''}
+              ${q.pre ? `<div class="row"><span class="k">前置</span><span>${q.pre}</span></div>` : ''}
+              ${q.note ? `<div class="row"><span class="k">注意</span><span>${q.note}</span></div>` : ''}
+              ${q.reward ? `<div class="row"><span class="k">獎勵</span><span>${q.reward}</span></div>` : ''}
+            </div></div>`;
+        }).join('') + '</div>';
+    }).join('');
+  }
+
+  // 材料：彙整已選任務（已還的任務不再列入）
+  const need = {}, opt = {}, from = {};
+  sel.filter(q => c.st[q.id] !== 'turned').forEach(q => {
+    (q.mats || []).forEach(m => { need[m.n] = (need[m.n] || 0) + m.q; (from[m.n] = from[m.n] || []).push(q.name); });
+    (q.optMats || []).forEach(m => { opt[m.n] = Math.max(opt[m.n] || 0, m.q); (from[m.n] = from[m.n] || []).push(q.name); });
+  });
+  const matRow = (n, q) => `<label class="mat ${c.mats[n] ? 'ok' : ''}"><input type="checkbox" ${c.mats[n] ? 'checked' : ''} onchange="toggleMat('${esc(n)}')"><span class="n">${n}</span><span class="q">×${q}</span><span class="from">${[...new Set(from[n])].join('、')}</span></label>`;
+  $('mats').innerHTML = Object.keys(need).length ? Object.entries(need).map(([n, q]) => matRow(n, q)).join('') : `<div class="empty">今天的任務不需要準備材料。</div>`;
+  $('optMats').innerHTML = Object.entries(opt).map(([n, q]) => matRow(n, q)).join('');
+  $('optTitle').style.display = Object.keys(opt).length ? '' : 'none';
+
+  // 路線指引
+  const showAll = $('routeAll').checked;
+  $('route').innerHTML = QUEST_DB.map(r => {
+    const qs = showAll ? r.quests : r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
+    return `<div class="region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small></h3>` +
+      (r.tip ? `<div class="tip">💡 ${r.tip}</div>` : '') +
+      qs.map((q, i) => { const nv = navi(q); return `<div class="step ${c.st[q.id] === 'turned' ? 'turned' : ''}"><b>${i + 1}. <span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span> ${q.name}</b>
+          ${q.npc ? `<div>NPC：${q.npc}${q.map ? `（${q.map} ${q.x},${q.y}）` : ''} ${nv ? `<code class="navi">${nv}</code> <button class="btn-copy" onclick="copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
+          <div>${q.goal || ''}</div>
+          ${q.pre ? `<div style="color:var(--dim)">前置：${q.pre}</div>` : ''}${q.note ? `<div style="color:var(--dim)">注意：${q.note}</div>` : ''}</div>`; }).join('') + '</div>';
+  }).join('') || `<div class="empty">清單是空的；勾選「顯示全部任務」可瀏覽所有任務的路線。</div>`;
+}
+
+// ===== 共用：複製、主題 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSelect(); });
+
+load();
+render();
+</script>
+</body>
+</html>
