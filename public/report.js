@@ -50,12 +50,12 @@
   // ---- 自動錯誤捕捉（同一個錯誤每次開頁只送一次；本機不送）----
   const sent = new Set();
   const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-  function report(desc) {
+  function report(desc, noisy) {
     if (!desc || sent.has(desc) || sent.size >= 3) return;
     sent.add(desc);
     if (typeof gtag === 'function') { try { gtag('event', 'exception', { description: desc.slice(0, 150), fatal: false }); } catch {} }
-    if (!isLocal) send('auto', desc, '', '').catch(() => {});
+    if (!isLocal && !noisy) send('auto', desc, '', '').catch(() => {});   // 跨網域遮罩錯誤只記 GA，不發 Discord
   }
-  window.addEventListener('error', e => report(`${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}`));
+  window.addEventListener('error', e => report(`${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}`, /^Script error\.?$/.test(e.message || '') && !e.filename));
   window.addEventListener('unhandledrejection', e => report('Unhandled: ' + (e.reason && (e.reason.stack || e.reason.message || String(e.reason)) || '').slice(0, 300)));
 })();

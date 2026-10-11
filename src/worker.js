@@ -45,7 +45,7 @@ export default {
           { name: '瀏覽器', value: ua || '—', inline: false },
           { name: '當時資料', value: state ? '```json\n' + state + '\n```' : '—', inline: false },
         ],
-        footer: { text: `IP ${ip.replace(/\.\d+$/, '.x')}` },
+        footer: { text: `IP ${maskIp(ip)}` },
         timestamp: new Date().toISOString(),
       }],
     };
@@ -59,6 +59,12 @@ export default {
     return json({ ok: true });
   },
 };
+
+// 遮罩 IP：IPv4 隱藏最後一組，IPv6 只留前四組
+function maskIp(ip) {
+  if (ip.includes(':')) return ip.split(':').slice(0, 4).join(':') + ':…';
+  return ip.replace(/\.\d+$/, '.x');
+}
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
