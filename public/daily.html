@@ -20,6 +20,11 @@
   .region > h3 { margin: 0; padding: 10px 12px; font-size: .95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--card-border); }
   .region > h3 .prog { font-size: .75rem; color: var(--dim); font-weight: 500; }
   .region > h3 .acts { margin-left: auto; display: flex; gap: 6px; }
+  .region > h3 .tg { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .region > h3 .tg .arrow { color: var(--dim); font-size: .8rem; transition: transform .2s; display: inline-block; }
+  .region.collapsed > h3 .tg .arrow { transform: rotate(-90deg); }
+  .region.collapsed > h3 { border-bottom: 0; }
+  .region.collapsed > :not(h3) { display: none; }
   .region > h3 .acts button { min-height: 28px; padding: 0 10px; font-size: .74rem; }
   .qrow { border-bottom: 1px solid var(--card-border); }
   .qrow:last-child { border-bottom: 0; }
@@ -44,10 +49,14 @@
   .btn-copy { padding: 0 10px; min-height: 26px; font-size: .74rem; background: var(--seg-active); color: #fff; border-radius: 999px; }
   .qt { font-size: .66rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; white-space: nowrap; border: 1px solid currentColor; opacity: .85; }
 
-  .mats { display: grid; gap: 6px; }
+  .mats { display: grid; gap: 6px; padding: 8px; }
+  .mats .sec-title { margin: 6px 0 0; }
+  #mats .region { margin-bottom: 10px; }
+  #mats .region > h3 .cnt { font-size: .75rem; color: var(--dim); font-weight: 500; margin-left: auto; }
   .mat { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--tile-bg); font-size: .9rem; cursor: pointer; }
   .mat input { width: 16px; height: 16px; accent-color: var(--green); flex-shrink: 0; }
-  .mat .q { margin-left: auto; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .mat .n { white-space: nowrap; }
+  .mat .q { margin-left: auto; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .mat.ok { opacity: .55; }
   .mat.ok .n { text-decoration: line-through; }
   .mat .from { font-size: .72rem; color: var(--dim); flex-basis: 100%; padding-left: 24px; }
@@ -129,9 +138,7 @@
       <!-- 材料 -->
       <div class="card">
         <h2>🎒 要帶的材料</h2>
-        <div class="mats" id="mats"></div>
-        <div class="sec-title" id="optTitle" style="margin-top:14px;">視情況需要（隨機支線）</div>
-        <div class="mats" id="optMats"></div>
+        <div id="mats"></div>
       </div>
     </div>
   </div>
@@ -238,6 +245,10 @@ function setRegionState(region, st) {
 async function resetToday() { if (!await askConfirm('清除今日？', `把「${cur().name}」今天的完成狀態與材料勾選全部清回未做。`)) return; cur().st = {}; cur().mats = {}; save(); render(); }
 function toggleMat(name) { const c = cur(); if (c.mats[name]) delete c.mats[name]; else c.mats[name] = true; save(); render(); }
 const openRows = new Set();
+// 區塊收合（記在瀏覽器）
+const COLL_KEY = 'roz-daily-collapsed';
+let collapsed = new Set(JSON.parse(localStorage.getItem(COLL_KEY) || '[]'));
+function toggleRegion(key) { collapsed.has(key) ? collapsed.delete(key) : collapsed.add(key); localStorage.setItem(COLL_KEY, JSON.stringify([...collapsed])); render(); }
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
 
 // ===== 編輯清單 =====
@@ -278,7 +289,8 @@ function render() {
     board.innerHTML = QUEST_DB.map(r => {
       const qs = r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
       const t = qs.filter(q => c.st[q.id] === 'turned').length, d = qs.filter(q => c.st[q.id] === 'done').length;
-      return `<div class="region"><h3>${r.region} <span class="prog">已還 ${t}／完成 ${d}／共 ${qs.length}</span>
+      const ck = 'b:' + r.region;
+      return `<div class="region ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span> <span class="prog">已還 ${t}／完成 ${d}／共 ${qs.length}</span>
           <span class="acts"><button class="btn-ghost" onclick="setRegionState('${r.region}','done')">全部完成</button><button class="btn-ghost" onclick="setRegionState('${r.region}','turned')">全部已還</button><button class="btn-ghost" onclick="setRegionState('${r.region}','none')">清除</button></span></h3>` +
         qs.map(q => {
           const st = c.st[q.id] || 'none'; const nv = navi(q);
@@ -304,22 +316,32 @@ function render() {
     }).join('');
   }
 
-  // 材料：彙整已選任務（已還的任務不再列入）
-  const need = {}, opt = {}, from = {};
-  sel.filter(q => c.st[q.id] !== 'turned').forEach(q => {
-    (q.mats || []).forEach(m => { need[m.n] = (need[m.n] || 0) + m.q; (from[m.n] = from[m.n] || []).push(q.name); });
-    (q.optMats || []).forEach(m => { opt[m.n] = Math.max(opt[m.n] || 0, m.q); (from[m.n] = from[m.n] || []).push(q.name); });
-  });
-  const matRow = (n, q) => `<label class="mat ${c.mats[n] ? 'ok' : ''}"><input type="checkbox" ${c.mats[n] ? 'checked' : ''} onchange="toggleMat('${esc(n)}')"><span class="n">${n}</span><span class="q">×${q}</span><span class="from">${[...new Set(from[n])].join('、')}</span></label>`;
-  $('mats').innerHTML = Object.keys(need).length ? Object.entries(need).map(([n, q]) => matRow(n, q)).join('') : `<div class="empty">今天的任務不需要準備材料。</div>`;
-  $('optMats').innerHTML = Object.entries(opt).map(([n, q]) => matRow(n, q)).join('');
-  $('optTitle').style.display = Object.keys(opt).length ? '' : 'none';
+  // 材料：依區域彙整已選任務（已還的任務不再列入）
+  const matRow = (key, n, q, from) => `<label class="mat ${c.mats[key] ? 'ok' : ''}"><input type="checkbox" ${c.mats[key] ? 'checked' : ''} onchange="toggleMat('${esc(key)}')"><span class="n">${n}</span><span class="q">×${q}</span><span class="from">${[...new Set(from)].join('、')}</span></label>`;
+  let matsHtml = '';
+  for (const r of QUEST_DB) {
+    const qs = r.quests.filter(q => c.sel.includes(q.id) && c.st[q.id] !== 'turned');
+    const need = {}, opt = {}, from = {};
+    qs.forEach(q => {
+      (q.mats || []).forEach(m => { need[m.n] = (need[m.n] || 0) + m.q; (from[m.n] = from[m.n] || []).push(q.name); });
+      (q.optMats || []).forEach(m => { opt[m.n] = Math.max(opt[m.n] || 0, m.q); (from[m.n] = from[m.n] || []).push(q.name); });
+    });
+    const nNeed = Object.keys(need).length, nOpt = Object.keys(opt).length;
+    if (!nNeed && !nOpt) continue;
+    const ck = 'm:' + r.region;
+    matsHtml += `<div class="region ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span><span class="cnt">${nNeed} 項${nOpt ? `・視情況 ${nOpt} 項` : ''}</span></h3><div class="mats">` +
+      Object.entries(need).map(([n, q]) => matRow(r.region + '|' + n, n, q, from[n])).join('') +
+      (nOpt ? `<div class="sec-title">視情況需要（隨機支線）</div>` + Object.entries(opt).map(([n, q]) => matRow(r.region + '|opt|' + n, n, q, from[n])).join('') : '') +
+      `</div></div>`;
+  }
+  $('mats').innerHTML = matsHtml || `<div class="empty">今天的任務不需要準備材料。</div>`;
 
   // 路線指引
   const showAll = $('routeAll').checked;
   $('route').innerHTML = QUEST_DB.map(r => {
     const qs = showAll ? r.quests : r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
-    return `<div class="region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small></h3>` +
+    const ck = 'r:' + r.region;
+    return `<div class="region ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span> <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small></h3>` +
       (r.tip ? `<div class="tip">💡 ${r.tip}</div>` : '') +
       qs.map((q, i) => { const nv = navi(q); return `<div class="step ${c.st[q.id] === 'turned' ? 'turned' : ''}"><b>${i + 1}. <span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span> ${q.name}</b>
           ${q.npc ? `<div>NPC：${q.npc}${q.map ? `（${q.map} ${q.x},${q.y}）` : ''} ${nv ? `<code class="navi">${nv}</code> <button class="btn-copy" onclick="copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
