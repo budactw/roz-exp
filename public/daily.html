@@ -69,7 +69,13 @@
   .sel-item input { width: 16px; height: 16px; accent-color: var(--primary); }
   [data-theme="dark"] .sel-item { border-bottom-color: rgba(255,255,255,.06); }
   .modal-card .q-body { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-  @media (max-width: 520px) { .summary { grid-template-columns: 1fr 1fr 1fr; gap: 6px; } .summary .tile .v { font-size: 1.05rem; } }
+  .qrow .name .lv, .card h2 button, .card h2 .check { white-space: nowrap; }
+  .card h2 { flex-wrap: wrap; }
+  @media (max-width: 520px) {
+    .summary { grid-template-columns: 1fr 1fr 1fr; gap: 6px; } .summary .tile .v { font-size: 1.05rem; }
+    .card h2 > .row, .card h2 > .check { flex-basis: 100%; margin-left: 0 !important; }
+    .region > h3 .acts { margin-left: 0; flex-basis: 100%; }
+  }
 </style>
 </head>
 <body>
