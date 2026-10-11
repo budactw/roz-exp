@@ -25,9 +25,11 @@
   .region.collapsed > h3 .tg .arrow { transform: rotate(-90deg); }
   .region.collapsed > h3 { border-bottom: 0; }
   .region.collapsed > :not(h3) { display: none; }
-  .region.all-done > h3 { background: rgba(0,171,85,.14); }
-  .region.all-done > h3 .prog { color: var(--green); font-weight: 700; }
-  .region.all-turned > h3 { background: rgba(0,171,85,.28); }
+  .region.all-done > h3 { background: rgba(246,195,67,.28); }
+  .region.all-done > h3 .prog { color: #a16800; font-weight: 700; }
+  [data-theme="dark"] .region.all-done > h3 .prog { color: #ffd66b; }
+  .region.all-turned > h3 { background: rgba(0,171,85,.3); }
+  .region.all-turned > h3 .prog { color: var(--green); font-weight: 700; }
   .region > h3 .acts button { min-height: 28px; padding: 0 10px; font-size: .74rem; }
   .qrow { border-bottom: 1px solid var(--card-border); }
   .qrow:last-child { border-bottom: 0; }
