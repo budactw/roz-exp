@@ -17,8 +17,8 @@
   }
 
   // ---- UI ----
+  window.openBug = function () { document.getElementById('bugModal').classList.add('open'); setTimeout(() => document.getElementById('bugText').focus(), 50); };
   document.body.insertAdjacentHTML('beforeend', `
-<button class="bug-btn" id="bugBtn" title="回報問題" onclick="document.getElementById('bugModal').classList.add('open'); document.getElementById('bugText').focus();">🐞 回報問題</button>
 <div class="modal" id="bugModal" onclick="if(event.target===this) this.classList.remove('open')">
   <div class="modal-card" style="max-width:440px;">
     <div class="modal-head"><b>🐞 回報問題</b><button class="btn-ghost" onclick="document.getElementById('bugModal').classList.remove('open')">✕</button></div>

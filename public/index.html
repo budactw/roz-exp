@@ -31,6 +31,7 @@
       <button class="btn-ghost" onclick="openExpTable()">📊 經驗表</button>
       <button class="btn-ghost" id="numBtn" onclick="toggleNum()" title="點擊切換縮寫 / 完整數字">🔢 數字：縮寫</button>
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+      <button class="btn-ghost" onclick="openBug()">🐞 回報問題</button>
       <button class="btn-ghost" onclick="resetAll()" title="輸入會自動儲存在此瀏覽器，按此全部清除">🗑 清除資料</button>
     </div>
   </div>
@@ -207,7 +208,7 @@
 
   <div class="foot">
     <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
-    <div style="margin-top:8px;">作者：凌雲閣－師爺</div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
   </div>
 </div>
 
@@ -909,6 +910,6 @@ applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: 
 load();
 renderQuests();
 </script>
-<script src="report.js?v=1"></script>
+<script src="report.js?v=2"></script>
 </body>
 </html>

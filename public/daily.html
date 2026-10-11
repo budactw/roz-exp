@@ -115,6 +115,7 @@
     </div>
     <div class="row">
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+      <button class="btn-ghost" onclick="openBug()">🐞 回報問題</button>
     </div>
   </div>
 
@@ -167,7 +168,7 @@
 
   <div class="foot">
     <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
-    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　任務資料參考 <a href="https://ro-zero-site.pages.dev/quests" target="_blank" rel="noopener" style="color:var(--primary)">RO補給站</a></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　任務資料參考 <a href="https://ro-zero-site.pages.dev/quests" target="_blank" rel="noopener" style="color:var(--primary)">RO補給站</a>　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
   </div>
 </div>
 
@@ -405,6 +406,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSelec
 load();
 render();
 </script>
-<script src="report.js?v=1"></script>
+<script src="report.js?v=2"></script>
 </body>
 </html>
