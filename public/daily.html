@@ -25,6 +25,10 @@
   .region.collapsed > h3 .tg .arrow { transform: rotate(-90deg); }
   .region.collapsed > h3 { border-bottom: 0; }
   .region.collapsed > :not(h3) { display: none; }
+  .region.all-done > h3 { background: rgba(0,171,85,.14); }
+  .region.all-done > h3 .prog { color: var(--green); font-weight: 700; }
+  .region.all-turned > h3 { background: rgba(0,171,85,.28); }
+  .region.all-turned > h3 .tg::after { content: " ✓"; color: var(--green); font-weight: 800; }
   .region > h3 .acts button { min-height: 28px; padding: 0 10px; font-size: .74rem; }
   .qrow { border-bottom: 1px solid var(--card-border); }
   .qrow:last-child { border-bottom: 0; }
@@ -290,7 +294,8 @@ function render() {
       const qs = r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
       const t = qs.filter(q => c.st[q.id] === 'turned').length, d = qs.filter(q => c.st[q.id] === 'done').length;
       const ck = 'b:' + r.region;
-      return `<div class="region ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span> <span class="prog">已還 ${t}／完成 ${d}／共 ${qs.length}</span>
+      const cls = t === qs.length ? 'all-turned' : (t + d === qs.length ? 'all-done' : '');
+      return `<div class="region ${cls} ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span> <span class="prog">已還 ${t}／完成 ${d}／共 ${qs.length}</span>
           <span class="acts"><button class="btn-ghost" onclick="setRegionState('${r.region}','done')">全部完成</button><button class="btn-ghost" onclick="setRegionState('${r.region}','turned')">全部已還</button><button class="btn-ghost" onclick="setRegionState('${r.region}','none')">清除</button></span></h3>` +
         qs.map(q => {
           const st = c.st[q.id] || 'none'; const nv = navi(q);
