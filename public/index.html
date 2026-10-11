@@ -226,6 +226,17 @@
   </div>
 </div>
 
+<div class="modal" id="resetModal" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><b>清除所有輸入資料？</b></div>
+    <div class="hint" style="margin-bottom:12px;">紀錄、加成、任務勾選都會清空並重新整理。</div>
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn-ghost" onclick="$('resetModal').classList.remove('open')">取消</button>
+      <button class="btn-sm" style="background:var(--seg-active); color:#fff; border:0;" onclick="resetConfirm()">清除</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="expModal" onclick="if(event.target===this) closeExpTable()">
   <div class="modal-card">
     <div class="modal-head">
@@ -683,11 +694,8 @@ function load() {
   }
   onChange();
 }
-function resetAll() {
-  if (!confirm('確定要清除所有輸入資料嗎？')) return;
-  localStorage.removeItem(KEY);
-  location.reload();
-}
+function resetAll() { $('resetModal').classList.add('open'); }
+function resetConfirm() { localStorage.removeItem(KEY); location.reload(); }
 document.querySelectorAll('[data-save]').forEach(el => el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', onChange));
 
 // ===== 複製 =====

@@ -107,7 +107,7 @@
     <div class="main">
       <!-- 今日任務 -->
       <div class="card">
-        <h2><span class="n">1</span> 📋 今日任務
+        <h2><span class="n">1</span> 📋 今日任務 <span id="boardChar" style="color:var(--primary); font-weight:800;"></span>
           <span class="row" style="margin-left:auto; gap:6px;">
             <button class="btn-sm" onclick="openSelect()">✏️ 編輯清單</button>
             <button class="btn-ghost" onclick="resetToday()" title="把今天的狀態全部清回未做">↺ 清除今日</button>
@@ -139,6 +139,19 @@
   <div class="foot">
     <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
     <div style="margin-top:8px;">作者：凌雲閣－師爺　·　任務資料參考 <a href="https://ro-zero-site.pages.dev/quests" target="_blank" rel="noopener" style="color:var(--primary)">RO補給站</a></div>
+  </div>
+</div>
+
+<!-- 頁內對話框（取代 prompt / confirm，避免 App 內建瀏覽器擋掉） -->
+<div class="modal" id="dlg">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><b id="dlgTitle"></b></div>
+    <div class="hint" id="dlgMsg" style="margin-bottom:10px;"></div>
+    <input type="text" id="dlgInput" class="hidden" style="margin-bottom:12px;" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn-ghost" id="dlgCancel">取消</button>
+      <button class="btn-sm" id="dlgOk" style="background:var(--seg-active); color:#fff; border:0;">確定</button>
+    </div>
   </div>
 </div>
 
@@ -183,17 +196,34 @@ function rollover() {
 }
 setInterval(() => { rollover(); render(); }, 60000);
 
+// ===== 頁內對話框 =====
+function dialog({ title, msg = '', input = null, okText = '確定' }) {
+  return new Promise(res => {
+    const m = $('dlg'), inp = $('dlgInput');
+    $('dlgTitle').innerText = title; $('dlgMsg').innerText = msg; $('dlgMsg').style.display = msg ? '' : 'none';
+    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText;
+    const close = v => { m.classList.remove('open'); $('dlgOk').onclick = $('dlgCancel').onclick = null; inp.onkeydown = null; res(v); };
+    $('dlgOk').onclick = () => close(input === null ? true : inp.value.trim());
+    $('dlgCancel').onclick = () => close(null);
+    inp.onkeydown = e => { if (e.key === 'Enter') $('dlgOk').onclick(); };
+    m.classList.add('open'); if (input !== null) setTimeout(() => inp.focus(), 50);
+  });
+}
+const askText = (title, def = '') => dialog({ title, input: def });
+const askConfirm = (title, msg = '') => dialog({ title, msg });
+
 // ===== 角色 =====
-function addChar(name, prompt_ = true) {
-  if (prompt_) { name = prompt('角色名稱', ''); if (!name) return; }
+async function addChar(name, ask = true) {
+  if (ask) { name = await askText('新增角色：輸入角色名稱'); if (!name) return; }
   const id = 'c' + Date.now().toString(36);
-  S.chars[id] = { name: name.trim(), sel: [], st: {}, mats: {}, day: dayKey() };
+  const base = S.cur && S.chars[S.cur] ? S.chars[S.cur].sel.slice() : [];   // 新角色先複製目前角色的清單，進度各自獨立
+  S.chars[id] = { name: name.trim(), sel: base, st: {}, mats: {}, day: dayKey() };
   S.cur = id; save(); render();
 }
-function renameChar() { const n = prompt('新的角色名稱', cur().name); if (n && n.trim()) { cur().name = n.trim(); save(); render(); } }
-function deleteChar() {
-  if (Object.keys(S.chars).length <= 1) { alert('至少要保留一個角色。'); return; }
-  if (!confirm(`確定刪除「${cur().name}」？此角色的清單與紀錄會一併刪除。`)) return;
+async function renameChar() { const n = await askText('角色改名', cur().name); if (n) { cur().name = n; save(); render(); } }
+async function deleteChar() {
+  if (Object.keys(S.chars).length <= 1) { await dialog({ title: '至少要保留一個角色', okText: '知道了' }); return; }
+  if (!await askConfirm(`刪除「${cur().name}」？`, '此角色的清單與今日紀錄會一併刪除。')) return;
   delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0]; save(); render();
 }
 function switchChar(id) { S.cur = id; save(); render(); }
@@ -205,7 +235,7 @@ function setRegionState(region, st) {
   ALL.filter(q => q.region === region && c.sel.includes(q.id)).forEach(q => { if (st === 'none') delete c.st[q.id]; else c.st[q.id] = st; });
   save(); render();
 }
-function resetToday() { if (!confirm('把今天的完成狀態與材料勾選全部清除？')) return; cur().st = {}; cur().mats = {}; save(); render(); }
+async function resetToday() { if (!await askConfirm('清除今日？', `把「${cur().name}」今天的完成狀態與材料勾選全部清回未做。`)) return; cur().st = {}; cur().mats = {}; save(); render(); }
 function toggleMat(name) { const c = cur(); if (c.mats[name]) delete c.mats[name]; else c.mats[name] = true; save(); render(); }
 const openRows = new Set();
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
@@ -235,6 +265,7 @@ function render() {
     `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button><button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>`;
 
   // 今日任務
+  $('boardChar').innerText = `｜${c.name}`;
   const sel = ALL.filter(q => c.sel.includes(q.id));
   const done = sel.filter(q => c.st[q.id] === 'done').length, turned = sel.filter(q => c.st[q.id] === 'turned').length;
   $('sumTotal').innerText = sel.length; $('sumDone').innerText = done; $('sumTurned').innerText = turned;
@@ -309,7 +340,7 @@ function applyTheme(t) {
 }
 function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSelect(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSelect(); if ($('dlg').classList.contains('open')) $('dlgCancel').onclick(); } });
 
 load();
 render();
