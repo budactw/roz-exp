@@ -123,6 +123,7 @@
       <div class="card">
         <h2><span class="n">1</span> 📋 今日任務 <span id="boardChar" style="color:var(--primary); font-weight:800;"></span>
           <span class="row" style="margin-left:auto; gap:6px;">
+            <button class="btn-ghost" id="expB" onclick="toggleAll('b')"></button>
             <button class="btn-sm" onclick="openSelect()">✏️ 編輯清單</button>
             <button class="btn-ghost" onclick="resetToday()" title="把今天的狀態全部清回未做">↺ 清除今日</button>
           </span>
@@ -133,7 +134,10 @@
       <!-- 路線指引 -->
       <div class="card route">
         <h2><span class="n">2</span> 🗺️ 路線指引
-          <label class="check" style="margin-left:auto; font-size:.8rem;"><input type="checkbox" id="routeAll" onchange="render()"> 顯示全部任務</label>
+          <span class="row" style="margin-left:auto; gap:10px;">
+            <label class="check" style="font-size:.8rem;"><input type="checkbox" id="routeAll" onchange="render()"> 顯示全部任務</label>
+            <button class="btn-ghost" id="expR" onclick="toggleAll('r')"></button>
+          </span>
         </h2>
         <div id="route"></div>
       </div>
@@ -142,7 +146,7 @@
     <div class="side">
       <!-- 材料 -->
       <div class="card">
-        <h2>🎒 要帶的材料</h2>
+        <h2>🎒 要帶的材料 <button class="btn-ghost" id="expM" style="margin-left:auto;" onclick="toggleAll('m')"></button></h2>
         <div id="mats"></div>
       </div>
     </div>
@@ -253,7 +257,21 @@ const openRows = new Set();
 // 區塊收合（記在瀏覽器）
 const COLL_KEY = 'roz-daily-collapsed';
 let collapsed = new Set(JSON.parse(localStorage.getItem(COLL_KEY) || '[]'));
-function toggleRegion(key) { collapsed.has(key) ? collapsed.delete(key) : collapsed.add(key); localStorage.setItem(COLL_KEY, JSON.stringify([...collapsed])); render(); }
+function saveCollapsed() { localStorage.setItem(COLL_KEY, JSON.stringify([...collapsed])); }
+function toggleRegion(key) { collapsed.has(key) ? collapsed.delete(key) : collapsed.add(key); saveCollapsed(); render(); }
+// 全部展開 / 全部收合：p = 'b' 今日任務、'r' 路線、'm' 材料
+function toggleAll(p) {
+  const keys = QUEST_DB.map(r => `${p}:${r.region}`);
+  const anyCollapsed = keys.some(k => collapsed.has(k));
+  keys.forEach(k => anyCollapsed ? collapsed.delete(k) : collapsed.add(k));
+  saveCollapsed(); render();
+}
+function updateExpandBtns() {
+  for (const [p, id] of [['b', 'expB'], ['r', 'expR'], ['m', 'expM']]) {
+    const anyCollapsed = QUEST_DB.some(r => collapsed.has(`${p}:${r.region}`));
+    $(id).innerText = anyCollapsed ? '⤵ 全部展開' : '⤴ 全部收合';
+  }
+}
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
 
 // ===== 編輯清單 =====
@@ -275,6 +293,7 @@ const navi = q => q.map && q.x != null && /^[a-z0-9_]+$/.test(q.map) ? `/navi ${
 const esc = s => String(s).replace(/'/g, '&#39;');
 function render() {
   const c = cur();
+  updateExpandBtns();
   // 角色列
   $('chars').innerHTML = Object.entries(S.chars).map(([id, ch]) =>
     `<span class="chip ${id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}</span>`).join('') +
