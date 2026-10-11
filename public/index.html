@@ -6,6 +6,17 @@
 <title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=2">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  // 本機測試不計入
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+
 </head>
 <body>
 <div class="container">
@@ -316,8 +327,8 @@ function refreshStepUI() {
   document.querySelectorAll('#rateSeg button').forEach(b => b.classList.toggle('active', b.dataset.m === rateMode));
   $('newTitle').innerText = (grind && rateMode === 'track') ? '當前紀錄' : '目前狀態';
 }
-function setGrind(v, recalc = true) { grind = !!v; refreshStepUI(); if (recalc) onChange(); }
-function setRateMode(m, recalc = true) { rateMode = m; refreshStepUI(); if (recalc) onChange(); }
+function setGrind(v, recalc = true) { grind = !!v; refreshStepUI(); if (recalc) { onChange(); track('mode_change', { grind: grind ? 'yes' : 'no', rate_mode: rateMode }); } }
+function setRateMode(m, recalc = true) { rateMode = m; refreshStepUI(); if (recalc) { onChange(); track('mode_change', { grind: grind ? 'yes' : 'no', rate_mode: rateMode }); } }
 
 // ===== 模式（% / 數值） =====
 const modes = { old: 'pct', new: 'pct' };
@@ -862,12 +873,12 @@ function refreshQuestTags() {
     [100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
 }
 function setQuestLv(lv) { questLv = lv; renderQuests(); }
-function openQuests() { renderQuests(); $('questModal').classList.add('open'); }
+function openQuests() { renderQuests(); $('questModal').classList.add('open'); track('open_quest_table'); }
 function closeQuests() { $('questModal').classList.remove('open'); }
 
 // ===== 經驗表彈窗 =====
 function openExpTable() {
-  $('expModal').classList.add('open');
+  $('expModal').classList.add('open'); track('open_exp_table');
   const cur = document.querySelector('#expBody tr.cur');
   if (cur) cur.scrollIntoView({ block: 'center' });
 }

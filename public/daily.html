@@ -6,6 +6,17 @@
 <title>RO樂園每日任務待辦清單｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=2">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  // 本機測試不計入
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+
 <style>
   /* ===== 每日任務頁專用 ===== */
   /* 右欄黏頂時，內容超過螢幕高度改為欄內捲動 */
@@ -236,7 +247,7 @@ async function addChar(name, ask = true) {
   const id = 'c' + Date.now().toString(36);
   const base = S.cur && S.chars[S.cur] ? S.chars[S.cur].sel.slice() : [];   // 新角色先複製目前角色的清單，進度各自獨立
   S.chars[id] = { name: name.trim(), sel: base, st: {}, mats: {}, day: dayKey() };
-  S.cur = id; save(); render();
+  S.cur = id; save(); render(); track('add_char', { chars: Object.keys(S.chars).length });
 }
 async function renameChar() { const n = await askText('角色改名', cur().name); if (n) { cur().name = n; save(); render(); } }
 async function deleteChar() {
@@ -247,7 +258,7 @@ async function deleteChar() {
 function switchChar(id) { S.cur = id; save(); render(); }
 
 // ===== 任務狀態 =====
-function setState(qid, st) { const c = cur(); if (st === 'none') delete c.st[qid]; else c.st[qid] = st; save(); render(); }
+function setState(qid, st) { const c = cur(); if (st === 'none') delete c.st[qid]; else c.st[qid] = st; save(); render(); if (st !== 'none') track('quest_' + st, { quest: qid }); }
 function setRegionState(region, st) {
   const c = cur();
   ALL.filter(q => q.region === region && c.sel.includes(q.id)).forEach(q => { if (st === 'none') delete c.st[q.id]; else c.st[q.id] = st; });
@@ -277,7 +288,7 @@ function updateExpandBtns() {
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
 
 // ===== 編輯清單 =====
-function openSelect() { renderSelect(); $('selModal').classList.add('open'); }
+function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_list'); }
 function closeSelect() { $('selModal').classList.remove('open'); render(); }
 function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
 function selRegion(region, on) { const c = cur(); ALL.filter(q => q.region === region).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
