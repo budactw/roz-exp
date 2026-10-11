@@ -1,6 +1,6 @@
   :root {
     --bg: #eef2f8;
-    --bg-glow: radial-gradient(circle at 20% -10%, rgba(0,114,255,.18), transparent 50%), radial-gradient(circle at 90% 10%, rgba(121,40,202,.14), transparent 45%);
+    --bg-glow: none;
     --card: rgba(255,255,255,.78);
     --card-border: rgba(0,114,255,.22);
     --card-glow: 0 0 0 1px rgba(255,255,255,.6) inset, 0 10px 30px rgba(15,23,42,.08);
@@ -15,7 +15,7 @@
     --input-border: #cbd5e1;
     --soft: rgba(0,114,255,.08);
     --seg-bg: #e2e8f0;
-    --seg-active: linear-gradient(135deg, #0072ff, #7928ca);
+    --seg-active: #0072ff;
     --tile-bg: rgba(255,255,255,.7);
     --result-bg: rgba(255,255,255,.85);
     --bar-bg: #e2e8f0;
@@ -24,7 +24,7 @@
   }
   [data-theme="dark"] {
     --bg: #070b14;
-    --bg-glow: radial-gradient(circle at 20% -10%, rgba(0,242,254,.14), transparent 45%), radial-gradient(circle at 90% 10%, rgba(121,40,202,.22), transparent 45%);
+    --bg-glow: none;
     --card: rgba(13,20,36,.72);
     --card-border: rgba(0,242,254,.22);
     --card-glow: 0 0 0 1px rgba(0,242,254,.05) inset, 0 10px 40px rgba(0,0,0,.45), 0 0 24px rgba(0,242,254,.06);
@@ -39,7 +39,7 @@
     --input-border: #243654;
     --soft: rgba(0,242,254,.08);
     --seg-bg: #141d33;
-    --seg-active: linear-gradient(135deg, #00c6ff, #7928ca);
+    --seg-active: #2563eb;
     --tile-bg: rgba(9,14,27,.75);
     --result-bg: rgba(10,16,30,.8);
     --bar-bg: #1a2540;
@@ -210,7 +210,7 @@
   .progress .top { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; }
   .progress .top b { font-size: 1.05rem; color: var(--primary); }
   .bar { height: 12px; background: var(--bar-bg); border-radius: 6px; overflow: hidden; margin: 6px 0 4px; }
-  .bar > div { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--purple)); width: 0; transition: width .4s; box-shadow: 0 0 10px var(--cyan); }
+  .bar > div { height: 100%; background: var(--primary); width: 0; transition: width .4s; }
   .lines { font-size: .85rem; margin-top: 10px; }
   .lines div { padding: 4px 0; }
   .lines .v { font-weight: 700; color: var(--primary); }
