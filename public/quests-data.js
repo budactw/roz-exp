@@ -98,7 +98,7 @@ const QUEST_DB = [
     { id: 'odin-cube', name: '在被迷惑之前（褐色、黑色立方體）', type: 'kill', npc: '毀葛碼頭旁 NPC', map: 'hugel', x: 197, y: 103,
       goal: '前往奧丁神殿討伐褐方體惡魔 ×5、黑方體惡魔 ×5' },
   ]},
-  { region: '企業之都', lv: 105, tip: '前置：任務 8～25 需完成潛入任務「研究所進出卡片」（<a href="https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0" target="_blank" rel="noopener">攻略</a>）；任務 7 需完成「傭兵叛亂以及雷根貝勒」（<a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=3653&tnum=7" target="_blank" rel="noopener">前置任務攻略</a>）。泰奧多對話完後跟身旁兩個妹妹對話即可接任務。研一的 A、B 分流沒有商人，會變成鍊金術師。', quests: [
+  { region: '企業之都', lv: 105, tip: '前置：任務 8～25 需完成潛入任務「研究所進出卡片」（<a href="https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0" target="_blank" rel="noopener">攻略</a>）；任務 7 需完成「傭兵叛亂以及雷根貝勒」（<a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=3653&tnum=7" target="_blank" rel="noopener">前置任務攻略</a>）。泰奧多對話完後跟身旁兩個妹妹對話即可接任務。研一的 A、B 分流沒有商人，會變成鍊金術師。<br><b>快速進入研一</b>（需先解出研究所進出卡）：① 中央中間道具店或企都道具店買「旋轉眼鏡」＋「白鬍子」 → ② 企都找導覽員傳雷根貝勒 → ③ 進去往左邊走，找雷根貝勒鐵衛（點他之前要先穿好旋轉眼鏡＋白鬍子） → ④ 進去後往左邊找守衛傳 1 樓。', quests: [
     { id: 'lgt-grass', name: '為什麼有這麼大的游泳池（草精）', type: 'kill', npc: '泰奧多', map: 'lighthalzen', x: 200, y: 314,
       goal: '討伐草精 ×20' },
     { id: 'lgt-gray', name: '輕拍腳踝！（灰森靈）', type: 'kill', npc: '泰奧多', map: 'lighthalzen', x: 200, y: 314,
