@@ -9,8 +9,11 @@ export default {
     if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
 
     // 只接受同網域送來的請求
+    // 只接受同網域送來的請求（Origin 缺少或為 "null" 的 App 內建瀏覽器放行，交給速率限制把關）
     const origin = request.headers.get('Origin') || '';
-    if (origin && new URL(origin).host !== url.host) return json({ ok: false, error: 'origin' }, 403);
+    let originHost = null;
+    try { originHost = origin && origin !== 'null' ? new URL(origin).host : null; } catch { originHost = null; }
+    if (originHost && originHost !== url.host) return json({ ok: false, error: 'origin' }, 403);
 
     // 速率限制：每個 IP 每分鐘 2 次
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -27,7 +30,7 @@ export default {
     const page = String(body.page || '').slice(0, 200);
     const ua = String(body.ua || '').slice(0, 200);
     const viewport = String(body.viewport || '').slice(0, 40);
-    const state = String(body.state || '').slice(0, 1200);
+    const state = String(body.state || '').slice(0, 980);   // Discord 欄位上限 1024（含 code fence）
     if (kind === 'user' && text.length < 3) return json({ ok: false, error: 'empty' }, 400);
     if (body.hp) return json({ ok: true });   // 蜜罐欄位有值 → 機器人，假裝成功
 
@@ -43,7 +46,7 @@ export default {
           { name: '聯絡方式', value: contact || '—', inline: true },
           { name: '螢幕', value: viewport || '—', inline: true },
           { name: '瀏覽器', value: ua || '—', inline: false },
-          { name: '當時資料', value: state ? '```json\n' + state + '\n```' : '—', inline: false },
+          { name: '當時資料', value: state ? '```json\n' + state + (state.length >= 980 ? '…' : '') + '\n```' : '—', inline: false },
         ],
         footer: { text: `IP ${maskIp(ip)}` },
         timestamp: new Date().toISOString(),

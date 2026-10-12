@@ -4,8 +4,8 @@
   const KEYS = ['roz-exp-calc-v2', 'roz-daily-v1'];
   function snapshot() {
     const out = {};
-    for (const k of KEYS) { const v = localStorage.getItem(k); if (v) out[k] = v.length > 500 ? v.slice(0, 500) + '…' : v; }
-    return JSON.stringify(out);
+    for (const k of KEYS) { const v = localStorage.getItem(k); if (v) out[k] = v.length > 420 ? v.slice(0, 420) + '…' : v; }
+    return JSON.stringify(out).slice(0, 900);
   }
   function ctx() {
     return { page: location.href, ua: navigator.userAgent, viewport: `${innerWidth}×${innerHeight}`, state: snapshot() };
@@ -42,8 +42,8 @@
     try {
       const r = await send('user', text, $('bugContact').value, $('bugHp').value);
       if (r.ok) { $('bugMsg').innerText = '已送出，謝謝回報！'; $('bugText').value = ''; if (typeof track === 'function') track('bug_report'); setTimeout(() => $('bugModal').classList.remove('open'), 1200); }
-      else $('bugMsg').innerText = r.error === 'rate' ? '送太快了，請一分鐘後再試。' : '送出失敗，請稍後再試。';
-    } catch { $('bugMsg').innerText = '送出失敗，請稍後再試。'; }
+      else $('bugMsg').innerText = r.error === 'rate' ? '送太快了，請一分鐘後再試。' : `送出失敗（${r.error || r.status}），請稍後再試或直接 DC 私訊 zhuge0520。`;
+    } catch (e) { $('bugMsg').innerText = '送出失敗（連線問題），請稍後再試或直接 DC 私訊 zhuge0520。'; }
     $('bugSend').disabled = false;
   });
 
