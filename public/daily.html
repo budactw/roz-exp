@@ -85,6 +85,10 @@
   .route .step:last-child { border-bottom: 0; }
   .route .step b { display: block; margin-bottom: 2px; }
   .route .tip { padding: 8px 12px; font-size: .78rem; color: var(--dim); background: var(--soft); }
+  .tip-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .tip-imgs figure { margin: 0; }
+  .tip-imgs img { display: block; max-width: 220px; width: 100%; border-radius: 8px; border: 1px solid var(--card-border); }
+  .tip-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 3px; text-align: center; }
   .route .step.turned { opacity: .5; }
 
   .sel-region { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
@@ -197,7 +201,7 @@
   </div>
 </div>
 
-<script src="quests-data.js?v=5"></script>
+<script src="quests-data.js?v=6"></script>
 <script>
 const $ = id => document.getElementById(id);
 const ALL = QUEST_DB.flatMap(r => r.quests.map(q => ({ ...q, region: r.region, rlv: r.lv })));
