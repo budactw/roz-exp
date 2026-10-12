@@ -2,7 +2,7 @@
 // 來源：RO補給站 https://ro-zero-site.pages.dev/quests（朱諾、鋼鐵之都、毀葛、深淵湖水、奧丁神殿）；企業之都：巴哈姆特 forum.gamer.com.tw/C.php?bsn=83142&snA=3653
 // 欄位：id、name、lv、type（kill 打怪 / item 交材料 / talk 對話 / deliver 運送）、
 //       npc、map（地圖代號）、x、y、goal（目標）、mats（要帶的材料 [{n, q}]）、
-//       optMats（視情況才需要的材料）、pre（前置）、note（注意）、reward
+//       optMats（視情況才需要的材料）、pre（前置）、preUrl（前置攻略連結）、note（注意）、reward
 const QUEST_DB = [
   { region: '朱諾', lv: 100, tip: '首次建議把國界檢查站站長與旁邊學院的任務一起接起來；哈比與部分傳點附近容易暴走；諾可羅德洞穴任務需先成為伊甸園成員。', quests: [
     { id: 'yuno-bento', name: '媽媽手便當（送便當）', type: 'deliver', npc: '中年女性', map: 'yuno', x: 114, y: 180,
@@ -98,7 +98,7 @@ const QUEST_DB = [
     { id: 'odin-cube', name: '在被迷惑之前（褐色、黑色立方體）', type: 'kill', npc: '毀葛碼頭旁 NPC', map: 'hugel', x: 197, y: 103,
       goal: '前往奧丁神殿討伐褐方體惡魔 ×5、黑方體惡魔 ×5' },
   ]},
-  { region: '企業之都', lv: 105, tip: '前置：2 樓「研究所進出卡片」（任務 8～25）、6 樓「傭兵叛亂以及雷根貝勒」（任務 7）。泰奧多對話完後跟身旁兩個妹妹對話即可接任務。研一的 A、B 分流沒有商人，會變成鍊金術師。', quests: [
+  { region: '企業之都', lv: 105, tip: '前置：任務 8～25 需完成潛入任務「研究所進出卡片」（<a href="https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0" target="_blank" rel="noopener">攻略</a>）；任務 7 需完成「傭兵叛亂以及雷根貝勒」。泰奧多對話完後跟身旁兩個妹妹對話即可接任務。研一的 A、B 分流沒有商人，會變成鍊金術師。', quests: [
     { id: 'lgt-grass', name: '為什麼有這麼大的游泳池（草精）', type: 'kill', npc: '泰奧多', map: 'lighthalzen', x: 200, y: 314,
       goal: '討伐草精 ×20' },
     { id: 'lgt-gray', name: '輕拍腳踝！（灰森靈）', type: 'kill', npc: '泰奧多', map: 'lighthalzen', x: 200, y: 314,
@@ -113,26 +113,26 @@ const QUEST_DB = [
       goal: '到雜貨商柯特（lhz_fild02 116,242）領鞭子，回社長唉呦下方堆鞭子', note: '材料重量 2000；只能單次接；回材料前先吃經驗水；小心爆走。' },
     { id: 'lgt-bracelet', name: '我們能做的事（犯人的手鍊）', type: 'item', npc: '海力克', map: 'lighthalzen', x: 257, y: 98,
       goal: '收集犯人的手鍊 ×20，回報海力克', mats: [{ n: '犯人的手鍊', q: 20 }], pre: '完成「傭兵叛亂以及雷根貝勒」（共 5 個前置）', note: '前置要到研二地圖的黃十字對話，很容易躺地，單人建議 0% 時解。', reward: '勇者的保管箱 ×1' },
-    { id: 'lab1-swordsman', name: '研一：闇．劍士', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．劍士 ×30', pre: '潛入任務「研究所進出卡片」', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab1-merchant', name: '研一：闇．商人', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．商人 ×30', pre: '潛入任務「研究所進出卡片」', note: 'A、B 分流沒有商人，會變成鍊金術師。', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab1-thief', name: '研一：闇．盜賊', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．盜賊 ×30', pre: '潛入任務「研究所進出卡片」', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab1-archer', name: '研一：闇．弓箭手', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．弓箭手 ×30', pre: '潛入任務「研究所進出卡片」', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab1-acolyte', name: '研一：闇．服事', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．服事 ×30', pre: '潛入任務「研究所進出卡片」', note: '會緩速。', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab1-mage', name: '研一：闇．魔法師', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．魔法師 ×30', pre: '潛入任務「研究所進出卡片」', note: '聖靈、雷擊、冰凍。', reward: '勇者的保管箱Ⅱ ×1' },
-    { id: 'lab2-crusader', name: '研二：闇．十字軍', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．十字軍 ×30', pre: '潛入任務「研究所進出卡片」', note: '反射盾、聖十字審判、迴旋盾擊。', reward: '勇者的保管箱Ⅱ ×3' },
-    { id: 'lab2-alchemist', name: '研二：闇．鍊金術師', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．鍊金術師 ×30', pre: '潛入任務「研究所進出卡片」', note: '火煙瓶（壞武）、金錢攻擊。', reward: '勇者的保管箱Ⅱ ×3' },
-    { id: 'lab2-rogue', name: '研二：闇．流氓', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．流氓 ×30', pre: '潛入任務「研究所進出卡片」', note: '脫頭、鎧、武、盾，脅持。', reward: '勇者的保管箱Ⅱ ×3' },
-    { id: 'lab2-bard', name: '研二：闇．吟遊詩人', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．吟遊詩人 ×30', pre: '潛入任務「研究所進出卡片」', note: '箭雨、二連。', reward: '勇者的保管箱Ⅱ ×3' },
-    { id: 'lab2-monk', name: '研二：闇．武道家', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．武道家 ×30', pre: '潛入任務「研究所進出卡片」', note: '阿修羅。', reward: '勇者的保管箱Ⅱ ×3' },
-    { id: 'lab2-sage', name: '研二：闇．賢者', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．賢者 ×30', pre: '潛入任務「研究所進出卡片」', note: '聖靈、雷爆、地領。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab1-swordsman', name: '研一：闇．劍士', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．劍士 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab1-merchant', name: '研一：闇．商人', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．商人 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: 'A、B 分流沒有商人，會變成鍊金術師。', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab1-thief', name: '研一：闇．盜賊', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．盜賊 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab1-archer', name: '研一：闇．弓箭手', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．弓箭手 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab1-acolyte', name: '研一：闇．服事', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．服事 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '會緩速。', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab1-mage', name: '研一：闇．魔法師', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．魔法師 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '聖靈、雷擊、冰凍。', reward: '勇者的保管箱Ⅱ ×1' },
+    { id: 'lab2-crusader', name: '研二：闇．十字軍', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．十字軍 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '反射盾、聖十字審判、迴旋盾擊。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab2-alchemist', name: '研二：闇．鍊金術師', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．鍊金術師 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '火煙瓶（壞武）、金錢攻擊。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab2-rogue', name: '研二：闇．流氓', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．流氓 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '脫頭、鎧、武、盾，脅持。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab2-bard', name: '研二：闇．吟遊詩人', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．吟遊詩人 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '箭雨、二連。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab2-monk', name: '研二：闇．武道家', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．武道家 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '阿修羅。', reward: '勇者的保管箱Ⅱ ×3' },
+    { id: 'lab2-sage', name: '研二：闇．賢者', type: 'kill', npc: '塔爾曼', map: 'lighthalzen', x: 335, y: 219, goal: '討伐闇．賢者 ×30', pre: '潛入任務「研究所進出卡片」', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '聖靈、雷爆、地領。', reward: '勇者的保管箱Ⅱ ×3' },
   ]},
   { region: '企業之都（研三）', lv: 110, tip: '研三要 110 等才能進去。回任務務必「單個」回報：用「全部回任務」似乎會套用研一的經驗（疑似 BUG）。', quests: [
-    { id: 'lab3-sniper', name: '研三：闇．神射手', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神射手 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
-    { id: 'lab3-hwiz', name: '研三：闇．超魔導師', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．超魔導師 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
-    { id: 'lab3-priest', name: '研三：闇．神官', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神官 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
-    { id: 'lab3-lord', name: '研三：闇．騎士領主', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．騎士領主 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
-    { id: 'lab3-assassin', name: '研三：闇．十字刺客', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．十字刺客 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
-    { id: 'lab3-smith', name: '研三：闇．神工匠', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神工匠 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-sniper', name: '研三：闇．神射手', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神射手 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-hwiz', name: '研三：闇．超魔導師', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．超魔導師 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-priest', name: '研三：闇．神官', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神官 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-lord', name: '研三：闇．騎士領主', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．騎士領主 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-assassin', name: '研三：闇．十字刺客', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．十字刺客 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
+    { id: 'lab3-smith', name: '研三：闇．神工匠', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神工匠 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
   ]},
 ];
 const QUEST_TYPE = { kill: '打怪', item: '交材料', talk: '對話', deliver: '運送' };

@@ -197,7 +197,7 @@
   </div>
 </div>
 
-<script src="quests-data.js?v=2"></script>
+<script src="quests-data.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const ALL = QUEST_DB.flatMap(r => r.quests.map(q => ({ ...q, region: r.region, rlv: r.lv })));
@@ -347,7 +347,7 @@ function render() {
               ${q.npc ? `<div class="row"><span class="k">NPC</span><span>${q.npc}${q.map ? `（${q.map} ${q.x},${q.y}）` : ''}</span>${nv ? `<code class="navi">${nv}</code><button class="btn-copy" onclick="copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
               ${q.mats ? `<div class="row"><span class="k">材料</span><span>${q.mats.map(m => `${m.n} ×${m.q}`).join('、')}</span></div>` : ''}
               ${q.optMats ? `<div class="row"><span class="k">視情況</span><span>${q.optMats.map(m => `${m.n} ×${m.q}`).join('、')}</span></div>` : ''}
-              ${q.pre ? `<div class="row"><span class="k">前置</span><span>${q.pre}</span></div>` : ''}
+              ${q.pre ? `<div class="row"><span class="k">前置</span><span>${q.pre}${q.preUrl ? ` <a href="${q.preUrl}" target="_blank" rel="noopener" style="color:var(--primary)">攻略 ↗</a>` : ''}</span></div>` : ''}
               ${q.note ? `<div class="row"><span class="k">注意</span><span>${q.note}</span></div>` : ''}
               ${q.reward ? `<div class="row"><span class="k">獎勵</span><span>${q.reward}</span></div>` : ''}
             </div></div>`;
@@ -385,7 +385,7 @@ function render() {
       qs.map((q, i) => { const nv = navi(q); return `<div class="step ${c.st[q.id] === 'turned' ? 'turned' : ''}"><b>${i + 1}. <span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span> ${q.name}</b>
           ${q.npc ? `<div>NPC：${q.npc}${q.map ? `（${q.map} ${q.x},${q.y}）` : ''} ${nv ? `<code class="navi">${nv}</code> <button class="btn-copy" onclick="copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
           <div>${q.goal || ''}</div>
-          ${q.pre ? `<div style="color:var(--dim)">前置：${q.pre}</div>` : ''}${q.note ? `<div style="color:var(--dim)">注意：${q.note}</div>` : ''}</div>`; }).join('') + '</div>';
+          ${q.pre ? `<div style="color:var(--dim)">前置：${q.pre}${q.preUrl ? ` <a href="${q.preUrl}" target="_blank" rel="noopener" style="color:var(--primary)">攻略 ↗</a>` : ''}</div>` : ''}${q.note ? `<div style="color:var(--dim)">注意：${q.note}</div>` : ''}</div>`; }).join('') + '</div>';
   }).join('') || `<div class="empty">清單是空的；勾選「顯示全部任務」可瀏覽所有任務的路線。</div>`;
 }
 
