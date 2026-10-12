@@ -85,10 +85,16 @@
   .route .step:last-child { border-bottom: 0; }
   .route .step b { display: block; margin-bottom: 2px; }
   .route .tip { padding: 8px 12px; font-size: .78rem; color: var(--dim); background: var(--soft); }
-  .tip-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .route .tip { line-height: 1.6; }
+  .tip-sec { margin: 4px 0; }
+  .tip-sec + .tip-sec { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--card-border); }
+  .tip-sec > b { color: var(--primary); margin-right: 6px; }
+  .tip-sec ol { margin: 4px 0 0; padding-left: 1.4em; }
+  .tip-sec li { margin: 2px 0; }
+  .tip-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; align-items: flex-start; }
   .tip-imgs figure { margin: 0; }
-  .tip-imgs img { display: block; max-width: 220px; width: 100%; border-radius: 8px; border: 1px solid var(--card-border); }
-  .tip-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 3px; text-align: center; }
+  .tip-imgs img { display: block; height: 150px; width: auto; max-width: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--card-border); }
+  .tip-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 4px; text-align: center; }
   .route .step.turned { opacity: .5; }
 
   .sel-region { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
@@ -201,7 +207,7 @@
   </div>
 </div>
 
-<script src="quests-data.js?v=6"></script>
+<script src="quests-data.js?v=7"></script>
 <script>
 const $ = id => document.getElementById(id);
 const ALL = QUEST_DB.flatMap(r => r.quests.map(q => ({ ...q, region: r.region, rlv: r.lv })));
