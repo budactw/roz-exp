@@ -99,6 +99,12 @@
 
   .board-filter { margin-bottom: 10px; }
   .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
+  .sel-item .handle, .sel-item .mv { display: none; }
+  .modal-card.sorting .sel-item .handle { display: inline; }
+  .modal-card.sorting .sel-item .mv { display: inline-flex; }
+  .modal-card.sorting .sel-item input[type=checkbox] { display: none; }
+  .modal-card.sorting .sel-item { cursor: default; }
+  .modal-card.sorting .sel-item .nm { pointer-events: none; }
   .sel-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 2px; touch-action: none; }
   .sel-item .nm { flex: 1; min-width: 0; }
   .sel-item .mv { display: inline-flex; gap: 2px; margin-left: auto; }
@@ -223,7 +229,7 @@
       <b>✏️ 編輯「<span id="selCharName"></span>」的每日清單</b>
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
-    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務；拖曳 ⋮⋮ 或按 ▲▼ 可在同一地圖內調整順序。清單與順序會記住，每天只重置完成狀態。</div>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。按「編輯排序」可在同一地圖內拖曳或用 ▲▼ 調整順序。清單與順序會記住，每天只重置完成狀態。</div>
     <div class="sel-filters">
       <div class="seg" id="selLv">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
@@ -239,6 +245,7 @@
         <button type="button" data-v="deliver" onclick="setSelFilter('type','deliver')">運送</button>
       </div>
       <span class="hint" id="selCount" style="margin:0;"></span>
+      <button class="btn-sm" id="sortBtn" style="margin-left:auto;" onclick="toggleSortMode()">↕️ 編輯排序</button>
     </div>
     <div class="q-body" id="selBody"></div>
   </div>
@@ -340,7 +347,6 @@ function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.ad
 
 // ===== 編輯清單 =====
 function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_list'); }
-function closeSelect() { $('selModal').classList.remove('open'); render(); }
 function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
 function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
 // ===== 區域內自訂順序（存在角色的 order[region]；舊資料沒有就照預設順序）=====
@@ -368,7 +374,7 @@ function resetRegionOrder(region) { const c = cur(); if (c.order) delete c.order
 (function () {
   let dragId = null, dragRegion = null, overEl = null;
   document.addEventListener('pointerdown', e => {
-    const h = e.target.closest('.sel-item .handle'); if (!h) return;
+    const h = e.target.closest('.sel-item .handle'); if (!h || !sortMode) return;
     const item = h.closest('.sel-item'); dragId = item.dataset.id; dragRegion = item.dataset.region; item.classList.add('dragging'); e.preventDefault();
   });
   document.addEventListener('pointermove', e => {
@@ -386,6 +392,17 @@ function resetRegionOrder(region) { const c = cur(); if (c.order) delete c.order
     if (overEl) { const r = overEl.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2; const o = regionOrder(cur(), QUEST_DB.find(x => x.region === region)); const ti = o.indexOf(overEl.dataset.id); placeInRegion(region, id, after ? o[ti + 1] || null : overEl.dataset.id); overEl.classList.remove('over'); overEl = null; }
   });
 })();
+
+// 編輯排序模式
+let sortMode = false;
+function toggleSortMode() {
+  sortMode = !sortMode;
+  document.querySelector('#selModal .modal-card').classList.toggle('sorting', sortMode);
+  $('sortBtn').innerText = sortMode ? '✓ 完成排序' : '↕️ 編輯排序';
+  $('sortBtn').style.background = sortMode ? 'var(--green)' : '';
+  $('sortBtn').style.color = sortMode ? '#fff' : '';
+}
+function closeSelect() { if (sortMode) toggleSortMode(); $('selModal').classList.remove('open'); render(); }
 
 // 編輯清單的快速篩選（等級 / 類型）
 const selFilter = { lv: 'all', type: 'all' };
