@@ -99,20 +99,13 @@
 
   .board-filter { margin-bottom: 10px; }
   .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
-  .order-box { border: 1px solid var(--card-border); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; background: var(--tile-bg); flex-shrink: 0; }
-  .order-box summary { cursor: pointer; font-weight: 700; font-size: .9rem; list-style: none; display: flex; align-items: center; gap: 4px; }
-  .order-box summary::-webkit-details-marker { display: none; }
-  .order-list { overflow: auto; max-height: 34vh; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  @media (max-width: 520px) { .order-item .rg { display: none; } .order-item { padding: 6px; gap: 6px; } }
-  .order-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card); font-size: .84rem; user-select: none; }
-  .order-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 4px; touch-action: none; }
-  .order-item .idx { color: var(--dim); font-size: .74rem; min-width: 1.6em; text-align: right; }
-  .order-item .rg { color: var(--dim); font-size: .72rem; }
-  .order-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .order-item .mv { display: inline-flex; gap: 2px; }
-  .order-item .mv button { min-height: 26px; padding: 0 7px; font-size: .74rem; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); }
-  .order-item.dragging { opacity: .4; }
-  .order-item.over { outline: 2px dashed var(--primary); outline-offset: -2px; }
+  .sel-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 2px; touch-action: none; }
+  .sel-item .nm { flex: 1; min-width: 0; }
+  .sel-item .mv { display: inline-flex; gap: 2px; margin-left: auto; }
+  .sel-item .mv button { min-height: 24px; padding: 0 6px; font-size: .7rem; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; }
+  .sel-item.dragging { opacity: .4; }
+  .sel-item.over { outline: 2px dashed var(--primary); outline-offset: -2px; }
+  .sel-region h3 .q-reset { min-height: 24px; padding: 0 8px; font-size: .7rem; }
   .sel-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
   .sel-filters .seg button { min-height: 28px; padding: 0 10px; font-size: .78rem; }
   .sel-filters .btn-ghost { min-height: 28px; padding: 0 10px; font-size: .78rem; }
@@ -228,12 +221,7 @@
       <b>✏️ 編輯「<span id="selCharName"></span>」的每日清單</b>
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
-    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。清單會記住，每天只重置完成狀態。</div>
-    <details class="order-box" id="orderBox">
-      <summary>↕️ 已勾選的任務順序 <span class="hint" id="orderHint" style="display:inline; margin:0 0 0 6px;"></span><button class="btn-ghost" style="margin-left:auto; min-height:26px; padding:0 8px; font-size:.74rem;" onclick="event.preventDefault(); resetOrder()">恢復預設</button></summary>
-      <div class="hint" style="margin:6px 0 8px;">拖曳 ⋮⋮ 或用 ▲▼ 調整。今日任務、路線指引與材料都會照這個順序。</div>
-      <div class="order-list" id="orderList"></div>
-    </details>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務；拖曳 ⋮⋮ 或按 ▲▼ 可在同一地圖內調整順序。清單與順序會記住，每天只重置完成狀態。</div>
     <div class="sel-filters">
       <div class="seg" id="selLv">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
@@ -273,6 +261,7 @@ function load() {
   try { S = JSON.parse(localStorage.getItem(KEY)) || S; } catch {}
   if (!Object.keys(S.chars).length) addChar('角色 1', false);
   if (!S.chars[S.cur]) S.cur = Object.keys(S.chars)[0];
+  for (const c of Object.values(S.chars)) if (c.order && typeof c.order !== 'object' || Array.isArray(c.order)) delete c.order;   // 舊格式清掉
   rollover();
 }
 function cur() { return S.chars[S.cur]; }
@@ -348,63 +337,51 @@ function updateExpandBtns() {
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
 
 // ===== 編輯清單 =====
-function openSelect() { renderSelect(); renderOrder(); $('selModal').classList.add('open'); track('edit_list'); }
+function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_list'); }
 function closeSelect() { $('selModal').classList.remove('open'); render(); }
-function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); renderOrder(); }
-function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); renderOrder(); }
-// ===== 自訂順序（存在角色的 order 欄位；舊資料沒有就照預設順序）=====
-function effectiveOrder(c) {
-  const sel = new Set(c.sel);
-  const base = (c.order || []).filter(id => sel.has(id));
+function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
+function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
+// ===== 區域內自訂順序（存在角色的 order[region]；舊資料沒有就照預設順序）=====
+function regionOrder(c, r) {
+  const ids = new Set(r.quests.map(q => q.id));
+  const base = ((c.order && c.order[r.region]) || []).filter(id => ids.has(id));
   const seen = new Set(base);
-  ALL.forEach(q => { if (sel.has(q.id) && !seen.has(q.id)) { base.push(q.id); seen.add(q.id); } });
+  r.quests.forEach(q => { if (!seen.has(q.id)) { base.push(q.id); seen.add(q.id); } });
   return base;
 }
-function orderIndex(c) { const o = effectiveOrder(c); return Object.fromEntries(o.map((id, i) => [id, i])); }
-// 依自訂順序排出區塊：區塊順序 = 區塊內最前面任務的順序；區塊內依順序
-function orderedRegions(c, filterFn) {
-  const idx = orderIndex(c);
-  return QUEST_DB.map(r => ({ r, qs: r.quests.filter(filterFn).sort((a, b) => (idx[a.id] ?? 1e9) - (idx[b.id] ?? 1e9)) }))
-    .filter(x => x.qs.length)
-    .sort((a, b) => Math.min(...a.qs.map(q => idx[q.id] ?? 1e9)) - Math.min(...b.qs.map(q => idx[q.id] ?? 1e9)));
-}
-function moveOrder(id, delta) {
-  const c = cur(); const o = effectiveOrder(c); const i = o.indexOf(id); const j = i + delta;
+function orderedQuests(c, r, filterFn) { const o = regionOrder(c, r); const idx = Object.fromEntries(o.map((id, i) => [id, i])); return r.quests.filter(filterFn).sort((a, b) => idx[a.id] - idx[b.id]); }
+function orderedRegions(c, filterFn) { return QUEST_DB.map(r => ({ r, qs: orderedQuests(c, r, filterFn) })).filter(x => x.qs.length); }
+function setRegionOrder(c, r, o) { c.order = c.order || {}; c.order[r.region] = o; save(); }
+function moveInRegion(region, id, delta) {
+  const c = cur(), r = QUEST_DB.find(x => x.region === region); const o = regionOrder(c, r); const i = o.indexOf(id), j = i + delta;
   if (i < 0 || j < 0 || j >= o.length) return;
-  o.splice(i, 1); o.splice(j, 0, id); c.order = o; save(); renderOrder();
+  o.splice(i, 1); o.splice(j, 0, id); setRegionOrder(c, r, o); renderSelect(); render();
 }
-function placeOrder(id, beforeId) {
-  const c = cur(); const o = effectiveOrder(c).filter(x => x !== id);
-  const j = beforeId ? o.indexOf(beforeId) : o.length; o.splice(j < 0 ? o.length : j, 0, id); c.order = o; save(); renderOrder();
+function placeInRegion(region, id, beforeId) {
+  const c = cur(), r = QUEST_DB.find(x => x.region === region); const o = regionOrder(c, r).filter(x => x !== id);
+  const j = beforeId ? o.indexOf(beforeId) : -1; o.splice(j < 0 ? o.length : j, 0, id); setRegionOrder(c, r, o); renderSelect(); render();
 }
-function resetOrder() { const c = cur(); delete c.order; save(); renderOrder(); }
-function renderOrder() {
-  const c = cur(); const o = effectiveOrder(c);
-  $('orderHint').innerText = o.length ? `${o.length} 個${c.order ? '・已自訂' : ''}` : '（尚未勾選任務）';
-  $('orderList').innerHTML = o.map((id, i) => { const q = BY_ID[id]; return `<div class="order-item" data-id="${id}"><span class="handle" title="拖曳">⋮⋮</span><span class="idx">${i + 1}</span><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm">${q.name}</span><span class="rg">${q.region}</span><span class="mv"><button onclick="moveOrder('${id}', -1)">▲</button><button onclick="moveOrder('${id}', 1)">▼</button></span></div>`; }).join('') || '';
-  render();
-}
-// 拖曳（pointer events，滑鼠與觸控都可）
+function resetRegionOrder(region) { const c = cur(); if (c.order) delete c.order[region]; save(); renderSelect(); render(); }
+// 拖曳（pointer events，滑鼠與觸控都可；只能在同一地圖內移動）
 (function () {
-  let dragId = null, overEl = null;
-  const list = () => $('orderList');
+  let dragId = null, dragRegion = null, overEl = null;
   document.addEventListener('pointerdown', e => {
-    const h = e.target.closest('.order-item .handle'); if (!h) return;
-    const item = h.closest('.order-item'); dragId = item.dataset.id; item.classList.add('dragging'); e.preventDefault();
+    const h = e.target.closest('.sel-item .handle'); if (!h) return;
+    const item = h.closest('.sel-item'); dragId = item.dataset.id; dragRegion = item.dataset.region; item.classList.add('dragging'); e.preventDefault();
   });
   document.addEventListener('pointermove', e => {
     if (!dragId) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY); const item = el && el.closest('.order-item');
+    const el = document.elementFromPoint(e.clientX, e.clientY); const item = el && el.closest('.sel-item');
     if (overEl && overEl !== item) overEl.classList.remove('over');
-    overEl = item && item.dataset.id !== dragId ? item : null; if (overEl) overEl.classList.add('over');
-    const box = list().getBoundingClientRect();   // 靠近上下緣時自動捲動
-    if (e.clientY < box.top + 24) list().scrollTop -= 8; else if (e.clientY > box.bottom - 24) list().scrollTop += 8;
+    overEl = item && item.dataset.id !== dragId && item.dataset.region === dragRegion ? item : null; if (overEl) overEl.classList.add('over');
+    const box = $('selBody').getBoundingClientRect();
+    if (e.clientY < box.top + 24) $('selBody').scrollTop -= 8; else if (e.clientY > box.bottom - 24) $('selBody').scrollTop += 8;
   });
   document.addEventListener('pointerup', e => {
     if (!dragId) return;
-    const id = dragId; dragId = null;
-    document.querySelectorAll('.order-item.dragging').forEach(x => x.classList.remove('dragging'));
-    if (overEl) { const r = overEl.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2; const o = effectiveOrder(cur()); const ti = o.indexOf(overEl.dataset.id); placeOrder(id, after ? o[ti + 1] || null : overEl.dataset.id); overEl.classList.remove('over'); overEl = null; }
+    const id = dragId, region = dragRegion; dragId = null; dragRegion = null;
+    document.querySelectorAll('.sel-item.dragging').forEach(x => x.classList.remove('dragging'));
+    if (overEl) { const r = overEl.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2; const o = regionOrder(cur(), QUEST_DB.find(x => x.region === region)); const ti = o.indexOf(overEl.dataset.id); placeInRegion(region, id, after ? o[ti + 1] || null : overEl.dataset.id); overEl.classList.remove('over'); overEl = null; }
   });
 })();
 
@@ -418,11 +395,12 @@ function renderSelect() {
   document.querySelectorAll('#selType button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.type));
   let shown = 0;
   $('selBody').innerHTML = QUEST_DB.map(r => {
-    const qs = r.quests.filter(q => selMatch(r, q)); if (!qs.length) return '';
+    const qs = orderedQuests(c, r, q => selMatch(r, q)); if (!qs.length) return '';
     shown += qs.length;
     const all = qs.every(q => c.sel.includes(q.id));
-    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts"><button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
-      qs.map(q => `<label class="sel-item"><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span>${q.name}</label>`).join('') + '</div>';
+    const custom = c.order && c.order[r.region];
+    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts">${custom ? `<button class="btn-ghost q-reset" onclick="resetRegionOrder('${r.region}')">恢復順序</button>` : ''}<button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
+      qs.map(q => `<div class="sel-item" data-id="${q.id}" data-region="${r.region}"><span class="handle" title="拖曳">⋮⋮</span><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm" onclick="this.previousElementSibling.previousElementSibling.click()">${q.name}</span><span class="mv"><button onclick="moveInRegion('${r.region}','${q.id}',-1)">▲</button><button onclick="moveInRegion('${r.region}','${q.id}',1)">▼</button></span></div>`).join('') + '</div>';
   }).join('') || `<div class="q-empty">沒有符合篩選的任務。</div>`;
   $('selCount').innerText = `顯示 ${shown} 個・已勾選 ${c.sel.length} 個`;
 }
