@@ -215,7 +215,7 @@
   .lines { font-size: .85rem; margin-top: 10px; }
   .lines div { padding: 4px 0; }
   .lines .v { font-weight: 700; color: var(--primary); }
-  .sec-title { font-size: .8rem; font-weight: 700; color: var(--dim); margin: 14px 0 6px; letter-spacing: .5px; text-transform: uppercase; }
+  .sec-title { font-size: .8rem; font-weight: 700; color: var(--dim); margin: 14px 0 6px; letter-spacing: .5px; }
   .milestones .table-wrap { max-height: 280px; margin-top: 0; }
   .milestones table { font-size: .78rem; }
   .milestones th, .milestones td { padding: 6px 7px; }
