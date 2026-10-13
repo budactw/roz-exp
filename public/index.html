@@ -60,6 +60,16 @@
           <input type="number" id="rateInput" min="0" step="1" inputmode="numeric" placeholder="例如 885573173" data-save>
           <div class="hint" id="rateHint"></div>
         </div>
+        <div class="grind-only" style="margin-bottom:12px; max-width:360px;">
+          <label>每天掛機幾小時</label>
+          <div class="row">
+            <input type="number" id="grindHours" value="24" min="0" max="24" step="0.5" inputmode="decimal" data-save>
+            <button class="btn-now" onclick="$('grindHours').value=24; onChange()">24h</button>
+            <button class="btn-now" onclick="$('grindHours').value=12; onChange()">12h</button>
+            <button class="btn-now" onclick="$('grindHours').value=8; onChange()">8h</button>
+          </div>
+          <div class="hint" id="grindHoursHint"></div>
+        </div>
         <div class="records">
           <div class="record grind-only track-only" id="rec-old">
             <div class="record-title">
@@ -191,7 +201,7 @@
             <div class="tile wide grind-only"><div class="k">每小時獲得經驗（純掛機）</div><div class="v" id="rRate"></div><div class="s" id="rRateSub"></div></div>
             <div class="tile"><div class="k" id="rNextK">升至下一級</div><div class="v" id="rNext"></div><div class="s" id="rNextSub"></div></div>
             <div class="tile"><div class="k" id="rTargetK">到達目標</div><div class="v" id="rTarget"></div><div class="s" id="rTargetSub"></div></div>
-            <div class="tile wide grind-only"><div class="k" id="rCombinedK">每日任務 + 每天 24h 掛機 → 到達目標</div><div class="v p" id="rCombined"></div><div class="s" id="rCombinedSub"></div></div>
+            <div class="tile wide grind-only"><div class="k" id="rCombinedK">純掛機（不做每日任務）→ 到達目標</div><div class="v p" id="rCombined"></div><div class="s" id="rCombinedSub"></div></div>
           </div>
 
           <div class="lines" id="rServer"></div>
@@ -551,9 +561,13 @@ function calculate() {
     else grindSrv = expPerHour * (m0 + serverPct) / m0;
   }
   const grindNow = srvActiveNow ? grindSrv : grindNo;
-  const hoursGrind = timeline(grindNo, grindSrv);                                           // 純掛機
-  const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                               // 只靠每日任務
-  const hoursCombined = timeline(grindNo + dailyNoSrv / 24, grindSrv + dailySrv / 24);      // 每日任務 + 24h 掛機
+  // 每天掛機時數：推估用的「每實際小時」掛機速度 = 時薪 × (時數 / 24)
+  let gh = parseFloat($('grindHours').value); if (!(gh >= 0)) gh = 24; if (gh > 24) gh = 24;
+  const gf = gh / 24;
+  $('grindHoursHint').innerText = gh >= 24 ? '全天掛機' : `每天掛 ${gh} 小時，其餘時間不計掛機經驗`;
+  const hoursGrind = timeline(grindNo * gf, grindSrv * gf);                                          // 純掛機（依每天時數）
+  const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                                        // 只靠每日任務
+  const hoursCombined = timeline(grindNo * gf + dailyNoSrv / 24, grindSrv * gf + dailySrv / 24);     // 每日任務 + 每天 gh 小時掛機
 
   // 主要推估：掛機模式 = 掛機 + 每日任務；非掛機模式 = 每日任務
   const hoursFor = grind ? hoursCombined : hoursTask;
@@ -587,7 +601,7 @@ function calculate() {
   // 參考值：純掛機（不做每日任務）
   const cmpTile = $('rCombined').closest('.tile');
   cmpTile.classList.toggle('hidden', !(grind && taskBase > 0));
-  $('rCombinedK').innerText = `純掛機（不做每日任務）→ 到達 Lv ${targetLv}`;
+  $('rCombinedK').innerText = `純掛機（不做每日任務，每天 ${gh}h）→ 到達 Lv ${targetLv}`;
   if (ok(hGrindOnly)) {
     $('rCombined').innerText = fmtDur(hGrindOnly);
     $('rCombinedSub').innerText = `${fmtDays(hGrindOnly)}${fmtDays(hGrindOnly) ? '・' : ''}${fmtEta(t2, hGrindOnly)}`;
@@ -601,7 +615,7 @@ function calculate() {
       : `・伺服器加成開始後約 ${fmtC(grindSrv)}／小時`;
   }
   if (grind && taskBase) {
-    $('rRateSub').innerHTML += `・每日合計 ${fmtC(grindNow * 24 + dailyNow)} EXP（任務 ${fmtC(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
+    $('rRateSub').innerHTML += `・每日合計 ${fmtC(grindNow * gh + dailyNow)} EXP（掛機 ${gh}h ${fmtC(grindNow * gh)}＋任務 ${fmtC(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
   }
 
   // ---- 伺服器加成狀態 ----
