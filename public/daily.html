@@ -97,6 +97,8 @@
   .tip-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 4px; text-align: center; }
   .route .step.turned { opacity: .5; }
 
+  .board-filter { margin-bottom: 10px; }
+  .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
   .sel-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
   .sel-filters .seg button { min-height: 28px; padding: 0 10px; font-size: .78rem; }
   .sel-filters .btn-ghost { min-height: 28px; padding: 0 10px; font-size: .78rem; }
@@ -155,6 +157,13 @@
             <button class="btn-ghost" onclick="resetToday()" title="把今天的狀態全部清回未做">↺ 清除今日</button>
           </span>
         </h2>
+        <div class="seg board-filter" id="boardType">
+          <button type="button" data-v="all" class="active" onclick="setBoardType('all')">全部</button>
+          <button type="button" data-v="kill" onclick="setBoardType('kill')">打怪</button>
+          <button type="button" data-v="item" onclick="setBoardType('item')">交材料</button>
+          <button type="button" data-v="talk" onclick="setBoardType('talk')">對話</button>
+          <button type="button" data-v="deliver" onclick="setBoardType('deliver')">運送</button>
+        </div>
         <div id="board"></div>
       </div>
 
@@ -291,11 +300,13 @@ function switchChar(id) { S.cur = id; save(); render(); }
 function setState(qid, st) { const c = cur(); if (st === 'none') delete c.st[qid]; else c.st[qid] = st; save(); render(); if (st !== 'none') track('quest_' + st, { quest: qid }); }
 function setRegionState(region, st) {
   const c = cur();
-  ALL.filter(q => q.region === region && c.sel.includes(q.id)).forEach(q => { if (st === 'none') delete c.st[q.id]; else c.st[q.id] = st; });
+  ALL.filter(q => q.region === region && c.sel.includes(q.id) && (boardType === 'all' || q.type === boardType)).forEach(q => { if (st === 'none') delete c.st[q.id]; else c.st[q.id] = st; });
   save(); render();
 }
 async function resetToday() { if (!await askConfirm('清除今日？', `把「${cur().name}」今天的完成狀態與材料勾選全部清回未做。`)) return; cur().st = {}; cur().mats = {}; save(); render(); }
 function toggleMat(name) { const c = cur(); if (c.mats[name]) delete c.mats[name]; else c.mats[name] = true; save(); render(); }
+let boardType = 'all';   // 今日任務的類型篩選
+function setBoardType(v) { boardType = v; render(); }
 const openRows = new Set();
 // 區塊收合（記在瀏覽器）
 const COLL_KEY = 'roz-daily-collapsed';
@@ -360,11 +371,12 @@ function render() {
   const nr = nextReset();
   $('resetInfo').innerText = `每日 04:00 自動重置。下次重置：${pad(nr.getMonth() + 1)}/${pad(nr.getDate())} 04:00`;
 
+  document.querySelectorAll('#boardType button').forEach(b => b.classList.toggle('active', b.dataset.v === boardType));
   const board = $('board');
   if (!sel.length) { board.innerHTML = `<div class="empty">還沒有設定清單，按「✏️ 編輯清單」勾選這個角色每天要做的任務。</div>`; }
   else {
-    board.innerHTML = QUEST_DB.map(r => {
-      const qs = r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
+    const html = QUEST_DB.map(r => {
+      const qs = r.quests.filter(q => c.sel.includes(q.id) && (boardType === 'all' || q.type === boardType)); if (!qs.length) return '';
       const t = qs.filter(q => c.st[q.id] === 'turned').length, d = qs.filter(q => c.st[q.id] === 'done').length;
       const ck = 'b:' + r.region;
       const cls = t === qs.length ? 'all-turned' : (t + d === qs.length ? 'all-done' : '');
@@ -392,6 +404,7 @@ function render() {
             </div></div>`;
         }).join('') + '</div>';
     }).join('');
+    board.innerHTML = html || `<div class="empty">今天的清單裡沒有「${QUEST_TYPE[boardType]}」類型的任務。</div>`;
   }
 
   // 材料：依區域彙整已選任務（已還的任務不再列入）
