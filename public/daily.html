@@ -117,7 +117,9 @@
   .sel-item:last-child { border-bottom: 0; }
   .sel-item input { width: 16px; height: 16px; accent-color: var(--primary); }
   [data-theme="dark"] .sel-item { border-bottom-color: rgba(255,255,255,.06); }
-  .modal-card .q-body { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .modal-card .q-body { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  .sel-item .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sel-item .nm:hover { white-space: normal; }
   .qrow .name .lv, .card h2 button, .card h2 .check { white-space: nowrap; }
   .card h2 { flex-wrap: wrap; }
   @media (max-width: 520px) {
