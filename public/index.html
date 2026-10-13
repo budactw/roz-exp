@@ -140,12 +140,18 @@
         <details class="q-inline" id="questInline">
           <summary>📋 從任務表勾選 <span class="hint" id="inlinePickInfo" style="display:inline; margin:0 0 0 6px;"></span></summary>
           <div class="q-toolbar" style="margin-top:10px;">
-            <div class="seg questSeg">
+            <div class="row" style="gap:8px; flex-wrap:wrap;"><div class="seg questSeg">
               <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
               <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
               <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
               <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
-            </div>
+            </div><div class="seg questTypeSeg">
+              <button type="button" data-t="all" class="active" onclick="setQuestType('all')">全部類型</button>
+              <button type="button" data-t="kill" onclick="setQuestType('kill')">打怪</button>
+              <button type="button" data-t="item" onclick="setQuestType('item')">交材料</button>
+              <button type="button" data-t="talk" onclick="setQuestType('talk')">對話</button>
+              <button type="button" data-t="deliver" onclick="setQuestType('deliver')">運送</button>
+            </div></div>
             <div class="q-legend">
               <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-expert">專家級</span>
             </div>
@@ -218,12 +224,18 @@
       <button class="btn-ghost" onclick="closeQuests()">✕</button>
     </div>
     <div class="q-toolbar">
-      <div class="seg questSeg">
+      <div class="row" style="gap:8px; flex-wrap:wrap;"><div class="seg questSeg">
         <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
         <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
         <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
         <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
-      </div>
+      </div><div class="seg questTypeSeg">
+              <button type="button" data-t="all" class="active" onclick="setQuestType('all')">全部類型</button>
+              <button type="button" data-t="kill" onclick="setQuestType('kill')">打怪</button>
+              <button type="button" data-t="item" onclick="setQuestType('item')">交材料</button>
+              <button type="button" data-t="talk" onclick="setQuestType('talk')">對話</button>
+              <button type="button" data-t="deliver" onclick="setQuestType('deliver')">運送</button>
+            </div></div>
       <div class="q-legend">
         <span class="q-easy">簡單輕鬆</span><span class="q-time">要花時間</span><span class="q-expert">專家級</span>
       </div>
@@ -797,6 +809,9 @@ const QUESTS = [
 ];
 const QTYPE = { kill: '打怪', item: '交材料', talk: '對話', deliver: '運送' };
 let questLv = 'all';
+let questType = 'all';
+const questMatch = i => (questLv === 'all' || String(i.lv) === questLv) && (questType === 'all' || i.t === questType);
+function setQuestType(t) { questType = t; renderQuests(); }
 const fmtE = n => (n / 1e8).toFixed(1) + 'E';   // 1E = 1 億
 function currentTaskMult() {
   let mult = 1;
@@ -830,7 +845,7 @@ function togglePick(id, on) {
   applyPicked(); onChange(); updatePickBar();
 }
 function pickMap(mi, on) {
-  QUESTS[mi].items.filter(i => questLv === 'all' || String(i.lv) === questLv).forEach(i => on ? picked.add(i.id) : picked.delete(i.id));
+  QUESTS[mi].items.filter(questMatch).forEach(i => on ? picked.add(i.id) : picked.delete(i.id));
   applyPicked(); onChange(); renderQuests();
 }
 function clearPicked() { picked.clear(); applyPicked(); onChange(); renderQuests(); }
@@ -846,11 +861,12 @@ function renderQuests() {
   $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
     [100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
   document.querySelectorAll('.questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
+  document.querySelectorAll('.questTypeSeg button').forEach(b => b.classList.toggle('active', b.dataset.t === questType));
   document.querySelectorAll('.questBody').forEach(body => {
     body.innerHTML = '';
     let total = 0;
     QUESTS.forEach((m, mi) => {
-      const items = m.items.filter(i => questLv === 'all' || String(i.lv) === questLv);
+      const items = m.items.filter(questMatch);
       if (!items.length) return;
       total += items.length;
       const allOn = items.every(i => picked.has(i.id));
@@ -859,7 +875,7 @@ function renderQuests() {
         `<div class="q-item q-${i.d}${picked.has(i.id) ? ' picked' : ''}" data-id="${i.id}"><label><input type="checkbox" ${picked.has(i.id) ? 'checked' : ''} onchange="togglePick('${i.id}', this.checked)"><span><span class="qt qt-${i.t}">${QTYPE[i.t]}</span>${i.n}</span></label><span class="tag">${i.lv} 級・${fmtS(TASK_BASE[i.lv] * mult)}</span></div>`).join('');
       body.appendChild(div);
     });
-    if (!total) body.innerHTML = `<div class="q-empty">目前沒有 ${questLv} 級任務的資料，待補。</div>`;
+    if (!total) body.innerHTML = `<div class="q-empty">沒有符合篩選的任務。</div>`;
   });
 }
 // 加成改變時只更新標籤與說明，不重建清單
