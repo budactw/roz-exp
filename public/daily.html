@@ -97,6 +97,9 @@
   .tip-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 4px; text-align: center; }
   .route .step.turned { opacity: .5; }
 
+  .sel-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
+  .sel-filters .seg button { min-height: 28px; padding: 0 10px; font-size: .78rem; }
+  .sel-filters .btn-ghost { min-height: 28px; padding: 0 10px; font-size: .78rem; }
   .sel-region { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
   .sel-region h3 { margin: 0; padding: 8px 12px; font-size: .9rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
   .sel-region h3 .acts { margin-left: auto; display: flex; gap: 6px; }
@@ -203,6 +206,26 @@
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
     <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。清單會記住，每天只重置完成狀態。</div>
+    <div class="sel-filters">
+      <div class="seg" id="selLv">
+        <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
+        <button type="button" data-v="100" onclick="setSelFilter('lv','100')">100</button>
+        <button type="button" data-v="105" onclick="setSelFilter('lv','105')">105</button>
+        <button type="button" data-v="110" onclick="setSelFilter('lv','110')">110</button>
+      </div>
+      <div class="seg" id="selType">
+        <button type="button" data-v="all" class="active" onclick="setSelFilter('type','all')">全部類型</button>
+        <button type="button" data-v="kill" onclick="setSelFilter('type','kill')">打怪</button>
+        <button type="button" data-v="item" onclick="setSelFilter('type','item')">交材料</button>
+        <button type="button" data-v="talk" onclick="setSelFilter('type','talk')">對話</button>
+        <button type="button" data-v="deliver" onclick="setSelFilter('type','deliver')">運送</button>
+      </div>
+      <span class="row" style="gap:6px;">
+        <button class="btn-ghost" onclick="selFiltered(true)">全選篩選結果</button>
+        <button class="btn-ghost" onclick="selFiltered(false)">取消篩選結果</button>
+        <span class="hint" id="selCount" style="margin:0;"></span>
+      </span>
+    </div>
     <div class="q-body" id="selBody"></div>
   </div>
 </div>
@@ -302,14 +325,29 @@ function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.ad
 function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_list'); }
 function closeSelect() { $('selModal').classList.remove('open'); render(); }
 function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
-function selRegion(region, on) { const c = cur(); ALL.filter(q => q.region === region).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
+function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
+// 編輯清單的快速篩選（等級 / 類型）
+const selFilter = { lv: 'all', type: 'all' };
+function setSelFilter(k, v) { selFilter[k] = v; renderSelect(); }
+function selMatch(r, q) { return (selFilter.lv === 'all' || String(r.lv) === selFilter.lv) && (selFilter.type === 'all' || q.type === selFilter.type); }
+function selFiltered(on) {
+  const c = cur();
+  QUEST_DB.forEach(r => r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }));
+  save(); renderSelect();
+}
 function renderSelect() {
   const c = cur(); $('selCharName').innerText = c.name;
+  document.querySelectorAll('#selLv button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.lv));
+  document.querySelectorAll('#selType button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.type));
+  let shown = 0;
   $('selBody').innerHTML = QUEST_DB.map(r => {
-    const all = r.quests.every(q => c.sel.includes(q.id));
-    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}</small><span class="acts"><button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
-      r.quests.map(q => `<label class="sel-item"><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span>${q.name}</label>`).join('') + '</div>';
-  }).join('');
+    const qs = r.quests.filter(q => selMatch(r, q)); if (!qs.length) return '';
+    shown += qs.length;
+    const all = qs.every(q => c.sel.includes(q.id));
+    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts"><button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
+      qs.map(q => `<label class="sel-item"><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span>${q.name}</label>`).join('') + '</div>';
+  }).join('') || `<div class="q-empty">沒有符合篩選的任務。</div>`;
+  $('selCount').innerText = `顯示 ${shown} 個・已勾選 ${c.sel.length} 個`;
 }
 
 // ===== 畫面 =====
