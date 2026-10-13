@@ -150,8 +150,9 @@
   .modal-card { width: 100%; max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-glow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
   .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .modal-wide { max-width: 860px; }
-  .q-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .q-legend { display: flex; gap: 6px; flex-wrap: wrap; }
+  .q-toolbar { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .q-toolbar > .row { flex-wrap: wrap; gap: 8px; }
+  .q-legend { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
   .q-legend span { font-size: .72rem; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
   .q-body { overflow: auto; flex: 1; min-height: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); grid-auto-rows: max-content; align-content: start; padding-right: 2px; }
   .modal-card > .modal-head, .modal-card > .q-toolbar, .modal-card > .hint { flex-shrink: 0; }
