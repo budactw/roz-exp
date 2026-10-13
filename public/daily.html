@@ -102,7 +102,8 @@
   .order-box { border: 1px solid var(--card-border); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; background: var(--tile-bg); flex-shrink: 0; }
   .order-box summary { cursor: pointer; font-weight: 700; font-size: .9rem; list-style: none; display: flex; align-items: center; gap: 4px; }
   .order-box summary::-webkit-details-marker { display: none; }
-  .order-list { overflow: auto; max-height: 34vh; display: grid; gap: 4px; }
+  .order-list { overflow: auto; max-height: 34vh; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  @media (max-width: 520px) { .order-item .rg { display: none; } .order-item { padding: 6px; gap: 6px; } }
   .order-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card); font-size: .84rem; user-select: none; }
   .order-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 4px; touch-action: none; }
   .order-item .idx { color: var(--dim); font-size: .74rem; min-width: 1.6em; text-align: right; }
