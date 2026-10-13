@@ -220,11 +220,7 @@
         <button type="button" data-v="talk" onclick="setSelFilter('type','talk')">對話</button>
         <button type="button" data-v="deliver" onclick="setSelFilter('type','deliver')">運送</button>
       </div>
-      <span class="row" style="gap:6px;">
-        <button class="btn-ghost" onclick="selFiltered(true)">全選篩選結果</button>
-        <button class="btn-ghost" onclick="selFiltered(false)">取消篩選結果</button>
-        <span class="hint" id="selCount" style="margin:0;"></span>
-      </span>
+      <span class="hint" id="selCount" style="margin:0;"></span>
     </div>
     <div class="q-body" id="selBody"></div>
   </div>
@@ -330,11 +326,6 @@ function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x
 const selFilter = { lv: 'all', type: 'all' };
 function setSelFilter(k, v) { selFilter[k] = v; renderSelect(); }
 function selMatch(r, q) { return (selFilter.lv === 'all' || String(r.lv) === selFilter.lv) && (selFilter.type === 'all' || q.type === selFilter.type); }
-function selFiltered(on) {
-  const c = cur();
-  QUEST_DB.forEach(r => r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }));
-  save(); renderSelect();
-}
 function renderSelect() {
   const c = cur(); $('selCharName').innerText = c.name;
   document.querySelectorAll('#selLv button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.lv));
