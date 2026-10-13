@@ -99,16 +99,13 @@
 
   .board-filter { margin-bottom: 10px; }
   .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
-  .modal-card:not(.sorting) .sel-item .handle, .modal-card:not(.sorting) .sel-item .mv { display: none; }
+  .modal-card:not(.sorting) .sel-item .handle { display: none; }
   .modal-card.sorting .sel-item .handle { display: inline; }
-  .modal-card.sorting .sel-item .mv { display: inline-flex; }
   .modal-card.sorting .sel-item input[type=checkbox] { display: none; }
   .modal-card.sorting .sel-item { cursor: default; }
   .modal-card.sorting .sel-item .nm { pointer-events: none; }
-  .sel-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 2px; touch-action: none; }
+  .sel-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 4px 8px; margin: -4px 0; touch-action: none; font-size: 1rem; }
   .sel-item .nm { flex: 1; min-width: 0; }
-  .sel-item .mv { display: inline-flex; gap: 2px; margin-left: auto; }
-  .sel-item .mv button { min-height: 24px; padding: 0 6px; font-size: .7rem; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); border-radius: 6px; }
   .sel-item.dragging { opacity: .4; }
   .sel-item.over { outline: 2px dashed var(--primary); outline-offset: -2px; }
   .sel-region h3 .q-reset { min-height: 24px; padding: 0 8px; font-size: .7rem; }
@@ -229,7 +226,7 @@
       <b>✏️ 編輯「<span id="selCharName"></span>」的每日清單</b>
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
-    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。按「編輯排序」可在同一地圖內拖曳或用 ▲▼ 調整順序。清單與順序會記住，每天只重置完成狀態。</div>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。按「編輯排序」後可在同一地圖內拖曳 ⋮⋮ 調整順序。清單與順序會記住，每天只重置完成狀態。</div>
     <div class="sel-filters">
       <div class="seg" id="selLv">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
@@ -419,7 +416,7 @@ function renderSelect() {
     const all = qs.every(q => c.sel.includes(q.id));
     const custom = c.order && c.order[r.region];
     return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts">${custom ? `<button class="btn-ghost q-reset" onclick="resetRegionOrder('${r.region}')">恢復順序</button>` : ''}<button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
-      qs.map(q => `<div class="sel-item" data-id="${q.id}" data-region="${r.region}"><span class="handle" title="拖曳">⋮⋮</span><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm" onclick="this.previousElementSibling.previousElementSibling.click()">${q.name}</span><span class="mv"><button onclick="moveInRegion('${r.region}','${q.id}',-1)">▲</button><button onclick="moveInRegion('${r.region}','${q.id}',1)">▼</button></span></div>`).join('') + '</div>';
+      qs.map(q => `<div class="sel-item" data-id="${q.id}" data-region="${r.region}"><span class="handle" title="拖曳">⋮⋮</span><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm" onclick="this.previousElementSibling.previousElementSibling.click()">${q.name}</span></div>`).join('') + '</div>';
   }).join('') || `<div class="q-empty">沒有符合篩選的任務。</div>`;
   $('selCount').innerText = `顯示 ${shown} 個・已勾選 ${c.sel.length} 個`;
 }
