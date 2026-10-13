@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -459,11 +459,13 @@ function addPotion(data = {}) {
     <div class="track-only"><label>先前數量</label><input type="number" class="p-old" min="0" inputmode="numeric" placeholder="先前"></div>
     <div class="track-only"><label>當前數量</label><input type="number" class="p-new" min="0" inputmode="numeric" placeholder="當前"></div>
     <div class="direct-only"><label>每小時消耗量</label><input type="number" class="p-rate" min="0" inputmode="numeric" placeholder="個 / 小時"></div>
+    <div><label>單價 Zeny（選填）</label><input type="number" class="p-price" min="0" inputmode="numeric" placeholder="例如 1500"></div>
     <button class="btn-del" title="刪除" onclick="this.closest('.potion-row').remove(); onChange();">✕</button>`;
   div.querySelector('.p-name').value = data.name || '';
   div.querySelector('.p-old').value = data.old ?? '';
   div.querySelector('.p-new').value = data.new ?? '';
   div.querySelector('.p-rate').value = data.rate ?? '';
+  div.querySelector('.p-price').value = data.price ?? '';
   div.querySelectorAll('input').forEach(i => i.addEventListener('input', onChange));
   $('potions').appendChild(div);
 }
@@ -634,6 +636,7 @@ function calculate() {
 
   // ---- 補品（掛機模式：追蹤 = 先前/當前數量；直接輸入 = 每小時消耗量）----
   const lines = [];
+  let costHour = 0, costTotal = 0, hasCost = false;
   if (grind) document.querySelectorAll('.potion-row').forEach(row => {
     const name = potionName(row) || '補品';
     let perHour;
@@ -650,8 +653,17 @@ function calculate() {
       perHour = v;
     }
     // 總量只算實際掛機的時數：經過時間 × (每天掛機時數 / 24)
-    lines.push(`【${name}】每小時 <span class="v">${fmt(perHour)}</span> 個${ok(hToTarget) ? `，到 Lv ${targetLv} 約需 <span class="v">${fmtC(perHour * hToTarget * gf)}</span> 個（掛機 ${fmtDur(hToTarget * gf)}）` : ''}`);
+    const price = parseFloat(row.querySelector('.p-price').value);
+    const grindH = ok(hToTarget) ? hToTarget * gf : 0;
+    const total = perHour * grindH;
+    let line = `【${name}】每小時 <span class="v">${fmt(perHour)}</span> 個${ok(hToTarget) ? `，到 Lv ${targetLv} 約需 <span class="v">${fmtC(total)}</span> 個（掛機 ${fmtDur(grindH)}）` : ''}`;
+    if (price > 0) {
+      line += `<br>　💰 每小時 <span class="v">${fmtC(perHour * price)}</span> z${ok(hToTarget) ? `，到 Lv ${targetLv} 共 <span class="v">${fmtC(total * price)}</span> z` : ''}`;
+      costHour += perHour * price; costTotal += total * price; hasCost = true;
+    }
+    lines.push(line);
   });
+  if (hasCost && lines.length > 1) lines.push(`<b>合計</b> 每小時 <span class="v">${fmtC(costHour)}</span> z${ok(hToTarget) ? `，到 Lv ${targetLv} 共 <span class="v">${fmtC(costTotal)}</span> z` : ''}`);
   $('rPotion').innerHTML = lines.length ? `<div class="sec-title" style="margin-top:12px">補品消耗</div>` + lines.map(l => `<div>${l}</div>`).join('') : '';
 
   // ---- 里程碑 ----
@@ -709,7 +721,7 @@ function save() {
   document.querySelectorAll('[data-save]').forEach(el => data.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value);
   document.querySelectorAll('.potion-row').forEach(row => data.potions.push({
     name: potionName(row),
-    old: row.querySelector('.p-old').value, new: row.querySelector('.p-new').value, rate: row.querySelector('.p-rate').value }));
+    old: row.querySelector('.p-old').value, new: row.querySelector('.p-new').value, rate: row.querySelector('.p-rate').value, price: row.querySelector('.p-price').value }));
   localStorage.setItem(KEY, JSON.stringify(data));
 }
 function load() {

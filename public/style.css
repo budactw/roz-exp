@@ -140,9 +140,9 @@
   .divider { border: 0; border-top: 1px dashed var(--card-border); margin: 14px 0; }
 
   /* potions */
-  .potion-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
-  body.rate-direct .potion-row { grid-template-columns: 1.4fr 1fr auto; }
-  @media (max-width: 560px) { .potion-row, body.rate-direct .potion-row { grid-template-columns: 1fr 1fr auto; } .potion-row > :first-child { grid-column: 1 / -1; } }
+  .potion-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+  body.rate-direct .potion-row { grid-template-columns: 1.4fr 1fr 1fr auto; }
+  @media (max-width: 640px) { .potion-row, body.rate-direct .potion-row { grid-template-columns: 1fr 1fr auto; } .potion-row > :first-child { grid-column: 1 / -1; } body.rate-direct .potion-row > .direct-only { grid-column: 1 / 2; } }
 
   /* exp table modal */
   .modal { display: none; position: fixed; inset: 0; background: rgba(2,6,16,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
