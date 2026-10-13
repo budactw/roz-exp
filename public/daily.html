@@ -99,6 +99,19 @@
 
   .board-filter { margin-bottom: 10px; }
   .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
+  .order-box { border: 1px solid var(--card-border); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; background: var(--tile-bg); flex-shrink: 0; max-height: 45vh; display: flex; flex-direction: column; }
+  .order-box summary { cursor: pointer; font-weight: 700; font-size: .9rem; list-style: none; display: flex; align-items: center; gap: 4px; }
+  .order-box summary::-webkit-details-marker { display: none; }
+  .order-list { overflow: auto; min-height: 0; display: grid; gap: 4px; }
+  .order-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card); font-size: .84rem; user-select: none; }
+  .order-item .handle { cursor: grab; color: var(--dim); font-weight: 700; padding: 0 4px; touch-action: none; }
+  .order-item .idx { color: var(--dim); font-size: .74rem; min-width: 1.6em; text-align: right; }
+  .order-item .rg { color: var(--dim); font-size: .72rem; }
+  .order-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .order-item .mv { display: inline-flex; gap: 2px; }
+  .order-item .mv button { min-height: 26px; padding: 0 7px; font-size: .74rem; background: var(--soft); border: 1px solid var(--card-border); color: var(--text); }
+  .order-item.dragging { opacity: .4; }
+  .order-item.over { outline: 2px dashed var(--primary); outline-offset: -2px; }
   .sel-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
   .sel-filters .seg button { min-height: 28px; padding: 0 10px; font-size: .78rem; }
   .sel-filters .btn-ghost { min-height: 28px; padding: 0 10px; font-size: .78rem; }
@@ -215,6 +228,11 @@
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
     <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。清單會記住，每天只重置完成狀態。</div>
+    <details class="order-box" id="orderBox">
+      <summary>↕️ 已勾選的任務順序 <span class="hint" id="orderHint" style="display:inline; margin:0 0 0 6px;"></span><button class="btn-ghost" style="margin-left:auto; min-height:26px; padding:0 8px; font-size:.74rem;" onclick="event.preventDefault(); resetOrder()">恢復預設</button></summary>
+      <div class="hint" style="margin:6px 0 8px;">拖曳 ⋮⋮ 或用 ▲▼ 調整。今日任務、路線指引與材料都會照這個順序。</div>
+      <div class="order-list" id="orderList"></div>
+    </details>
     <div class="sel-filters">
       <div class="seg" id="selLv">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
@@ -329,10 +347,66 @@ function updateExpandBtns() {
 function toggleRow(qid) { openRows.has(qid) ? openRows.delete(qid) : openRows.add(qid); render(); }
 
 // ===== 編輯清單 =====
-function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_list'); }
+function openSelect() { renderSelect(); renderOrder(); $('selModal').classList.add('open'); track('edit_list'); }
 function closeSelect() { $('selModal').classList.remove('open'); render(); }
-function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); }
-function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); }
+function toggleSel(qid, on) { const c = cur(); const i = c.sel.indexOf(qid); if (on && i < 0) c.sel.push(qid); if (!on && i >= 0) c.sel.splice(i, 1); save(); renderSelect(); renderOrder(); }
+function selRegion(region, on) { const c = cur(); const r = QUEST_DB.find(x => x.region === region); r.quests.filter(q => selMatch(r, q)).forEach(q => { const i = c.sel.indexOf(q.id); if (on && i < 0) c.sel.push(q.id); if (!on && i >= 0) c.sel.splice(i, 1); }); save(); renderSelect(); renderOrder(); }
+// ===== 自訂順序（存在角色的 order 欄位；舊資料沒有就照預設順序）=====
+function effectiveOrder(c) {
+  const sel = new Set(c.sel);
+  const base = (c.order || []).filter(id => sel.has(id));
+  const seen = new Set(base);
+  ALL.forEach(q => { if (sel.has(q.id) && !seen.has(q.id)) { base.push(q.id); seen.add(q.id); } });
+  return base;
+}
+function orderIndex(c) { const o = effectiveOrder(c); return Object.fromEntries(o.map((id, i) => [id, i])); }
+// 依自訂順序排出區塊：區塊順序 = 區塊內最前面任務的順序；區塊內依順序
+function orderedRegions(c, filterFn) {
+  const idx = orderIndex(c);
+  return QUEST_DB.map(r => ({ r, qs: r.quests.filter(filterFn).sort((a, b) => (idx[a.id] ?? 1e9) - (idx[b.id] ?? 1e9)) }))
+    .filter(x => x.qs.length)
+    .sort((a, b) => Math.min(...a.qs.map(q => idx[q.id] ?? 1e9)) - Math.min(...b.qs.map(q => idx[q.id] ?? 1e9)));
+}
+function moveOrder(id, delta) {
+  const c = cur(); const o = effectiveOrder(c); const i = o.indexOf(id); const j = i + delta;
+  if (i < 0 || j < 0 || j >= o.length) return;
+  o.splice(i, 1); o.splice(j, 0, id); c.order = o; save(); renderOrder();
+}
+function placeOrder(id, beforeId) {
+  const c = cur(); const o = effectiveOrder(c).filter(x => x !== id);
+  const j = beforeId ? o.indexOf(beforeId) : o.length; o.splice(j < 0 ? o.length : j, 0, id); c.order = o; save(); renderOrder();
+}
+function resetOrder() { const c = cur(); delete c.order; save(); renderOrder(); }
+function renderOrder() {
+  const c = cur(); const o = effectiveOrder(c);
+  $('orderHint').innerText = o.length ? `${o.length} 個${c.order ? '・已自訂' : ''}` : '（尚未勾選任務）';
+  $('orderList').innerHTML = o.map((id, i) => { const q = BY_ID[id]; return `<div class="order-item" data-id="${id}"><span class="handle" title="拖曳">⋮⋮</span><span class="idx">${i + 1}</span><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm">${q.name}</span><span class="rg">${q.region}</span><span class="mv"><button onclick="moveOrder('${id}', -1)">▲</button><button onclick="moveOrder('${id}', 1)">▼</button></span></div>`; }).join('') || '';
+  render();
+}
+// 拖曳（pointer events，滑鼠與觸控都可）
+(function () {
+  let dragId = null, overEl = null;
+  const list = () => $('orderList');
+  document.addEventListener('pointerdown', e => {
+    const h = e.target.closest('.order-item .handle'); if (!h) return;
+    const item = h.closest('.order-item'); dragId = item.dataset.id; item.classList.add('dragging'); e.preventDefault();
+  });
+  document.addEventListener('pointermove', e => {
+    if (!dragId) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY); const item = el && el.closest('.order-item');
+    if (overEl && overEl !== item) overEl.classList.remove('over');
+    overEl = item && item.dataset.id !== dragId ? item : null; if (overEl) overEl.classList.add('over');
+    const box = list().getBoundingClientRect();   // 靠近上下緣時自動捲動
+    if (e.clientY < box.top + 24) list().scrollTop -= 8; else if (e.clientY > box.bottom - 24) list().scrollTop += 8;
+  });
+  document.addEventListener('pointerup', e => {
+    if (!dragId) return;
+    const id = dragId; dragId = null;
+    document.querySelectorAll('.order-item.dragging').forEach(x => x.classList.remove('dragging'));
+    if (overEl) { const r = overEl.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2; const o = effectiveOrder(cur()); const ti = o.indexOf(overEl.dataset.id); placeOrder(id, after ? o[ti + 1] || null : overEl.dataset.id); overEl.classList.remove('over'); overEl = null; }
+  });
+})();
+
 // 編輯清單的快速篩選（等級 / 類型）
 const selFilter = { lv: 'all', type: 'all' };
 function setSelFilter(k, v) { selFilter[k] = v; renderSelect(); }
@@ -375,8 +449,7 @@ function render() {
   const board = $('board');
   if (!sel.length) { board.innerHTML = `<div class="empty">還沒有設定清單，按「✏️ 編輯清單」勾選這個角色每天要做的任務。</div>`; }
   else {
-    const html = QUEST_DB.map(r => {
-      const qs = r.quests.filter(q => c.sel.includes(q.id) && (boardType === 'all' || q.type === boardType)); if (!qs.length) return '';
+    const html = orderedRegions(c, q => c.sel.includes(q.id) && (boardType === 'all' || q.type === boardType)).map(({ r, qs }) => {
       const t = qs.filter(q => c.st[q.id] === 'turned').length, d = qs.filter(q => c.st[q.id] === 'done').length;
       const ck = 'b:' + r.region;
       const cls = t === qs.length ? 'all-turned' : (t + d === qs.length ? 'all-done' : '');
@@ -410,8 +483,7 @@ function render() {
   // 材料：依區域彙整已選任務（已還的任務不再列入）
   const matRow = (key, n, q, from) => `<label class="mat ${c.mats[key] ? 'ok' : ''}"><input type="checkbox" ${c.mats[key] ? 'checked' : ''} onchange="toggleMat('${esc(key)}')"><span class="n">${n}</span><span class="q">×${q}</span><span class="from">${[...new Set(from)].join('、')}</span></label>`;
   let matsHtml = '';
-  for (const r of QUEST_DB) {
-    const qs = r.quests.filter(q => c.sel.includes(q.id) && c.st[q.id] !== 'turned');
+  for (const { r, qs } of orderedRegions(c, q => c.sel.includes(q.id) && c.st[q.id] !== 'turned')) {
     const need = {}, opt = {}, from = {};
     qs.forEach(q => {
       (q.mats || []).forEach(m => { need[m.n] = (need[m.n] || 0) + m.q; (from[m.n] = from[m.n] || []).push(q.name); });
@@ -429,8 +501,7 @@ function render() {
 
   // 路線指引
   const showAll = $('routeAll').checked;
-  $('route').innerHTML = QUEST_DB.map(r => {
-    const qs = showAll ? r.quests : r.quests.filter(q => c.sel.includes(q.id)); if (!qs.length) return '';
+  $('route').innerHTML = orderedRegions(c, q => showAll || c.sel.includes(q.id)).map(({ r, qs }) => {
     const ck = 'r:' + r.region;
     return `<div class="region ${collapsed.has(ck) ? 'collapsed' : ''}"><h3><span class="tg" onclick="toggleRegion('${ck}')"><span class="arrow">▾</span>${r.region}</span> <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small></h3>` +
       (r.tip ? `<div class="tip">💡 ${r.tip}</div>` : '') +
