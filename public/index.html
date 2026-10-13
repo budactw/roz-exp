@@ -666,7 +666,7 @@ function calculate() {
     }
     rows.push(`<tr><td>${name}</td><td>${fmt(perHour)}</td><td>${ok(hToTarget) ? fmtC(total) : '—'}</td>${costCells}</tr>`);
   });
-  for (const cur of ['z', 'twd']) if (cost[cur].n > 1) rows.push(`<tr class="sum"><td>合計（${cur === 'twd' ? '台幣' : 'Zeny'}）</td><td></td><td></td><td>${money(cost[cur].h, cur)}</td><td>${ok(hToTarget) ? money(cost[cur].t, cur) : '—'}</td></tr>`);
+  for (const cur of ['z', 'twd']) if (cost[cur].n > 0) rows.push(`<tr class="sum"><td>合計（${cur === 'twd' ? '台幣' : 'Zeny'}）</td><td></td><td></td><td>${money(cost[cur].h, cur)}</td><td>${ok(hToTarget) ? money(cost[cur].t, cur) : '—'}</td></tr>`);
   $('rPotion').innerHTML = rows.length
     ? `<div class="sec-title" style="margin-top:12px">補品消耗${ok(hToTarget) ? `（到 Lv ${targetLv}，掛機 ${fmtDur(grindH)}）` : ''}</div>
        <div class="table-wrap potion-table"><table><thead><tr><th>補品</th><th>每小時</th><th>到目標</th><th>每小時費用</th><th>總費用</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`
