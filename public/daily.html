@@ -99,7 +99,10 @@
 
   .board-filter { margin-bottom: 10px; }
   .board-filter button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
-  .modal-card:not(.sorting) .sel-item .handle { display: none; }
+  .modal-card:not(.sorting) .sel-item .handle, .modal-card:not(.sorting) .sel-region .rhandle { display: none; }
+  .sel-region .rhandle { cursor: grab; color: var(--dim); font-weight: 700; padding: 2px 8px 2px 0; touch-action: none; font-size: 1rem; }
+  .sel-region.dragging { opacity: .4; }
+  .sel-region.over { outline: 2px dashed var(--primary); outline-offset: -2px; }
   .modal-card.sorting .sel-item .handle { display: inline; }
   .modal-card.sorting .sel-item input[type=checkbox] { display: none; }
   .modal-card.sorting .sel-item { cursor: default; }
@@ -226,7 +229,7 @@
       <b>✏️ 編輯「<span id="selCharName"></span>」的每日清單</b>
       <button class="btn-ghost" onclick="closeSelect()">✕</button>
     </div>
-    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。按「編輯排序」後可在同一地圖內拖曳 ⋮⋮ 調整順序。清單與順序會記住，每天只重置完成狀態。</div>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色每天要做的任務。按「編輯排序」後可拖曳 ⋮⋮ 調整任務順序（同一地圖內）或地圖區塊的順序。清單與順序會記住，每天只重置完成狀態。</div>
     <div class="sel-filters">
       <div class="seg" id="selLv">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('lv','all')">全部等級</button>
@@ -243,7 +246,10 @@
         <button type="button" data-v="deliver" onclick="setSelFilter('type','deliver')">運送</button>
       </div>
       <span class="hint" id="selCount" style="margin:0;"></span>
-      <button class="btn-sm" id="sortBtn" style="margin-left:auto;" onclick="toggleSortMode()">↕️ 編輯排序</button>
+      <span class="row" style="margin-left:auto; gap:6px;">
+        <button class="btn-ghost" id="regionResetBtn" style="display:none;" onclick="resetRegionList()">恢復地圖順序</button>
+        <button class="btn-sm" id="sortBtn" onclick="toggleSortMode()">↕️ 編輯排序</button>
+      </span>
     </div>
     <div class="q-body" id="selBody"></div>
   </div>
@@ -356,7 +362,20 @@ function regionOrder(c, r) {
   return base;
 }
 function orderedQuests(c, r, filterFn) { const o = regionOrder(c, r); const idx = Object.fromEntries(o.map((id, i) => [id, i])); return r.quests.filter(filterFn).sort((a, b) => idx[a.id] - idx[b.id]); }
-function orderedRegions(c, filterFn) { return QUEST_DB.map(r => ({ r, qs: orderedQuests(c, r, filterFn) })).filter(x => x.qs.length); }
+// 地圖區塊順序（存在角色的 regionOrder；舊資料沒有就照預設）
+function regionList(c) {
+  const names = new Set(QUEST_DB.map(r => r.region));
+  const base = (c.regionOrder || []).filter(n => names.has(n));
+  const seen = new Set(base);
+  QUEST_DB.forEach(r => { if (!seen.has(r.region)) { base.push(r.region); seen.add(r.region); } });
+  return base.map(n => QUEST_DB.find(r => r.region === n));
+}
+function orderedRegions(c, filterFn) { return regionList(c).map(r => ({ r, qs: orderedQuests(c, r, filterFn) })).filter(x => x.qs.length); }
+function placeRegion(name, beforeName) {
+  const c = cur(); const o = regionList(c).map(r => r.region).filter(n => n !== name);
+  const j = beforeName ? o.indexOf(beforeName) : -1; o.splice(j < 0 ? o.length : j, 0, name); c.regionOrder = o; save(); renderSelect(); render();
+}
+function resetRegionList() { const c = cur(); delete c.regionOrder; save(); renderSelect(); render(); }
 function setRegionOrder(c, r, o) { c.order = c.order || {}; c.order[r.region] = o; save(); }
 function moveInRegion(region, id, delta) {
   const c = cur(), r = QUEST_DB.find(x => x.region === region); const o = regionOrder(c, r); const i = o.indexOf(id), j = i + delta;
@@ -370,20 +389,32 @@ function placeInRegion(region, id, beforeId) {
 function resetRegionOrder(region) { const c = cur(); if (c.order) delete c.order[region]; save(); renderSelect(); render(); }
 // 拖曳（pointer events，滑鼠與觸控都可；只能在同一地圖內移動）
 (function () {
-  let dragId = null, dragRegion = null, overEl = null;
+  let dragId = null, dragRegion = null, dragRegionCard = null, overEl = null;
   document.addEventListener('pointerdown', e => {
-    const h = e.target.closest('.sel-item .handle'); if (!h || !sortMode) return;
+    if (!sortMode) return;
+    const rh = e.target.closest('.sel-region .rhandle');
+    if (rh) { const card = rh.closest('.sel-region'); dragRegionCard = card.dataset.region; card.classList.add('dragging'); e.preventDefault(); return; }
+    const h = e.target.closest('.sel-item .handle'); if (!h) return;
     const item = h.closest('.sel-item'); dragId = item.dataset.id; dragRegion = item.dataset.region; item.classList.add('dragging'); e.preventDefault();
   });
   document.addEventListener('pointermove', e => {
-    if (!dragId) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY); const item = el && el.closest('.sel-item');
-    if (overEl && overEl !== item) overEl.classList.remove('over');
-    overEl = item && item.dataset.id !== dragId && item.dataset.region === dragRegion ? item : null; if (overEl) overEl.classList.add('over');
+    if (!dragId && !dragRegionCard) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    let target = null;
+    if (dragRegionCard) { const card = el && el.closest('.sel-region'); target = card && card.dataset.region !== dragRegionCard ? card : null; }
+    else { const item = el && el.closest('.sel-item'); target = item && item.dataset.id !== dragId && item.dataset.region === dragRegion ? item : null; }
+    if (overEl && overEl !== target) overEl.classList.remove('over');
+    overEl = target; if (overEl) overEl.classList.add('over');
     const box = $('selBody').getBoundingClientRect();
     if (e.clientY < box.top + 24) $('selBody').scrollTop -= 8; else if (e.clientY > box.bottom - 24) $('selBody').scrollTop += 8;
   });
   document.addEventListener('pointerup', e => {
+    if (dragRegionCard) {
+      const name = dragRegionCard; dragRegionCard = null;
+      document.querySelectorAll('.sel-region.dragging').forEach(x => x.classList.remove('dragging'));
+      if (overEl) { const r = overEl.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2; const o = regionList(cur()).map(x => x.region); const ti = o.indexOf(overEl.dataset.region); placeRegion(name, after ? o[ti + 1] || null : overEl.dataset.region); overEl.classList.remove('over'); overEl = null; }
+      return;
+    }
     if (!dragId) return;
     const id = dragId, region = dragRegion; dragId = null; dragRegion = null;
     document.querySelectorAll('.sel-item.dragging').forEach(x => x.classList.remove('dragging'));
@@ -411,15 +442,16 @@ function renderSelect() {
   document.querySelectorAll('#selLv button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.lv));
   document.querySelectorAll('#selType button').forEach(b => b.classList.toggle('active', b.dataset.v === selFilter.type));
   let shown = 0;
-  $('selBody').innerHTML = QUEST_DB.map(r => {
+  $('selBody').innerHTML = regionList(c).map(r => {
     const qs = orderedQuests(c, r, q => selMatch(r, q)); if (!qs.length) return '';
     shown += qs.length;
     const all = qs.every(q => c.sel.includes(q.id));
     const custom = c.order && c.order[r.region];
-    return `<div class="sel-region"><h3>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts">${custom ? `<button class="btn-ghost q-reset" onclick="resetRegionOrder('${r.region}')">恢復順序</button>` : ''}<button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
+    return `<div class="sel-region" data-region="${r.region}"><h3><span class="rhandle" title="拖曳調整地圖順序">⋮⋮</span>${r.region} <small style="color:var(--dim);font-weight:500">Lv ${r.lv}・${qs.length} 個</small><span class="acts">${custom ? `<button class="btn-ghost q-reset" onclick="resetRegionOrder('${r.region}')">恢復順序</button>` : ''}<button class="btn-ghost" onclick="selRegion('${r.region}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
       qs.map(q => `<div class="sel-item" data-id="${q.id}" data-region="${r.region}"><span class="handle" title="拖曳">⋮⋮</span><input type="checkbox" ${c.sel.includes(q.id) ? 'checked' : ''} onchange="toggleSel('${q.id}', this.checked)"><span class="qt qt-${q.type}">${QUEST_TYPE[q.type]}</span><span class="nm" onclick="this.previousElementSibling.previousElementSibling.click()">${q.name}</span></div>`).join('') + '</div>';
   }).join('') || `<div class="q-empty">沒有符合篩選的任務。</div>`;
   $('selCount').innerText = `顯示 ${shown} 個・已勾選 ${c.sel.length} 個`;
+  $('regionResetBtn').style.display = c.regionOrder ? '' : 'none';
 }
 
 // ===== 畫面 =====
