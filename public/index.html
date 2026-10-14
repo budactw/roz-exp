@@ -152,6 +152,7 @@
           <div class="q-toolbar" style="margin-top:10px;">
             <div class="row" style="gap:8px; flex-wrap:wrap;"><div class="seg questSeg">
               <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
+              <button type="button" data-lv="90" onclick="setQuestLv('90')">90 級</button>
               <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
               <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
               <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
@@ -236,7 +237,8 @@
     <div class="q-toolbar">
       <div class="row" style="gap:8px; flex-wrap:wrap;"><div class="seg questSeg">
         <button type="button" data-lv="all" class="active" onclick="setQuestLv('all')">全部</button>
-        <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
+        <button type="button" data-lv="90" onclick="setQuestLv('90')">90 級</button>
+              <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
         <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
         <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
       </div><div class="seg questTypeSeg">
@@ -764,6 +766,52 @@ function copyText(text, btn) {
 // ===== 每日任務整理表 =====
 // lv: 任務等級；d: easy 簡單輕鬆 / time 要花時間 / expert 專家級；t: kill 打怪 / item 交材料 / talk 對話 / deliver 運送
 const QUESTS = [
+  { map: '龜島', items: [
+    { n: '刺尾蜻蜓 + 彈簧兔 各 10', lv: 90, d: 'time', t: 'kill' },
+    { n: '果樹龜、岩石龜、水靈龜、火靈龜 各 10', lv: 90, d: 'time', t: 'kill' },
+    { n: '風靈龜 10', lv: 90, d: 'time', t: 'kill' },
+  ]},
+  { map: '崑崙', items: [
+    { n: '老舊的太極盤 10', lv: 90, d: 'easy', t: 'item' },
+    { n: '修好的太極盤 10', lv: 90, d: 'easy', t: 'item' },
+    { n: '元宵童子 15', lv: 90, d: 'time', t: 'kill' },
+    { n: '妖仙女 15', lv: 90, d: 'time', t: 'kill' },
+    { n: '猴桃木 15', lv: 90, d: 'time', t: 'kill' },
+    { n: '人蔘精 15', lv: 90, d: 'time', t: 'kill' },
+  ]},
+  { map: '泰國', items: [
+    { n: '群葉貓 15', lv: 90, d: 'time', t: 'kill' },
+    { n: '克萊本 15', lv: 90, d: 'time', t: 'kill' },
+    { n: '塔嚕安 10', lv: 90, d: 'time', t: 'kill' },
+    { n: '收集紅色流蘇 10', lv: 90, d: 'easy', t: 'item' },
+    { n: '收集竹籃 10', lv: 90, d: 'easy', t: 'item' },
+    { n: '灑水（3 個 NPC）', lv: 90, d: 'easy', t: 'talk' },
+    { n: '放長線釣大魚', lv: 90, d: 'easy', t: 'talk' },
+    { n: '製作料理（檸檬 10、蝦子 20、紅辣椒 30）', lv: 90, d: 'easy', t: 'item' },
+  ]},
+  { map: '天津', items: [
+    { n: '桃太郎體驗館（不吃經驗加倍）', lv: 90, d: 'easy', t: 'talk' },
+    { n: '釣魚河童 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '傘妖 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '米雅畢 30 + 光澤的頭髮 10', lv: 90, d: 'time', t: 'kill' },
+    { n: '武士火槍兵 20 + 巨大傑勒比結晶 1', lv: 90, d: 'time', t: 'kill' },
+    { n: '牛蛙 30 + 牛蛙之皮 10', lv: 90, d: 'time', t: 'kill' },
+    { n: '天狗 20', lv: 90, d: 'time', t: 'kill' },
+    { n: '火忍西怒畢 20', lv: 90, d: 'time', t: 'kill' },
+  ]},
+  { map: '洛陽', items: [
+    { n: '豹皮怪 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '狐仙 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '醫院材料（噬人樹花 5、泥團 5、米糕 10）', lv: 90, d: 'easy', t: 'item' },
+    { n: '舞獅 10 + 舞獅之角 20', lv: 90, d: 'time', t: 'kill' },
+    { n: '舞獅 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '妖君 30', lv: 90, d: 'time', t: 'kill' },
+    { n: '小青 30', lv: 90, d: 'time', t: 'kill' },
+  ]},
+  { map: '死都', items: [
+    { n: '銀月魔女 20 + 嗜血怪人 20', lv: 90, d: 'time', t: 'kill' },
+    { n: '假面鬼 20 + 無顱武士 20', lv: 90, d: 'time', t: 'kill' },
+  ]},
   { map: '朱諾', items: [
     { n: '送便當', lv: 100, d: 'easy', t: 'deliver' },
     { n: '打向日葵 + 螳螂 10', lv: 100, d: 'easy', t: 'kill' },
@@ -864,13 +912,13 @@ const picked = new Set();          // 已勾選任務的 id（地圖索引-項�
 QUESTS.forEach((m, mi) => m.items.forEach((it, ii) => it.id = `${mi}-${ii}`));
 const ALL_ITEMS = QUESTS.flatMap(m => m.items);
 function pickedCounts() {
-  const c = { 100: 0, 105: 0, 110: 0 };
+  const c = { 90: 0, 100: 0, 105: 0, 110: 0 };
   for (const it of ALL_ITEMS) if (picked.has(it.id)) c[it.lv]++;
   return c;
 }
 function applyPicked() {
   const c = pickedCounts();
-  $('task100').value = c[100]; $('task105').value = c[105]; $('task110').value = c[110];
+  $('task90').value = c[90]; $('task100').value = c[100]; $('task105').value = c[105]; $('task110').value = c[110];
 }
 function togglePick(id, on) {
   if (on) picked.add(id); else picked.delete(id);
@@ -884,15 +932,15 @@ function pickMap(mi, on) {
 function clearPicked() { picked.clear(); applyPicked(); onChange(); renderQuests(); }
 function updatePickBar() {
   const c = pickedCounts(), mult = currentTaskMult();
-  const total = (c[100] * TASK_BASE[100] + c[105] * TASK_BASE[105] + c[110] * TASK_BASE[110]) * mult;
-  document.querySelectorAll('.questPickInfo').forEach(el => el.innerHTML = `已勾選 <b>${picked.size}</b> 個：100 級 <b>${c[100]}</b>・105 級 <b>${c[105]}</b>・110 級 <b>${c[110]}</b>・每日合計 <b>${fmtC(total)}</b> EXP`);
-  $('inlinePickInfo').innerText = picked.size ? `已勾選 ${picked.size} 個（100 級 ${c[100]}・105 級 ${c[105]}・110 級 ${c[110]}）` : '';
+  const total = (c[90] * TASK_BASE[90] + c[100] * TASK_BASE[100] + c[105] * TASK_BASE[105] + c[110] * TASK_BASE[110]) * mult;
+  document.querySelectorAll('.questPickInfo').forEach(el => el.innerHTML = `已勾選 <b>${picked.size}</b> 個：90 級 <b>${c[90]}</b>・100 級 <b>${c[100]}</b>・105 級 <b>${c[105]}</b>・110 級 <b>${c[110]}</b>・每日合計 <b>${fmtC(total)}</b> EXP`);
+  $('inlinePickInfo').innerText = picked.size ? `已勾選 ${picked.size} 個（90 級 ${c[90]}・100 級 ${c[100]}・105 級 ${c[105]}・110 級 ${c[110]}）` : '';
 }
 function renderQuests() {
   const mult = currentTaskMult();
   updatePickBar();
   $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
-    [100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
+    [90, 100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
   document.querySelectorAll('.questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
   document.querySelectorAll('.questTypeSeg button').forEach(b => b.classList.toggle('active', b.dataset.t === questType));
   document.querySelectorAll('.questBody').forEach(body => {
@@ -919,7 +967,7 @@ function refreshQuestTags() {
     el.querySelector('.tag').innerHTML = `${it.lv} 級・${fmtS(TASK_BASE[it.lv] * mult)}`;
   });
   if ($('questExpInfo')) $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
-    [100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
+    [90, 100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
 }
 function setQuestLv(lv) { questLv = lv; renderQuests(); }
 function openQuests() { renderQuests(); $('questModal').classList.add('open'); track('open_quest_table'); }

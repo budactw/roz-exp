@@ -1,9 +1,55 @@
 // RO樂園 每日任務資料（每日任務頁專用）
-// 來源：RO補給站 https://ro-zero-site.pages.dev/quests（朱諾、鋼鐵之都、毀葛、深淵湖水、奧丁神殿）；企業之都與前置任務：巴哈姆特 forum.gamer.com.tw/C.php?bsn=83142&snA=3653
+// 來源：RO補給站 https://ro-zero-site.pages.dev/quests（90 級六區、朱諾、鋼鐵之都、毀葛、深淵湖水、奧丁神殿）；企業之都與前置任務：巴哈姆特 forum.gamer.com.tw/C.php?bsn=83142&snA=3653
 // 欄位：id、name、lv、type（kill 打怪 / item 交材料 / talk 對話 / deliver 運送）、
 //       npc、map（地圖代號）、x、y、goal（目標）、mats（要帶的材料 [{n, q}]）、
 //       optMats（視情況才需要的材料）、pre（前置）、preUrl（前置攻略連結）、note（注意）、reward
 const QUEST_DB = [
+  { region: '龜島', lv: 90, tip: '風靈龜會音投。', quests: [
+    { id: 'tur-1', name: '刺尾蜻蜓＋彈簧兔', type: 'kill', npc: '騎士提伯特', map: 'alberta', x: 208, y: 119, goal: '擊殺刺尾蜻蜓 ×10、彈簧兔 ×10' },
+    { id: 'tur-2', name: '四種龜各 10', type: 'kill', npc: '騎士提伯特', map: 'alberta', x: 208, y: 119, goal: '擊殺果樹龜、岩石龜、水靈龜、火靈龜各 ×10' },
+    { id: 'tur-3', name: '風靈龜', type: 'kill', npc: '騎士團長', map: 'tur_dun03', x: 110, y: 83, goal: '擊殺風靈龜 ×10', note: '風靈龜會音投。' },
+  ]},
+  { region: '崑崙', lv: 90, tip: '妖仙女會魔解與吸 SP；人蔘精會暈眩與魔解。', quests: [
+    { id: 'gon-1', name: '老舊的太極盤', type: 'item', npc: '凱真', map: 'gon_fild01', x: 258, y: 95, goal: '交付老舊的太極盤 ×10', mats: [{ n: '老舊的太極盤', q: 10 }] },
+    { id: 'gon-2', name: '修好的太極盤', type: 'item', npc: '凱真', map: 'gon_fild01', x: 258, y: 95, goal: '交付修好的太極盤 ×10', mats: [{ n: '修好的太極盤', q: 10 }] },
+    { id: 'gon-3', name: '元宵童子', type: 'kill', npc: '燕元津', map: 'gonryun', x: 163, y: 195, goal: '擊殺元宵童子 ×15' },
+    { id: 'gon-4', name: '妖仙女', type: 'kill', npc: '燕元津', map: 'gonryun', x: 163, y: 195, goal: '擊殺妖仙女 ×15', note: '會魔解與吸 SP。' },
+    { id: 'gon-5', name: '猴桃木', type: 'kill', npc: '燕元津', map: 'gonryun', x: 163, y: 195, goal: '擊殺猴桃木 ×15' },
+    { id: 'gon-6', name: '人蔘精', type: 'kill', npc: '燕元津', map: 'gonryun', x: 163, y: 195, goal: '擊殺人蔘精 ×15', note: '會暈眩與魔解。' },
+  ]},
+  { region: '泰國', lv: 90, tip: '群葉貓會音投；塔嚕安會怒爆與魔解。', quests: [
+    { id: 'ayo-1', name: '群葉貓', type: 'kill', npc: '哎喲泰雅僧侶', map: '哎喲泰雅原野', x: 123, y: 200, goal: '擊殺群葉貓 ×15', note: '會音投。' },
+    { id: 'ayo-2', name: '克萊本', type: 'kill', npc: '哎喲泰雅僧侶', map: '哎喲泰雅原野', x: 123, y: 200, goal: '擊殺克萊本 ×15' },
+    { id: 'ayo-3', name: '塔嚕安', type: 'kill', npc: '哎喲泰雅僧侶', map: '哎喲泰雅原野', x: 123, y: 200, goal: '擊殺塔嚕安 ×10', note: '會怒爆與魔解。' },
+    { id: 'ayo-4', name: '收集紅色流蘇', type: 'item', npc: '古董收藏家', map: '哎喲泰雅原野', x: 123, y: 200, goal: '交付紅色流蘇 ×10', mats: [{ n: '紅色流蘇', q: 10 }] },
+    { id: 'ayo-5', name: '收集竹籃', type: 'item', npc: '古董收藏家', map: '哎喲泰雅原野', x: 123, y: 200, goal: '交付竹籃 ×10', mats: [{ n: '竹籃', q: 10 }] },
+    { id: 'ayo-6', name: '灑水', type: 'talk', npc: '佐克瓏', map: 'ayothaya', x: 204, y: 265, goal: '對地圖上 3 個 NPC 灑水' },
+    { id: 'ayo-7', name: '放長線釣大魚', type: 'talk', npc: '老奶奶', map: 'ayothaya', x: 251, y: 99, goal: '放長線釣大魚' },
+    { id: 'ayo-8', name: '製作料理', type: 'item', npc: '瑪莉德辣辣', map: 'ayothaya', x: 231, y: 70, goal: '收集檸檬 ×10、蝦子 ×20、紅辣椒 ×30 製作料理', mats: [{ n: '檸檬', q: 10 }, { n: '蝦子', q: 20 }, { n: '紅辣椒', q: 30 }] },
+  ]},
+  { region: '天津', lv: 90, tip: '火忍西怒畢會反射盾；天狗會魔解與大地之擊。', quests: [
+    { id: 'ama-1', name: '桃太郎體驗館', type: 'talk', npc: '桃夢也', map: 'amatsu', x: 225, y: 235, goal: '桃太郎體驗館', note: '不吃經驗加倍。' },
+    { id: 'ama-2', name: '釣魚河童', type: 'kill', npc: '塔慨虎威', map: 'ama_fild01', x: 173, y: 328, goal: '擊殺釣魚河童 ×30' },
+    { id: 'ama-3', name: '傘妖', type: 'kill', npc: '塔慨虎威', map: 'ama_fild01', x: 173, y: 328, goal: '擊殺傘妖 ×30' },
+    { id: 'ama-4', name: '米雅畢＋光澤的頭髮', type: 'kill', npc: '千代夫人', map: 'amatsu', x: 167, y: 179, goal: '擊殺米雅畢 ×30，收集光澤的頭髮 ×10', mats: [{ n: '光澤的頭髮', q: 10 }] },
+    { id: 'ama-5', name: '武士火槍兵＋巨大傑勒比結晶', type: 'kill', npc: '千代夫人', map: 'amatsu', x: 167, y: 179, goal: '擊殺武士火槍兵 ×20，收集巨大傑勒比結晶 ×1', mats: [{ n: '巨大傑勒比結晶', q: 1 }] },
+    { id: 'ama-6', name: '牛蛙＋牛蛙之皮', type: 'kill', npc: '千代夫人', map: 'amatsu', x: 167, y: 179, goal: '擊殺牛蛙 ×30，收集牛蛙之皮 ×10', mats: [{ n: '牛蛙之皮', q: 10 }] },
+    { id: 'ama-7', name: '天狗', type: 'kill', npc: '進出管理兵', map: '天水閣內部頂樓', x: 88, y: 236, goal: '擊殺天狗 ×20', note: '會魔解與大地之擊。' },
+    { id: 'ama-8', name: '火忍西怒畢', type: 'kill', npc: '進出管理兵', map: '天水閣內部頂樓', x: 88, y: 236, goal: '擊殺火忍西怒畢 ×20', note: '會反射盾。' },
+  ]},
+  { region: '洛陽', lv: 90, tip: '妖君會音投；狐仙會魔解與反射盾；小青會魔解。', quests: [
+    { id: 'lou-1', name: '豹皮怪', type: 'kill', npc: '討伐隊負責職員 朱偉業', map: 'louyang', x: 308, y: 76, goal: '擊殺豹皮怪 ×30' },
+    { id: 'lou-2', name: '狐仙', type: 'kill', npc: '討伐隊負責職員 朱偉業', map: 'louyang', x: 308, y: 76, goal: '擊殺狐仙 ×30', note: '會魔解與反射盾。' },
+    { id: 'lou-3', name: '醫院材料', type: 'item', npc: '醫院 領智', map: 'louyang', x: 259, y: 93, goal: '交付噬人樹花 ×5、泥團 ×5、米糕 ×10', mats: [{ n: '噬人樹花', q: 5 }, { n: '泥團', q: 5 }, { n: '米糕', q: 10 }] },
+    { id: 'lou-4', name: '舞獅＋舞獅之角', type: 'kill', npc: '王仕隆', map: 'louyang', x: 280, y: 164, goal: '擊殺舞獅 ×10，收集舞獅之角 ×20', mats: [{ n: '舞獅之角', q: 20 }] },
+    { id: 'lou-5', name: '舞獅 ×30', type: 'kill', npc: '小賢', map: 'lou_dun01', x: 37, y: 211, goal: '擊殺舞獅 ×30' },
+    { id: 'lou-6', name: '妖君', type: 'kill', npc: '小賢', map: 'lou_dun02', x: 149, y: 106, goal: '擊殺妖君 ×30', note: '會音投。' },
+    { id: 'lou-7', name: '小青', type: 'kill', npc: '小賢', map: 'lou_dun03', x: 47, y: 204, goal: '擊殺小青 ×30', note: '會魔解。' },
+  ]},
+  { region: '死都', lv: 90, tip: '偏落村落入口及往峽谷出口容易爆走。', quests: [
+    { id: 'nif-1', name: '銀月魔女＋嗜血怪人', type: 'kill', npc: '無名氏', map: 'niflheim', x: 225, y: 244, goal: '擊殺銀月魔女 ×20、嗜血怪人 ×20' },
+    { id: 'nif-2', name: '假面鬼＋無顱武士', type: 'kill', npc: '巴米契', map: 'nif_fild01', x: 208, y: 52, goal: '擊殺假面鬼 ×20、無顱武士 ×20' },
+  ]},
   { region: '朱諾', lv: 100, tip: '首次建議把國界檢查站站長與旁邊學院的任務一起接起來；哈比與部分傳點附近容易暴走；諾可羅德洞穴任務需先成為伊甸園成員。', quests: [
     { id: 'yuno-bento', name: '媽媽手便當（送便當）', type: 'deliver', npc: '中年女性', map: 'yuno', x: 114, y: 180,
       goal: '送便當到國界檢查站給警備兵（yuno_fild01 196,154）', note: '純對話。' },
