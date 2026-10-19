@@ -123,15 +123,20 @@
         <label>伺服器</label>
         <div class="chips">
           <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindMain" value="main" checked onchange="setServerKind('main')">西格倫</label>
-          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindEvent" value="event" onchange="setServerKind('event')">🎉 限時活動伺服器 <span class="pct">+130%</span></label>
+          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindEvent" value="event" onchange="setServerKind('event')">🎉 限時活動伺服器 <span class="pct">+100%</span></label>
         </div>
         <input type="hidden" id="serverKind" value="main" data-save>
-        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%、經驗掉寶 +30%，合計 +130%，到 2027/01/12 合併回西格倫後自動停止計入。活動伺服器若另有限定加成，勾下方「伺服器加成」填 % 與期間，會疊加在 130% 之上。</div>
+        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%，到 2027/01/12 合併回西格倫後自動停止計入。活動伺服器的「隱士」30% 請在下方持續型加成勾選；若另有限定加成，勾「伺服器加成」填 % 與期間，會再疊加。</div>
         <label style="margin-top:12px;">持續型加成</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
+          <label class="chip"><input type="checkbox" id="buffHermit" data-save>隱士 <span class="pct">+<span id="hermitPctLabel">30</span>%</span></label>
           <label class="chip"><input type="checkbox" id="serverOn" data-save>伺服器加成</label>
+        </div>
+        <div id="hermitBox" class="row" style="margin-top:8px; display:none; gap:8px; max-width:260px;">
+          <label style="margin:0; white-space:nowrap;">隱士加成 %</label>
+          <input type="number" id="hermitPct" value="30" min="0" step="1" inputmode="numeric" data-save>
         </div>
         <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
         <div class="chips">
@@ -526,6 +531,7 @@ function calculate() {
   let baseMult = 1;
   if ($('buffChar').checked) baseMult += .10;
   if ($('buffAcc').checked) baseMult += .10;
+  baseMult += hermitPct();
   if ($('buffPotion').checked) baseMult += .50;
   const serverOn = $('serverOn').checked;
   const serverPct = serverOn ? (parseFloat($('serverPct').value) || 0) / 100 : 0;
@@ -568,7 +574,7 @@ function calculate() {
   }
   // 掛機時薪視為「目前狀態」的實際值；伺服器加成變動時依 (m0 + 當時加成) / (m0 + 目前加成) 換算
   //   m0 = 1 + 角色 + 帳號（持續型，不會消失）；EXPUP 不算進掛機
-  const m0 = 1 + ($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0);
+  const m0 = 1 + ($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0) + hermitPct();
   const grindNow = expPerHour;
   const grindAt = t => expPerHour * (m0 + srvAt(t)) / (m0 + srvNow);
   // 每天掛機時數：推估用的「每實際小時」掛機速度 = 時薪 × (時數 / 24)
@@ -705,6 +711,8 @@ function calculate() {
 }
 
 const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110 };
+// 隱士加成（持續型，可自訂 %，預設 30）
+function hermitPct() { return $('buffHermit').checked ? (parseFloat($('hermitPct').value) || 0) / 100 : 0; }
 // 現在這一刻的伺服器加成（限時活動伺服器 + 一般伺服器加成）
 function serverPctNow() {
   const now = Date.now(); let p = 0;
@@ -717,9 +725,12 @@ function serverPctNow() {
   return p;
 }
 function updateTaskInfo() {
+  $('hermitBox').style.display = $('buffHermit').checked ? 'flex' : 'none';
+  $('hermitPctLabel').innerText = String(parseFloat($('hermitPct').value) || 0);
   let mult = 1;
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
+  mult += hermitPct();
   if ($('buffPotion').checked) mult += .50;
   mult += serverPctNow();
   document.querySelectorAll('.task-info').forEach(el => {
@@ -729,7 +740,7 @@ function updateTaskInfo() {
   $('multInfo').innerText = `目前每日任務倍率 ×${mult.toFixed(2)}`;
 }
 // 伺服器：main 西格倫 / event 限時活動（固定 +130% 到 2027/01/12 合併；一般伺服器加成可另外疊加）
-const EVENT_SERVER = { pct: 130, end: '2027-01-12T00:00' };
+const EVENT_SERVER = { pct: 100, end: '2027-01-12T00:00' };
 function setServerKind(k, recalc = true) {
   $('serverKind').value = k;
   $('serverKindMain').checked = k !== 'event'; $('serverKindEvent').checked = k === 'event';
@@ -921,6 +932,7 @@ function currentTaskMult() {
   let mult = 1;
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
+  mult += hermitPct();
   if ($('buffPotion').checked) mult += .50;
   return mult + serverPctNow();
 }
