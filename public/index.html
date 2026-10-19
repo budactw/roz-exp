@@ -122,10 +122,11 @@
         <h2><span class="n">2</span> 📅 經驗加成與每日任務</h2>
         <label>伺服器</label>
         <div class="chips">
-          <label class="chip"><input type="checkbox" id="serverKindChk" onchange="setServerKind(this.checked ? 'event' : 'main')">🎉 限時活動伺服器 <span class="pct">+130%</span></label>
+          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindMain" value="main" checked onchange="setServerKind('main')">西格倫伺服器</label>
+          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindEvent" value="event" onchange="setServerKind('event')">🎉 限時活動伺服器 <span class="pct">+130%</span></label>
         </div>
         <input type="hidden" id="serverKind" value="main" data-save>
-        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%、經驗掉寶 +30%，合計 +130%；2027/01/12 合併回西格倫，之後推估自動改用無伺服器加成。未勾選即為西格倫伺服器。</div>
+        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%、經驗掉寶 +30%，合計 +130%；2027/01/12 合併回西格倫，之後推估自動改用無伺服器加成。</div>
         <label style="margin-top:12px;">持續型加成</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
@@ -726,7 +727,7 @@ function setServerKind(k, recalc = true) {
   const prev = $('serverKind').value;
   if (prev === 'event' && k === 'main' && recalc) { $('serverOn').checked = false; $('serverPct').value = 0; $('serverStart').value = ''; $('serverEnd').value = ''; refreshDt(); }   // 離開活動伺服器時清掉預設
   $('serverKind').value = k;
-  $('serverKindChk').checked = k === 'event';
+  $('serverKindMain').checked = k !== 'event'; $('serverKindEvent').checked = k === 'event';
   const ev = k === 'event';
   $('serverKindHint').style.display = ev ? '' : 'none';
   if (ev) { $('serverOn').checked = true; $('serverPct').value = EVENT_SERVER.pct; $('serverStart').value = ''; $('serverEnd').value = EVENT_SERVER.end; refreshDt(); }
