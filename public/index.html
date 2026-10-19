@@ -132,12 +132,13 @@
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
-          <label class="chip"><input type="checkbox" id="buffHermit" data-save>隱士 <span class="pct">+<span id="hermitPctLabel">30</span>%</span></label>
+          <label class="chip"><input type="checkbox" id="buffHermit" data-save>隱士 <span class="pct">+<span id="hermitPctLabel">30</span>%・掛機</span></label>
           <label class="chip"><input type="checkbox" id="serverOn" data-save>伺服器加成</label>
         </div>
-        <div id="hermitBox" class="row" style="margin-top:8px; display:none; gap:8px; max-width:260px;">
+        <div id="hermitBox" class="row" style="margin-top:8px; display:none; gap:8px; flex-wrap:wrap;">
           <label style="margin:0; white-space:nowrap;">隱士加成 %</label>
-          <input type="number" id="hermitPct" value="30" min="0" step="1" inputmode="numeric" data-save>
+          <input type="number" id="hermitPct" value="30" min="0" step="1" inputmode="numeric" data-save style="max-width:120px;">
+          <span class="hint" style="margin:0;">只加成掛機打怪，每日任務不計。</span>
         </div>
         <div id="serverBox" style="margin-top:10px;">
           <div class="server-grid">
@@ -534,7 +535,6 @@ function calculate() {
   let baseMult = 1;
   if ($('buffChar').checked) baseMult += .10;
   if ($('buffAcc').checked) baseMult += .10;
-  baseMult += hermitPct();
   if ($('buffPotion').checked) baseMult += .50;
   const serverOn = $('serverOn').checked;
   const serverPct = serverOn ? (parseFloat($('serverPct').value) || 0) / 100 : 0;
@@ -576,7 +576,7 @@ function calculate() {
     };
   }
   // 掛機時薪視為「目前狀態」的實際值；伺服器加成變動時依 (m0 + 當時加成) / (m0 + 目前加成) 換算
-  //   m0 = 1 + 角色 + 帳號（持續型，不會消失）；EXPUP 不算進掛機
+  //   m0 = 1 + 角色 + 帳號 + 隱士（持續型，不會消失；隱士只影響掛機）；EXPUP 不算進掛機
   const m0 = 1 + ($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0) + hermitPct();
   const grindNow = expPerHour;
   const grindAt = t => expPerHour * (m0 + srvAt(t)) / (m0 + srvNow);
@@ -714,7 +714,7 @@ function calculate() {
 }
 
 const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110 };
-// 隱士加成（持續型，可自訂 %，預設 30）
+// 隱士加成（持續型，只影響掛機打怪，不計入每日任務；可自訂 %，預設 30）
 function hermitPct() { return $('buffHermit').checked ? (parseFloat($('hermitPct').value) || 0) / 100 : 0; }
 // 現在這一刻的伺服器加成（限時活動伺服器 + 一般伺服器加成）
 function serverPctNow() {
@@ -733,7 +733,6 @@ function updateTaskInfo() {
   let mult = 1;
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
-  mult += hermitPct();
   if ($('buffPotion').checked) mult += .50;
   mult += serverPctNow();
   document.querySelectorAll('.task-info').forEach(el => {
@@ -935,7 +934,6 @@ function currentTaskMult() {
   let mult = 1;
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
-  mult += hermitPct();
   if ($('buffPotion').checked) mult += .50;
   return mult + serverPctNow();
 }
