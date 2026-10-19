@@ -120,6 +120,15 @@
 
       <div class="card">
         <h2><span class="n">2</span> 📅 經驗加成與每日任務</h2>
+        <div class="ask" style="margin-bottom:10px;">
+          <span>伺服器</span>
+          <div class="seg" id="serverKindSeg">
+            <button type="button" data-k="main" class="active" onclick="setServerKind('main')">西格倫</button>
+            <button type="button" data-k="event" onclick="setServerKind('event')">限時活動</button>
+          </div>
+        </div>
+        <input type="hidden" id="serverKind" value="main" data-save>
+        <div class="hint" id="serverKindHint" style="margin:-4px 0 10px; display:none;">限時活動伺服器：常駐經驗 +100%、經驗掉寶 +30%，合計 +130%；2027/01/12 合併回西格倫，之後推估自動改用無伺服器加成。</div>
         <label>持續型加成</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
@@ -714,6 +723,21 @@ function updateTaskInfo() {
   });
   $('multInfo').innerText = `目前每日任務倍率 ×${mult.toFixed(2)}`;
 }
+// 伺服器：main 西格倫（手動設定伺服器加成）/ event 限時活動（固定 +130%，2027/01/12 合併）
+const EVENT_SERVER = { pct: 130, end: '2027-01-12T00:00' };
+function setServerKind(k, recalc = true) {
+  const prev = $('serverKind').value;
+  if (prev === 'event' && k === 'main' && recalc) { $('serverOn').checked = false; $('serverPct').value = 0; $('serverStart').value = ''; $('serverEnd').value = ''; refreshDt(); }   // 離開活動伺服器時清掉預設
+  $('serverKind').value = k;
+  document.querySelectorAll('#serverKindSeg button').forEach(b => b.classList.toggle('active', b.dataset.k === k));
+  const ev = k === 'event';
+  $('serverKindHint').style.display = ev ? '' : 'none';
+  if (ev) { $('serverOn').checked = true; $('serverPct').value = EVENT_SERVER.pct; $('serverStart').value = ''; $('serverEnd').value = EVENT_SERVER.end; refreshDt(); }
+  ['serverOn', 'serverPct'].forEach(id => $(id).disabled = ev);
+  document.querySelectorAll('#serverBox input, #serverBox select, #serverBox button').forEach(el => el.disabled = ev);
+  $('serverBox').style.opacity = ev ? '.6' : '';
+  if (recalc) onChange();
+}
 function onChange() {
   $('serverBox').style.display = $('serverOn').checked ? 'block' : 'none';
   updateTaskInfo();
@@ -745,6 +769,7 @@ function load() {
     refreshStepUI();
   }
   refreshStepUI();
+  setServerKind($('serverKind').value === 'event' ? 'event' : 'main', false);
   if (!document.querySelector('.potion-row')) addPotion();
   for (const rec of ['old', 'new']) {
     const lv = parseInt($(rec + 'Lv').value) || 1, raw = parseFloat($(rec + 'Val').value);
