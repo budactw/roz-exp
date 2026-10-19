@@ -122,11 +122,11 @@
         <h2><span class="n">2</span> 📅 經驗加成與每日任務</h2>
         <label>伺服器</label>
         <div class="chips">
-          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindMain" value="main" checked onchange="setServerKind('main')">西格倫伺服器</label>
+          <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindMain" value="main" checked onchange="setServerKind('main')">西格倫</label>
           <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindEvent" value="event" onchange="setServerKind('event')">🎉 限時活動伺服器 <span class="pct">+130%</span></label>
         </div>
         <input type="hidden" id="serverKind" value="main" data-save>
-        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%、經驗掉寶 +30%，合計 +130%；2027/01/12 合併回西格倫，之後推估自動改用無伺服器加成。</div>
+        <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%、經驗掉寶 +30%，合計 +130%，到 2027/01/12 合併回西格倫後自動停止計入。活動伺服器若另有限定加成，勾下方「伺服器加成」填 % 與期間，會疊加在 130% 之上。</div>
         <label style="margin-top:12px;">持續型加成</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
@@ -531,8 +531,6 @@ function calculate() {
   const serverPct = serverOn ? (parseFloat($('serverPct').value) || 0) / 100 : 0;
   const c90 = parseInt($('task90').value) || 0, c100 = parseInt($('task100').value) || 0, c105 = parseInt($('task105').value) || 0, c110 = parseInt($('task110').value) || 0;
   const taskBase = BASE_EXP_90 * c90 + BASE_EXP_100 * c100 + BASE_EXP_105 * c105 + BASE_EXP_110 * c110;
-  const dailyNoSrv = taskBase * baseMult;                 // 無伺服器加成
-  const dailySrv = taskBase * (baseMult + serverPct);     // 含伺服器加成
 
   // ---- 伺服器加成期間（相對於推估起點 t2 的小時數；未填 = 無限）----
   const bs = serverOn && $('serverStart').value ? new Date($('serverStart').value) : null;
@@ -540,18 +538,22 @@ function calculate() {
   if (bs && be && be <= bs) return setStatus('伺服器加成的結束時間必須晚於開始時間。', true);
   const bsH = bs ? (bs - t2) / 3.6e6 : -Infinity;
   const beH = be ? (be - t2) / 3.6e6 : Infinity;
-  const srvActiveNow = serverOn && bsH <= 0 && beH > 0;
-  const dailyNow = srvActiveNow ? dailySrv : dailyNoSrv;
+  // 限時活動伺服器：固定 +130% 到合併日；一般伺服器加成另外疊加
+  const isEvent = $('serverKind').value === 'event';
+  const mergeH = isEvent ? (new Date(EVENT_SERVER.end) - t2) / 3.6e6 : -Infinity;
+  const srvAt = t => (isEvent && t < mergeH ? EVENT_SERVER.pct / 100 : 0) + (serverOn && t >= bsH && t < beH ? serverPct : 0);
+  const srvNow = srvAt(0);
+  const srvActiveNow = srvNow > 0;
+  const dailyNow = taskBase * (baseMult + srvNow);
+  // 之後會變動的時間點（小時）
+  const bps = [...new Set([bsH, beH, mergeH].filter(x => x > 0 && Number.isFinite(x)))].sort((a, b) => a - b);
+  const nextBp = bps.length ? bps[0] : null;
 
-  // 依加成期間分段累積：回傳「獲得 exp 需要幾小時」的函式
-  function timeline(rateNo, rateSrv) {
+  // 依時間軸分段累積：rateAt(t) = 第 t 小時的每小時獲得量，回傳「獲得 exp 需要幾小時」的函式
+  function timeline(rateAt) {
+    const edges = [0, ...bps, Infinity];
     const segs = [];
-    if (serverOn) {
-      if (bsH > 0) segs.push({ len: bsH, rate: rateNo });
-      const s0 = Math.max(bsH, 0);
-      if (beH > s0) segs.push({ len: beH - s0, rate: rateSrv });
-    }
-    segs.push({ len: Infinity, rate: rateNo });
+    for (let i = 0; i < edges.length - 1; i++) { const a = edges[i], b = edges[i + 1]; segs.push({ len: b - a, rate: rateAt(Number.isFinite(b) ? (a + b) / 2 : a + 1) }); }
     return exp => {
       let h = 0, rem = exp;
       for (const sg of segs) {
@@ -564,23 +566,19 @@ function calculate() {
       return Infinity;
     };
   }
-  // 掛機時薪視為「目前狀態」的實際值。伺服器加成有期限：
-  //   加成進行中 → 結束後時薪換算為 × m0/(m0+srv)；加成尚未開始 → 開始後時薪 × (m0+srv)/m0
+  // 掛機時薪視為「目前狀態」的實際值；伺服器加成變動時依 (m0 + 當時加成) / (m0 + 目前加成) 換算
   //   m0 = 1 + 角色 + 帳號（持續型，不會消失）；EXPUP 不算進掛機
   const m0 = 1 + ($('buffChar').checked ? .10 : 0) + ($('buffAcc').checked ? .10 : 0);
-  let grindNo = expPerHour, grindSrv = expPerHour;
-  if (serverOn && serverPct > 0) {
-    if (srvActiveNow) grindNo = expPerHour * m0 / (m0 + serverPct);
-    else grindSrv = expPerHour * (m0 + serverPct) / m0;
-  }
-  const grindNow = srvActiveNow ? grindSrv : grindNo;
+  const grindNow = expPerHour;
+  const grindAt = t => expPerHour * (m0 + srvAt(t)) / (m0 + srvNow);
   // 每天掛機時數：推估用的「每實際小時」掛機速度 = 時薪 × (時數 / 24)
   let gh = parseFloat($('grindHours').value); if (!(gh >= 0)) gh = 24; if (gh > 24) gh = 24;
   const gf = gh / 24;
   $('grindHoursHint').innerText = gh >= 24 ? '全天掛機' : `每天掛 ${gh} 小時，其餘時間不計掛機經驗`;
-  const hoursGrind = timeline(grindNo * gf, grindSrv * gf);                                          // 純掛機（依每天時數）
-  const hoursTask = timeline(dailyNoSrv / 24, dailySrv / 24);                                        // 只靠每日任務
-  const hoursCombined = timeline(grindNo * gf + dailyNoSrv / 24, grindSrv * gf + dailySrv / 24);     // 每日任務 + 每天 gh 小時掛機
+  const taskAt = t => taskBase * (baseMult + srvAt(t)) / 24;
+  const hoursGrind = timeline(t => grindAt(t) * gf);                       // 純掛機（依每天時數）
+  const hoursTask = timeline(taskAt);                                      // 只靠每日任務
+  const hoursCombined = timeline(t => grindAt(t) * gf + taskAt(t));        // 每日任務 + 每天 gh 小時掛機
 
   // 主要推估：掛機模式 = 掛機 + 每日任務；非掛機模式 = 每日任務
   const hoursFor = grind ? hoursCombined : hoursTask;
@@ -622,28 +620,31 @@ function calculate() {
     $('rCombined').innerText = '—';
     $('rCombinedSub').innerText = '經驗無增長';
   }
-  if (grind && serverOn && serverPct > 0 && grindNo !== grindSrv && (srvActiveNow ? !!be : bsH > 0)) {
-    $('rRateSub').innerHTML += srvActiveNow
-      ? `・伺服器加成結束後約 ${fmtC(grindNo)}／小時`
-      : `・伺服器加成開始後約 ${fmtC(grindSrv)}／小時`;
+  if (grind && nextBp !== null) {
+    const after = grindAt(nextBp + 0.001);
+    if (Math.abs(after - grindNow) > 0.5) $('rRateSub').innerHTML += `・${fmtEta(t2, nextBp)} 起約 ${fmtC(after)}／小時`;
   }
   if (grind && taskBase) {
-    $('rRateSub').innerHTML += `・每日合計 ${fmtC(grindNow * gh + dailyNow)} EXP（掛機 ${gh}h ${fmtC(grindNow * gh)}＋任務 ${fmtC(dailyNow)}，×${(srvActiveNow ? baseMult + serverPct : baseMult).toFixed(2)}）`;
+    $('rRateSub').innerHTML += `・每日合計 ${fmtC(grindNow * gh + dailyNow)} EXP（掛機 ${gh}h ${fmtC(grindNow * gh)}＋任務 ${fmtC(dailyNow)}，×${(baseMult + srvNow).toFixed(2)}）`;
   }
 
   // ---- 伺服器加成狀態 ----
+  const srvLines = [];
+  if (isEvent) srvLines.push(`🎉 限時活動伺服器 +${EVENT_SERVER.pct}%：至 ${fmtEta(new Date(EVENT_SERVER.end), 0)}　${mergeH > 0 ? `剩 <span class="v">${fmtDur(mergeH)}</span>` : '<span class="v" style="color:var(--danger)">已合併</span>，推估不再計入'}`);
   if (serverOn && serverPct > 0) {
     const range = `${bs ? fmtEta(bs, 0) : '不限'} ～ ${be ? fmtEta(be, 0) : '不限'}`;
     let state;
-    if (beH <= 0) state = '<span class="v" style="color:var(--danger)">已結束</span>，推估以無伺服器加成計算';
+    if (beH <= 0) state = '<span class="v" style="color:var(--danger)">已結束</span>';
     else if (bsH > 0) state = `尚未開始，${fmtDur(bsH)}後生效`;
     else if (be) state = `進行中，剩 <span class="v">${fmtDur(beH)}</span>`;
     else state = '進行中，無限期';
-    const dailyLine = (taskBase && be && beH > 0) ? `<div>每日任務：加成期間 <span class="v">${fmtC(dailySrv)}</span> EXP／結束後 <span class="v">${fmtC(dailyNoSrv)}</span> EXP</div>` : '';
-    $('rServer').innerHTML = `<div class="sec-title" style="margin-top:12px">伺服器加成 +${(serverPct * 100).toFixed(0)}%</div><div>${range}　${state}</div>${dailyLine}`;
-  } else {
-    $('rServer').innerHTML = '';
+    srvLines.push(`${isEvent ? '額外' : ''}伺服器加成 +${(serverPct * 100).toFixed(0)}%：${range}　${state}`);
   }
+  if (srvLines.length && taskBase && nextBp !== null) {
+    const afterTask = taskBase * (baseMult + srvAt(nextBp + 0.001));
+    if (Math.abs(afterTask - dailyNow) > 0.5) srvLines.push(`每日任務：目前 <span class="v">${fmtC(dailyNow)}</span> EXP／${fmtEta(t2, nextBp)} 起 <span class="v">${fmtC(afterTask)}</span> EXP`);
+  }
+  $('rServer').innerHTML = srvLines.length ? `<div class="sec-title" style="margin-top:12px">伺服器</div>` + srvLines.map(l => `<div>${l}</div>`).join('') : '';
 
   // ---- 補品（掛機模式：追蹤 = 先前/當前數量；直接輸入 = 每小時消耗量）----
   const rows = [];
@@ -704,36 +705,35 @@ function calculate() {
 }
 
 const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110 };
+// 現在這一刻的伺服器加成（限時活動伺服器 + 一般伺服器加成）
+function serverPctNow() {
+  const now = Date.now(); let p = 0;
+  if ($('serverKind').value === 'event' && now < new Date(EVENT_SERVER.end).getTime()) p += EVENT_SERVER.pct / 100;
+  if ($('serverOn').checked) {
+    const bs = $('serverStart').value ? new Date($('serverStart').value).getTime() : -Infinity;
+    const be = $('serverEnd').value ? new Date($('serverEnd').value).getTime() : Infinity;
+    if (bs <= now && now < be) p += (parseFloat($('serverPct').value) || 0) / 100;
+  }
+  return p;
+}
 function updateTaskInfo() {
   let mult = 1;
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
   if ($('buffPotion').checked) mult += .50;
-  if ($('serverOn').checked) {
-    const now = Date.now();
-    const bs = $('serverStart').value ? new Date($('serverStart').value).getTime() : -Infinity;
-    const be = $('serverEnd').value ? new Date($('serverEnd').value).getTime() : Infinity;
-    if (bs <= now && now < be) mult += (parseFloat($('serverPct').value) || 0) / 100;
-  }
+  mult += serverPctNow();
   document.querySelectorAll('.task-info').forEach(el => {
     const base = TASK_BASE[el.dataset.lv];
     el.innerHTML = `基礎 ${fmtC(base)}<br>加成後 <b>${fmtC(base * mult)}</b>`;
   });
   $('multInfo').innerText = `目前每日任務倍率 ×${mult.toFixed(2)}`;
 }
-// 伺服器：main 西格倫（手動設定伺服器加成）/ event 限時活動（固定 +130%，2027/01/12 合併）
+// 伺服器：main 西格倫 / event 限時活動（固定 +130% 到 2027/01/12 合併；一般伺服器加成可另外疊加）
 const EVENT_SERVER = { pct: 130, end: '2027-01-12T00:00' };
 function setServerKind(k, recalc = true) {
-  const prev = $('serverKind').value;
-  if (prev === 'event' && k === 'main' && recalc) { $('serverOn').checked = false; $('serverPct').value = 0; $('serverStart').value = ''; $('serverEnd').value = ''; refreshDt(); }   // 離開活動伺服器時清掉預設
   $('serverKind').value = k;
   $('serverKindMain').checked = k !== 'event'; $('serverKindEvent').checked = k === 'event';
-  const ev = k === 'event';
-  $('serverKindHint').style.display = ev ? '' : 'none';
-  if (ev) { $('serverOn').checked = true; $('serverPct').value = EVENT_SERVER.pct; $('serverStart').value = ''; $('serverEnd').value = EVENT_SERVER.end; refreshDt(); }
-  ['serverOn', 'serverPct'].forEach(id => $(id).disabled = ev);
-  document.querySelectorAll('#serverBox input, #serverBox select, #serverBox button').forEach(el => el.disabled = ev);
-  $('serverBox').style.opacity = ev ? '.6' : '';
+  $('serverKindHint').style.display = k === 'event' ? '' : 'none';
   if (recalc) onChange();
 }
 function onChange() {
@@ -922,13 +922,7 @@ function currentTaskMult() {
   if ($('buffChar').checked) mult += .10;
   if ($('buffAcc').checked) mult += .10;
   if ($('buffPotion').checked) mult += .50;
-  if ($('serverOn').checked) {
-    const now = Date.now();
-    const bs = $('serverStart').value ? new Date($('serverStart').value).getTime() : -Infinity;
-    const be = $('serverEnd').value ? new Date($('serverEnd').value).getTime() : Infinity;
-    if (bs <= now && now < be) mult += (parseFloat($('serverPct').value) || 0) / 100;
-  }
-  return mult;
+  return mult + serverPctNow();
 }
 // 勾選任務 → 自動統計 100/105/110 任務數（任務數欄位仍可手動輸入）
 const picked = new Set();          // 已勾選任務的 id（地圖索引-項目索引）
