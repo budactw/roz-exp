@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -120,14 +120,15 @@
 
       <div class="card">
         <h2><span class="n">2</span> 📅 經驗加成與每日任務</h2>
-        <label>伺服器</label>
+        <label class="sub-h">伺服器</label>
         <div class="chips">
           <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindMain" value="main" checked onchange="setServerKind('main')">西格倫</label>
           <label class="chip"><input type="radio" name="serverKindRadio" id="serverKindEvent" value="event" onchange="setServerKind('event')">🎉 限時活動伺服器 <span class="pct">+100%</span></label>
         </div>
         <input type="hidden" id="serverKind" value="main" data-save>
         <div class="hint" id="serverKindHint" style="margin:6px 0 0; display:none;">常駐經驗 +100%，到 2027/01/12 合併回西格倫後自動停止計入。活動伺服器的「隱士」30% 請在下方持續型加成勾選；若另有限定加成，勾「伺服器加成」填 % 與期間，會再疊加。</div>
-        <label style="margin-top:12px;">持續型加成</label>
+        <hr class="divider">
+        <label class="sub-h">持續型加成</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffChar" data-save>角色經驗加成 <span class="pct">+10%</span></label>
           <label class="chip"><input type="checkbox" id="buffAcc" data-save>帳號經驗加成 <span class="pct">+10%</span></label>
@@ -146,13 +147,15 @@
           </div>
           <div class="hint">未填時間 = 無限期。</div>
         </div>
-        <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
+        <hr class="divider">
+        <label class="sub-h">EXPUP 藥水（每瓶 30 分鐘）</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="buffPotion" data-save>每日任務時使用 EXPUP 藥水 <span class="pct">+50%</span></label>
         </div>
         <p class="note" style="margin-top:6px;">只套用在每日任務，掛機不計。</p>
         <div class="hint" id="multInfo" style="margin-top:10px; font-weight:700; color:var(--primary);"></div>
-        <label style="margin-top:14px;">每日任務數（可直接輸入，或展開下方任務表勾選自動統計）</label>
+        <hr class="divider">
+        <label class="sub-h">每日任務數 <span class="hint" style="display:inline; margin:0; font-weight:500;">（可直接輸入，或展開下方任務表勾選自動統計）</span></label>
         <div class="tasks">
           <div class="task"><b>90 級每日任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
           <div class="task"><b>100 級每日任務</b><label>達成任務數</label><input type="number" id="task100" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="100"></small></div>
