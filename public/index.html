@@ -138,12 +138,6 @@
           <label style="margin:0; white-space:nowrap;">隱士加成 %</label>
           <input type="number" id="hermitPct" value="30" min="0" step="1" inputmode="numeric" data-save>
         </div>
-        <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
-        <div class="chips">
-          <label class="chip"><input type="checkbox" id="buffPotion" data-save>每日任務時使用 EXPUP 藥水 <span class="pct">+50%</span></label>
-        </div>
-        <p class="note" style="margin-top:6px;">只套用在每日任務，掛機不計。</p>
-        <div class="hint" id="multInfo" style="margin-top:10px; font-weight:700; color:var(--primary);"></div>
         <div id="serverBox" style="margin-top:10px;">
           <div class="server-grid">
             <div><label>伺服器經驗加成 %</label><input type="number" id="serverPct" value="0" min="0" step="1" inputmode="numeric" data-save placeholder="50"></div>
@@ -152,6 +146,12 @@
           </div>
           <div class="hint">未填時間 = 無限期。</div>
         </div>
+        <label style="margin-top:12px;">EXPUP 藥水（每瓶 30 分鐘）</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="buffPotion" data-save>每日任務時使用 EXPUP 藥水 <span class="pct">+50%</span></label>
+        </div>
+        <p class="note" style="margin-top:6px;">只套用在每日任務，掛機不計。</p>
+        <div class="hint" id="multInfo" style="margin-top:10px; font-weight:700; color:var(--primary);"></div>
         <label style="margin-top:14px;">每日任務數（可直接輸入，或展開下方任務表勾選自動統計）</label>
         <div class="tasks">
           <div class="task"><b>90 級每日任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
