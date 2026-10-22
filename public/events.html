@@ -57,6 +57,15 @@
   .ev-img summary::before { content: "▸ "; color: var(--dim); }
   .ev-img[open] summary::before { content: "▾ "; }
   .ev-img img { display: block; margin-top: 8px; max-width: 100%; width: auto; max-height: 70vh; border-radius: 8px; border: 1px solid var(--card-border); }
+  .sel-region { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--tile-bg); }
+  .sel-region h3 { margin: 0; padding: 8px 12px; font-size: .9rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
+  .sel-region h3 .acts { margin-left: auto; display: flex; gap: 6px; }
+  .sel-region h3 .acts button { min-height: 26px; padding: 0 8px; font-size: .72rem; }
+  .sel-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: .84rem; border-bottom: 1px solid rgba(0,0,0,.05); cursor: pointer; }
+  .sel-item:last-child { border-bottom: 0; }
+  .sel-item input { width: 16px; height: 16px; accent-color: var(--primary); }
+  [data-theme="dark"] .sel-item { border-bottom-color: rgba(255,255,255,.06); }
+  .modal-card .q-body { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
   .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
   .card h2 { flex-wrap: wrap; }
   .card h2 .check { white-space: nowrap; }
@@ -91,6 +100,7 @@
   <div class="card">
     <h2>🎃 進行中的活動
       <span class="row" style="margin-left:auto; gap:10px;">
+        <button class="btn-sm" onclick="openSelect()">✏️ 編輯清單</button>
         <button class="btn-ghost" id="expAll" onclick="toggleAllEvents()"></button>
         <div class="seg" id="kindSeg">
           <button type="button" data-v="all" class="active" onclick="setKind('all')">全部</button>
@@ -106,6 +116,18 @@
   <div class="foot">
     <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
     <div style="margin-top:8px;">作者：凌雲閣－師爺　·　活動資料依 <a href="https://roz.gnjoy.com.tw/Notice" target="_blank" rel="noopener" style="color:var(--primary)">官方公告</a>　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
+  </div>
+</div>
+
+<!-- 編輯清單 -->
+<div class="modal" id="selModal" onclick="if(event.target===this) closeSelect()">
+  <div class="modal-card modal-wide">
+    <div class="modal-head">
+      <b>✏️ 編輯「<span id="selCharName"></span>」的活動清單</b>
+      <button class="btn-ghost" onclick="closeSelect()">✕</button>
+    </div>
+    <div class="hint" style="margin-bottom:8px;">勾選這個角色要做的活動項目；沒勾的不會顯示、也不計入統計。清單會記住。</div>
+    <div class="q-body" id="selBody"></div>
   </div>
 </div>
 
@@ -180,6 +202,23 @@ async function deleteChar() {
 }
 function switchChar(id) { S.cur = id; save(); render(); }
 
+// ===== 編輯清單（evsel：已選項目 key 陣列；未設定 = 全部）=====
+function isSel(c, key) { return !c.evsel || c.evsel.includes(key); }
+function allKeys() { return EVENT_DB.flatMap(ev => ev.items.map(it => ev.id + '|' + it.id)); }
+function ensureSel(c) { if (!c.evsel) c.evsel = allKeys(); }
+function toggleSel(key, on) { const c = cur(); ensureSel(c); const i = c.evsel.indexOf(key); if (on && i < 0) c.evsel.push(key); if (!on && i >= 0) c.evsel.splice(i, 1); save(); renderSelect(); }
+function selEvent(evId, on) { const c = cur(); ensureSel(c); const ev = EVENT_DB.find(e => e.id === evId); ev.items.forEach(it => { const key = evId + '|' + it.id; const i = c.evsel.indexOf(key); if (on && i < 0) c.evsel.push(key); if (!on && i >= 0) c.evsel.splice(i, 1); }); save(); renderSelect(); }
+function openSelect() { renderSelect(); $('selModal').classList.add('open'); track('edit_event_list'); }
+function closeSelect() { $('selModal').classList.remove('open'); render(); }
+function renderSelect() {
+  const c = cur(); $('selCharName').innerText = c.name;
+  $('selBody').innerHTML = EVENT_DB.filter(ev => daysLeft(ev.end) > 0).map(ev => {
+    const all = ev.items.every(it => isSel(c, ev.id + '|' + it.id));
+    return `<div class="sel-region"><h3>${ev.name}<span class="acts"><button class="btn-ghost" onclick="selEvent('${ev.id}', ${!all})">${all ? '取消全選' : '全選'}</button></span></h3>` +
+      ev.items.map(it => `<label class="sel-item"><input type="checkbox" ${isSel(c, ev.id + '|' + it.id) ? 'checked' : ''} onchange="toggleSel('${ev.id}|${it.id}', this.checked)"><span class="kind ${it.kind}" style="font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid currentColor;opacity:.85;color:${it.kind === 'daily' ? 'var(--primary)' : 'var(--purple)'}">${EVENT_KIND[it.kind]}</span>${it.name}</label>`).join('') + '</div>';
+  }).join('');
+}
+
 // ===== 勾選 =====
 function toggleItem(evId, itemId, kind, on) {
   const c = cur(); const store = kind === 'daily' ? c.evd : c.evo; const key = evId + '|' + itemId;
@@ -214,8 +253,9 @@ function render() {
     if (ended && !showEnded) return '';
     const started = new Date(ev.start + 'T00:00:00') <= new Date();
     const badge = ended ? '<span class="left over">已結束</span>' : !started ? `<span class="left soon">尚未開始</span>` : `<span class="left ${left <= 3 ? 'soon' : ''}">剩 ${Math.ceil(left)} 天</span>`;
-    const visible = ev.items.filter(it => kindFilter === 'all' || it.kind === kindFilter);
-    ev.items.forEach(it => { const key = ev.id + '|' + it.id; const done = !!((it.kind === 'daily' ? c.evd : c.evo)[key]); if (!ended) { if (it.kind === 'daily') { dAll++; if (done) dDone++; } else { oAll++; if (done) oDone++; } } });
+    const chosen = ev.items.filter(it => isSel(c, ev.id + '|' + it.id));
+    const visible = chosen.filter(it => kindFilter === 'all' || it.kind === kindFilter);
+    chosen.forEach(it => { const key = ev.id + '|' + it.id; const done = !!((it.kind === 'daily' ? c.evd : c.evo)[key]); if (!ended) { if (it.kind === 'daily') { dAll++; if (done) dDone++; } else { oAll++; if (done) oDone++; } } });
     if (!visible.length) return '';
     const items = visible.map(it => {
       const key = ev.id + '|' + it.id; const store = it.kind === 'daily' ? c.evd : c.evo; const done = !!store[key];
@@ -229,15 +269,15 @@ function render() {
           ${it.note ? `<div class="meta"><span class="k">注意</span>${it.note}</div>` : ''}
         </div></label>`;
     }).join('');
-    const evDone = ev.items.filter(it => (it.kind === 'daily' ? c.evd : c.evo)[ev.id + '|' + it.id]).length;
+    const evDone = chosen.filter(it => (it.kind === 'daily' ? c.evd : c.evo)[ev.id + '|' + it.id]).length;
     return `<div class="event ${ended ? 'ended' : ''} ${collapsed.has(ev.id) ? 'collapsed' : ''}">
-      <div class="event-head"><h3 onclick="toggleEvent('${ev.id}')"><span class="arrow">▾</span>${ev.name}</h3><span class="prog">${evDone}／${ev.items.length}</span><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
+      <div class="event-head"><h3 onclick="toggleEvent('${ev.id}')"><span class="arrow">▾</span>${ev.name}</h3><span class="prog">${evDone}／${chosen.length}</span><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
       ${ev.note ? `<div class="event-note">💡 ${ev.note}</div>` : ''}
       ${ev.imgs ? ev.imgs.map(im => `<details class="ev-img"><summary>🖼️ ${im.cap || im.alt}</summary><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a><div class="hint" style="margin-top:4px;">點圖可另開原圖</div></details>`).join('') : ''}
       ${items}</div>`;
   }).join('');
   $('expAll').innerText = EVENT_DB.some(e => collapsed.has(e.id)) ? '⤵ 全部展開' : '⤴ 全部收合';
-  $('events').innerHTML = html || `<div class="empty">${kindFilter === 'all' ? '目前沒有進行中的週期活動。' : `沒有「${EVENT_KIND[kindFilter]}」類型的項目。`}</div>`;
+  $('events').innerHTML = html || `<div class="empty">${kindFilter === 'all' ? '清單是空的，按「✏️ 編輯清單」勾選要做的活動項目。' : `沒有「${EVENT_KIND[kindFilter]}」類型的項目。`}</div>`;
   $('sumDaily').innerText = `${dDone} / ${dAll}`; $('sumOnce').innerText = `${oDone} / ${oAll}`;
 }
 
@@ -253,7 +293,7 @@ function applyTheme(t) {
 }
 function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').classList.contains('open')) $('dlgCancel').onclick(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSelect(); if ($('dlg').classList.contains('open')) $('dlgCancel').onclick(); } });
 
 load();
 render();
