@@ -23,7 +23,12 @@
   .event { border: 1px solid var(--card-border); border-radius: 14px; background: var(--card); box-shadow: var(--card-glow); padding: 16px; margin-bottom: 14px; }
   .event.ended { opacity: .6; }
   .event-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-  .event-head h3 { margin: 0; font-size: 1.05rem; }
+  .event-head h3 { margin: 0; font-size: 1.05rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .event-head h3 .arrow { color: var(--dim); font-size: .85rem; transition: transform .2s; display: inline-block; }
+  .event.collapsed .event-head h3 .arrow { transform: rotate(-90deg); }
+  .event.collapsed > :not(.event-head) { display: none; }
+  .event.collapsed .event-head { margin-bottom: 0; }
+  .event-head .prog { font-size: .78rem; color: var(--dim); }
   .event-head .period { font-size: .8rem; color: var(--dim); }
   .event-head .left { font-size: .8rem; font-weight: 700; color: var(--green); padding: 2px 10px; border-radius: 999px; background: rgba(0,171,85,.12); }
   .event-head .left.soon { color: #a16800; background: rgba(246,195,67,.28); }
@@ -86,6 +91,7 @@
   <div class="card">
     <h2>🎃 進行中的活動
       <span class="row" style="margin-left:auto; gap:10px;">
+        <button class="btn-ghost" id="expAll" onclick="toggleAllEvents()"></button>
         <div class="seg" id="kindSeg">
           <button type="button" data-v="all" class="active" onclick="setKind('all')">全部</button>
           <button type="button" data-v="daily" onclick="setKind('daily')">每日</button>
@@ -184,6 +190,11 @@ function toggleItem(evId, itemId, kind, on) {
 // ===== 畫面 =====
 let kindFilter = 'all';
 function setKind(v) { kindFilter = v; render(); }
+const COLL_KEY = 'roz-events-collapsed';
+let collapsed = new Set(JSON.parse(localStorage.getItem(COLL_KEY) || '[]'));
+function saveCollapsed() { localStorage.setItem(COLL_KEY, JSON.stringify([...collapsed])); }
+function toggleEvent(id) { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); saveCollapsed(); render(); }
+function toggleAllEvents() { const ids = EVENT_DB.map(e => e.id); const any = ids.some(i => collapsed.has(i)); ids.forEach(i => any ? collapsed.delete(i) : collapsed.add(i)); saveCollapsed(); render(); }
 const navi = it => it.map && it.x != null && /^[a-z0-9_]+$/.test(it.map) ? `/navi ${it.map} ${it.x}/${it.y}` : '';
 const fmtD = s => { const [y, m, d] = s.split('-'); return `${y}/${m}/${d}`; };
 function daysLeft(end) { const e = new Date(end + 'T09:00:00'); return (e - new Date()) / 86400e3; }   // 以當天 09:00 維護前估
@@ -218,12 +229,14 @@ function render() {
           ${it.note ? `<div class="meta"><span class="k">注意</span>${it.note}</div>` : ''}
         </div></label>`;
     }).join('');
-    return `<div class="event ${ended ? 'ended' : ''}">
-      <div class="event-head"><h3>${ev.name}</h3><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
+    const evDone = ev.items.filter(it => (it.kind === 'daily' ? c.evd : c.evo)[ev.id + '|' + it.id]).length;
+    return `<div class="event ${ended ? 'ended' : ''} ${collapsed.has(ev.id) ? 'collapsed' : ''}">
+      <div class="event-head"><h3 onclick="toggleEvent('${ev.id}')"><span class="arrow">▾</span>${ev.name}</h3><span class="prog">${evDone}／${ev.items.length}</span><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
       ${ev.note ? `<div class="event-note">💡 ${ev.note}</div>` : ''}
       ${ev.imgs ? ev.imgs.map(im => `<details class="ev-img"><summary>🖼️ ${im.cap || im.alt}</summary><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a><div class="hint" style="margin-top:4px;">點圖可另開原圖</div></details>`).join('') : ''}
       ${items}</div>`;
   }).join('');
+  $('expAll').innerText = EVENT_DB.some(e => collapsed.has(e.id)) ? '⤵ 全部展開' : '⤴ 全部收合';
   $('events').innerHTML = html || `<div class="empty">${kindFilter === 'all' ? '目前沒有進行中的週期活動。' : `沒有「${EVENT_KIND[kindFilter]}」類型的項目。`}</div>`;
   $('sumDaily').innerText = `${dDone} / ${dAll}`; $('sumOnce').innerText = `${oDone} / ${oAll}`;
 }
