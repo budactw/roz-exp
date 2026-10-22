@@ -1,4 +1,4 @@
-// RO樂園 週期活動資料（週期活動頁專用）
+// RO樂園 期間活動資料（期間活動頁專用）
 // 來源：官方公告 https://roz.gnjoy.com.tw/Notice
 // 欄位：id、name、start/end（活動期間，YYYY-MM-DD；end 當天維護前）、link、note、
 //       imgs：[{ src、alt、cap }] 參考圖（選填）
