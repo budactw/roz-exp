@@ -46,10 +46,12 @@
   .summary { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
   .summary .tile { padding: 10px 12px; }
   .summary .tile .v { font-size: 1.3rem; }
-  .ev-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-  .ev-imgs figure { margin: 0; }
-  .ev-imgs img { display: block; max-height: 220px; width: auto; max-width: 100%; border-radius: 8px; border: 1px solid var(--card-border); }
-  .ev-imgs figcaption { font-size: .72rem; color: var(--dim); margin-top: 4px; text-align: center; }
+  .ev-img { margin-bottom: 10px; }
+  .ev-img summary { cursor: pointer; color: var(--primary); font-size: .85rem; font-weight: 600; list-style: none; }
+  .ev-img summary::-webkit-details-marker { display: none; }
+  .ev-img summary::before { content: "▸ "; color: var(--dim); }
+  .ev-img[open] summary::before { content: "▾ "; }
+  .ev-img img { display: block; margin-top: 8px; max-width: 100%; width: auto; max-height: 70vh; border-radius: 8px; border: 1px solid var(--card-border); }
   .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
   .card h2 { flex-wrap: wrap; }
   .card h2 .check { white-space: nowrap; }
@@ -206,7 +208,7 @@ function render() {
     return `<div class="event ${ended ? 'ended' : ''}">
       <div class="event-head"><h3>${ev.name}</h3><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
       ${ev.note ? `<div class="event-note">💡 ${ev.note}</div>` : ''}
-      ${ev.imgs ? `<div class="ev-imgs">${ev.imgs.map(im => `<figure><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a>${im.cap ? `<figcaption>${im.cap}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}
+      ${ev.imgs ? ev.imgs.map(im => `<details class="ev-img"><summary>🖼️ ${im.cap || im.alt}</summary><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a><div class="hint" style="margin-top:4px;">點圖可另開原圖</div></details>`).join('') : ''}
       ${items}</div>`;
   }).join('');
   $('events').innerHTML = html || `<div class="empty">目前沒有進行中的限定活動。</div>`;
