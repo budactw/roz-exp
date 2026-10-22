@@ -1,6 +1,7 @@
 // RO樂園 限定活動資料（限定活動頁專用）
 // 來源：官方公告 https://roz.gnjoy.com.tw/Notice
 // 欄位：id、name、start/end（活動期間，YYYY-MM-DD；end 當天維護前）、link、note、
+//       imgs：[{ src、alt、cap }] 參考圖（選填）
 //       items：[{ id、name、kind（daily 每日 / once 一次性）、npc、map、x、y、goal、reward、note }]
 const EVENT_DB = [
   { id: 'halloween-2026', name: '黃昏暗影、萬聖再臨', start: '2026-10-20', end: '2026-11-03',
@@ -14,7 +15,8 @@ const EVENT_DB = [
     ]},
   { id: 'pass-autumn', name: '樂園通行證（秋季）', start: '2026-10-20', end: '2027-01-12',
     link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219454',
-    note: '每日只可完成一次任務；通行證於 2027/01/12 維護後刪除。高級獎勵每次升級消耗 20 個傑斯塔，不需等待天數。',
+    note: '一般 Lv1～50 靠每日任務每日升 1 級（最晚約 11/23 開始才能拿滿）；高級 Lv51～70 每級 20 傑斯塔、共 400，不需等待天數。通行證於 2027/01/12 維護後刪除。',
+    imgs: [{ src: 'img/pass-autumn-rewards.webp', alt: '樂園通行證（秋季）獎勵總數', cap: '獎勵總數一覽（點圖放大）' }],
     items: [
       { id: 'pass-daily', kind: 'daily', name: '通行證每日任務', goal: '完成當日通行證任務（每日一次）', reward: '通行證等級獎勵' },
     ]},
