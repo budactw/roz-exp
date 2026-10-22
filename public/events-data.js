@@ -1,0 +1,22 @@
+// RO樂園 限定活動資料（限定活動頁專用）
+// 來源：官方公告 https://roz.gnjoy.com.tw/Notice
+// 欄位：id、name、start/end（活動期間，YYYY-MM-DD；end 當天維護前）、link、note、
+//       items：[{ id、name、kind（daily 每日 / once 一次性）、npc、map、x、y、goal、reward、note }]
+const EVENT_DB = [
+  { id: 'halloween-2026', name: '黃昏暗影、萬聖再臨', start: '2026-10-20', end: '2026-11-03',
+    link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219464',
+    note: '需先透過 Rodex 領取「黃昏的契約信封」，開啟後取得「黃昏的契約」才能進行任務；契約取得後不可轉移，請選定角色。',
+    items: [
+      { id: 'hw-contract', kind: 'once', name: '活動零：黃昏之誓（領取黃昏的契約）', goal: '每個帳號透過 Rodex 領「黃昏的契約信封」，開啟後取得「黃昏的契約」（不可轉移）' },
+      { id: 'hw-ghoul', kind: 'once', name: '活動一：綠腐屍的願望', npc: '聽懂人話的綠腐屍', map: 'gef_dun00', x: 110, y: 92, goal: '接取後前往找「普露娜絲」（morocc 69,156）', reward: '（服飾）咧嘴笑容的面具（歸屬）' },
+      { id: 'hw-candy', kind: 'daily', name: '活動二：萬聖糖果祭', npc: '假扮妖道的里奇', map: 'geffen', x: 103, y: 57, goal: '幫里奇找相關材料', reward: '2026 萬聖節糖果禮盒（開啟隨機一項）', note: '每日 04:00 重置。' },
+      { id: 'hw-truth', kind: 'once', name: '活動三：神話(?)的真相', npc: '女神研究人員 薇奧娜', map: 'geffen', x: 85, y: 73, goal: '收集「研究員紀錄表」×500 交給薇奧娜', reward: '護身羽毛等' },
+    ]},
+  { id: 'pass-autumn', name: '樂園通行證（秋季）', start: '2026-10-20', end: '2027-01-12',
+    link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219454',
+    note: '每日只可完成一次任務；通行證於 2027/01/12 維護後刪除。高級獎勵每次升級消耗 20 個傑斯塔，不需等待天數。',
+    items: [
+      { id: 'pass-daily', kind: 'daily', name: '通行證每日任務', goal: '完成當日通行證任務（每日一次）', reward: '通行證等級獎勵' },
+    ]},
+];
+const EVENT_KIND = { daily: '每日', once: '一次性' };

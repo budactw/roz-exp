@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園限定活動待辦清單｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=11">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+<style>
+  .chars { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .chars .chip { user-select: none; }
+  .reset-info { font-size: .78rem; color: var(--dim); margin-top: 8px; }
+  .event { border: 1px solid var(--card-border); border-radius: 14px; background: var(--card); box-shadow: var(--card-glow); padding: 16px; margin-bottom: 14px; }
+  .event.ended { opacity: .6; }
+  .event-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .event-head h3 { margin: 0; font-size: 1.05rem; }
+  .event-head .period { font-size: .8rem; color: var(--dim); }
+  .event-head .left { font-size: .8rem; font-weight: 700; color: var(--green); padding: 2px 10px; border-radius: 999px; background: rgba(0,171,85,.12); }
+  .event-head .left.soon { color: #a16800; background: rgba(246,195,67,.28); }
+  .event-head .left.over { color: var(--danger); background: rgba(225,29,72,.1); }
+  .event-head a { margin-left: auto; font-size: .8rem; color: var(--primary); }
+  .event-note { font-size: .8rem; color: var(--dim); margin-bottom: 10px; }
+  .ev-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--tile-bg); margin-bottom: 8px; cursor: pointer; }
+  .ev-item input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; }
+  .ev-item .body { flex: 1; min-width: 0; }
+  .ev-item .title { font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ev-item .kind { font-size: .66rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: .85; }
+  .ev-item .kind.daily { color: var(--primary); }
+  .ev-item .kind.once { color: var(--purple); }
+  .ev-item .meta { font-size: .82rem; color: var(--text); margin-top: 4px; }
+  .ev-item .meta .k { color: var(--dim); font-size: .76rem; margin-right: 4px; }
+  .ev-item.done { opacity: .55; }
+  .ev-item.done .title { text-decoration: line-through; }
+  .navi { font-family: ui-monospace, Menlo, monospace; font-size: .8rem; background: var(--soft); border: 1px solid var(--card-border); border-radius: 6px; padding: 2px 8px; }
+  .btn-copy { padding: 0 10px; min-height: 26px; font-size: .74rem; background: var(--seg-active); color: #fff; border-radius: 999px; }
+  .summary { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
+  .summary .tile { padding: 10px 12px; }
+  .summary .tile .v { font-size: 1.3rem; }
+  .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
+  .card h2 { flex-wrap: wrap; }
+  .card h2 .check { white-space: nowrap; }
+  @media (max-width: 520px) { .card h2 > .check { flex-basis: 100%; margin-left: 0 !important; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1>RO樂園限定活動待辦清單 <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a class="active" href="events.html">🎃 限定活動</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+      <button class="btn-ghost" onclick="openBug()">🐞 回報問題</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 角色</h2>
+    <div class="chars" id="chars"></div>
+    <div class="summary">
+      <div class="tile"><div class="k">今日每日項目</div><div class="v" id="sumDaily">0 / 0</div></div>
+      <div class="tile"><div class="k">一次性項目</div><div class="v g" id="sumOnce">0 / 0</div></div>
+    </div>
+    <div class="reset-info" id="resetInfo"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎃 進行中的活動
+      <label class="check" style="margin-left:auto; font-size:.8rem;"><input type="checkbox" id="showEnded" onchange="render()"> 顯示已結束</label>
+    </h2>
+    <div id="events"></div>
+  </div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　活動資料依 <a href="https://roz.gnjoy.com.tw/Notice" target="_blank" rel="noopener" style="color:var(--primary)">官方公告</a>　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
+  </div>
+</div>
+
+<!-- 頁內對話框 -->
+<div class="modal" id="dlg">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><b id="dlgTitle"></b></div>
+    <div class="hint" id="dlgMsg" style="margin-bottom:10px;"></div>
+    <input type="text" id="dlgInput" class="hidden" style="margin-bottom:12px;" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn-ghost" id="dlgCancel">取消</button>
+      <button class="btn-sm" id="dlgOk" style="background:var(--seg-active); color:#fff; border:0;">確定</button>
+    </div>
+  </div>
+</div>
+
+<script src="events-data.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+function dayKey(d = new Date()) { const t = new Date(d.getTime() - 4 * 3600e3); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; }
+function nextReset() { const d = new Date(); const r = new Date(d); r.setHours(4, 0, 0, 0); if (r <= d) r.setDate(r.getDate() + 1); return r; }
+
+// ===== 與每日任務頁共用同一份角色（roz-daily-v1）；本頁只讀寫 evd（每日）與 evo（一次性）=====
+const KEY = 'roz-daily-v1';
+let S = { cur: null, chars: {} };
+function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY)) || S; } catch {}
+  if (!Object.keys(S.chars).length) { const id = 'c' + Date.now().toString(36); S.chars[id] = { name: '角色 1', sel: [], st: {}, mats: {}, day: dayKey() }; S.cur = id; }
+  if (!S.chars[S.cur]) S.cur = Object.keys(S.chars)[0];
+  for (const c of Object.values(S.chars)) { c.evd = c.evd || {}; c.evo = c.evo || {}; c.evday = c.evday || dayKey(); }
+  rollover();
+}
+function cur() { return S.chars[S.cur]; }
+function rollover() {
+  const k = dayKey(); let changed = false;
+  for (const c of Object.values(S.chars)) if (c.evday !== k) { c.evday = k; c.evd = {}; changed = true; }
+  if (changed) save();
+}
+setInterval(() => { rollover(); render(); }, 60000);
+
+// ===== 頁內對話框 =====
+function dialog({ title, msg = '', input = null, okText = '確定' }) {
+  return new Promise(res => {
+    const m = $('dlg'), inp = $('dlgInput');
+    $('dlgTitle').innerText = title; $('dlgMsg').innerText = msg; $('dlgMsg').style.display = msg ? '' : 'none';
+    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText;
+    const close = v => { m.classList.remove('open'); $('dlgOk').onclick = $('dlgCancel').onclick = null; inp.onkeydown = null; res(v); };
+    $('dlgOk').onclick = () => close(input === null ? true : inp.value.trim());
+    $('dlgCancel').onclick = () => close(null);
+    inp.onkeydown = e => { if (e.key === 'Enter') $('dlgOk').onclick(); };
+    m.classList.add('open'); if (input !== null) setTimeout(() => inp.focus(), 50);
+  });
+}
+const askText = (title, def = '') => dialog({ title, input: def });
+const askConfirm = (title, msg = '') => dialog({ title, msg });
+
+// ===== 角色 =====
+async function addChar() {
+  const name = await askText('新增角色：輸入角色名稱'); if (!name) return;
+  const id = 'c' + Date.now().toString(36);
+  const base = cur() ? cur().sel.slice() : [];
+  S.chars[id] = { name, sel: base, st: {}, mats: {}, day: dayKey(), evd: {}, evo: {}, evday: dayKey() };
+  S.cur = id; save(); render(); track('add_char', { chars: Object.keys(S.chars).length });
+}
+async function renameChar() { const n = await askText('角色改名', cur().name); if (n) { cur().name = n; save(); render(); } }
+async function deleteChar() {
+  if (Object.keys(S.chars).length <= 1) { await dialog({ title: '至少要保留一個角色', okText: '知道了' }); return; }
+  if (!await askConfirm(`刪除「${cur().name}」？`, '此角色在每日任務頁與限定活動頁的紀錄會一併刪除。')) return;
+  delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0]; save(); render();
+}
+function switchChar(id) { S.cur = id; save(); render(); }
+
+// ===== 勾選 =====
+function toggleItem(evId, itemId, kind, on) {
+  const c = cur(); const store = kind === 'daily' ? c.evd : c.evo; const key = evId + '|' + itemId;
+  if (on) store[key] = true; else delete store[key];
+  save(); render(); if (on) track('event_' + kind, { item: key });
+}
+
+// ===== 畫面 =====
+const navi = it => it.map && it.x != null && /^[a-z0-9_]+$/.test(it.map) ? `/navi ${it.map} ${it.x}/${it.y}` : '';
+const fmtD = s => { const [y, m, d] = s.split('-'); return `${y}/${m}/${d}`; };
+function daysLeft(end) { const e = new Date(end + 'T09:00:00'); return (e - new Date()) / 86400e3; }   // 以當天 09:00 維護前估
+function render() {
+  const c = cur();
+  $('chars').innerHTML = Object.entries(S.chars).map(([id, ch]) =>
+    `<span class="chip ${id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}</span>`).join('') +
+    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button><button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>`;
+  const nr = nextReset();
+  $('resetInfo').innerText = `每日項目 04:00 自動重置。下次重置：${pad(nr.getMonth() + 1)}/${pad(nr.getDate())} 04:00`;
+
+  const showEnded = $('showEnded').checked;
+  let dAll = 0, dDone = 0, oAll = 0, oDone = 0;
+  const html = EVENT_DB.map(ev => {
+    const left = daysLeft(ev.end); const ended = left <= 0;
+    if (ended && !showEnded) return '';
+    const started = new Date(ev.start + 'T00:00:00') <= new Date();
+    const badge = ended ? '<span class="left over">已結束</span>' : !started ? `<span class="left soon">尚未開始</span>` : `<span class="left ${left <= 3 ? 'soon' : ''}">剩 ${Math.ceil(left)} 天</span>`;
+    const items = ev.items.map(it => {
+      const key = ev.id + '|' + it.id; const store = it.kind === 'daily' ? c.evd : c.evo; const done = !!store[key];
+      if (!ended) { if (it.kind === 'daily') { dAll++; if (done) dDone++; } else { oAll++; if (done) oDone++; } }
+      const nv = navi(it);
+      return `<label class="ev-item ${done ? 'done' : ''}"><input type="checkbox" ${done ? 'checked' : ''} onchange="toggleItem('${ev.id}','${it.id}','${it.kind}', this.checked)">
+        <div class="body">
+          <div class="title"><span class="kind ${it.kind}">${EVENT_KIND[it.kind]}</span>${it.name}</div>
+          ${it.npc ? `<div class="meta"><span class="k">NPC</span>${it.npc}${it.map ? `（${it.map} ${it.x},${it.y}）` : ''} ${nv ? `<code class="navi">${nv}</code> <button class="btn-copy" onclick="event.preventDefault(); copyText('${nv}', this)">複製</button>` : ''}</div>` : ''}
+          ${it.goal ? `<div class="meta"><span class="k">內容</span>${it.goal}</div>` : ''}
+          ${it.reward ? `<div class="meta"><span class="k">獎勵</span>${it.reward}</div>` : ''}
+          ${it.note ? `<div class="meta"><span class="k">注意</span>${it.note}</div>` : ''}
+        </div></label>`;
+    }).join('');
+    return `<div class="event ${ended ? 'ended' : ''}">
+      <div class="event-head"><h3>${ev.name}</h3><span class="period">${fmtD(ev.start)} 維護後 ～ ${fmtD(ev.end)} 維護前</span>${badge}${ev.link ? `<a href="${ev.link}" target="_blank" rel="noopener">官方公告 ↗</a>` : ''}</div>
+      ${ev.note ? `<div class="event-note">💡 ${ev.note}</div>` : ''}
+      ${items}</div>`;
+  }).join('');
+  $('events').innerHTML = html || `<div class="empty">目前沒有進行中的限定活動。</div>`;
+  $('sumDaily').innerText = `${dDone} / ${dAll}`; $('sumOnce').innerText = `${oDone} / ${oAll}`;
+}
+
+// ===== 共用：複製、主題 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').classList.contains('open')) $('dlgCancel').onclick(); });
+
+load();
+render();
+</script>
+<script src="report.js?v=4"></script>
+</body>
+</html>
