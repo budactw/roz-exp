@@ -9,7 +9,7 @@ const EVENT_DB = [
     items: [
       { id: 'hw-contract', kind: 'once', name: '活動零：黃昏之誓（領取黃昏的契約）', goal: '每個帳號透過 Rodex 領「黃昏的契約信封」，開啟後取得「黃昏的契約」（不可轉移）' },
       { id: 'hw-ghoul', kind: 'once', name: '活動一：綠腐屍的願望', npc: '聽懂人話的綠腐屍', map: 'gef_dun00', x: 110, y: 92, goal: '接取後前往找「普露娜絲」（morocc 69,156）', reward: '（服飾）咧嘴笑容的面具（歸屬）' },
-      { id: 'hw-candy', kind: 'daily', name: '活動二：萬聖糖果祭', npc: '假扮妖道的里奇', map: 'geffen', x: 103, y: 57, goal: '幫里奇找相關材料', reward: '2026 萬聖節糖果禮盒（開啟隨機一項）', note: '每日 04:00 重置。' },
+      { id: 'hw-candy', kind: 'daily', name: '活動二：萬聖糖果祭', npc: '假扮妖道的里奇', map: 'geffen', x: 103, y: 57, goal: '六選一交材料：不死心臟 ×350／腐爛繃帶 ×400／南瓜頭 ×350／死人遺骨 ×450／龍鱗 ×300／哥布靈硬幣 ×1', reward: '2026 萬聖節糖果禮盒（開啟隨機一項）', note: '每日 04:00 重置。' },
       { id: 'hw-truth', kind: 'once', name: '活動三：神話(?)的真相', npc: '女神研究人員 薇奧娜', map: 'geffen', x: 85, y: 73, goal: '收集「研究員紀錄表」×500 交給薇奧娜', reward: '護身羽毛等' },
     ]},
   { id: 'pass-autumn', name: '樂園通行證（秋季）', start: '2026-10-20', end: '2027-01-12',
