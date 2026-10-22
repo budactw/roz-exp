@@ -55,7 +55,8 @@
   .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
   .card h2 { flex-wrap: wrap; }
   .card h2 .check { white-space: nowrap; }
-  @media (max-width: 520px) { .card h2 > .check { flex-basis: 100%; margin-left: 0 !important; } }
+  .card h2 .seg button { min-height: 30px; padding: 0 12px; font-size: .8rem; }
+  @media (max-width: 520px) { .card h2 > .row { flex-basis: 100%; margin-left: 0 !important; flex-wrap: wrap; } }
 </style>
 </head>
 <body>
@@ -84,7 +85,14 @@
 
   <div class="card">
     <h2>🎃 進行中的活動
-      <label class="check" style="margin-left:auto; font-size:.8rem;"><input type="checkbox" id="showEnded" onchange="render()"> 顯示已結束</label>
+      <span class="row" style="margin-left:auto; gap:10px;">
+        <div class="seg" id="kindSeg">
+          <button type="button" data-v="all" class="active" onclick="setKind('all')">全部</button>
+          <button type="button" data-v="daily" onclick="setKind('daily')">每日</button>
+          <button type="button" data-v="once" onclick="setKind('once')">一次性</button>
+        </div>
+        <label class="check" style="font-size:.8rem;"><input type="checkbox" id="showEnded" onchange="render()"> 顯示已結束</label>
+      </span>
     </h2>
     <div id="events"></div>
   </div>
@@ -174,6 +182,8 @@ function toggleItem(evId, itemId, kind, on) {
 }
 
 // ===== 畫面 =====
+let kindFilter = 'all';
+function setKind(v) { kindFilter = v; render(); }
 const navi = it => it.map && it.x != null && /^[a-z0-9_]+$/.test(it.map) ? `/navi ${it.map} ${it.x}/${it.y}` : '';
 const fmtD = s => { const [y, m, d] = s.split('-'); return `${y}/${m}/${d}`; };
 function daysLeft(end) { const e = new Date(end + 'T09:00:00'); return (e - new Date()) / 86400e3; }   // 以當天 09:00 維護前估
@@ -186,15 +196,18 @@ function render() {
   $('resetInfo').innerText = `每日項目 04:00 自動重置。下次重置：${pad(nr.getMonth() + 1)}/${pad(nr.getDate())} 04:00`;
 
   const showEnded = $('showEnded').checked;
+  document.querySelectorAll('#kindSeg button').forEach(b => b.classList.toggle('active', b.dataset.v === kindFilter));
   let dAll = 0, dDone = 0, oAll = 0, oDone = 0;
   const html = EVENT_DB.map(ev => {
     const left = daysLeft(ev.end); const ended = left <= 0;
     if (ended && !showEnded) return '';
     const started = new Date(ev.start + 'T00:00:00') <= new Date();
     const badge = ended ? '<span class="left over">已結束</span>' : !started ? `<span class="left soon">尚未開始</span>` : `<span class="left ${left <= 3 ? 'soon' : ''}">剩 ${Math.ceil(left)} 天</span>`;
-    const items = ev.items.map(it => {
+    const visible = ev.items.filter(it => kindFilter === 'all' || it.kind === kindFilter);
+    ev.items.forEach(it => { const key = ev.id + '|' + it.id; const done = !!((it.kind === 'daily' ? c.evd : c.evo)[key]); if (!ended) { if (it.kind === 'daily') { dAll++; if (done) dDone++; } else { oAll++; if (done) oDone++; } } });
+    if (!visible.length) return '';
+    const items = visible.map(it => {
       const key = ev.id + '|' + it.id; const store = it.kind === 'daily' ? c.evd : c.evo; const done = !!store[key];
-      if (!ended) { if (it.kind === 'daily') { dAll++; if (done) dDone++; } else { oAll++; if (done) oDone++; } }
       const nv = navi(it);
       return `<label class="ev-item ${done ? 'done' : ''}"><input type="checkbox" ${done ? 'checked' : ''} onchange="toggleItem('${ev.id}','${it.id}','${it.kind}', this.checked)">
         <div class="body">
@@ -211,7 +224,7 @@ function render() {
       ${ev.imgs ? ev.imgs.map(im => `<details class="ev-img"><summary>🖼️ ${im.cap || im.alt}</summary><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a><div class="hint" style="margin-top:4px;">點圖可另開原圖</div></details>`).join('') : ''}
       ${items}</div>`;
   }).join('');
-  $('events').innerHTML = html || `<div class="empty">目前沒有進行中的週期活動。</div>`;
+  $('events').innerHTML = html || `<div class="empty">${kindFilter === 'all' ? '目前沒有進行中的週期活動。' : `沒有「${EVENT_KIND[kindFilter]}」類型的項目。`}</div>`;
   $('sumDaily').innerText = `${dDone} / ${dAll}`; $('sumOnce').innerText = `${oDone} / ${oAll}`;
 }
 
