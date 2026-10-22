@@ -1,4 +1,4 @@
-// RO樂園 限定活動資料（限定活動頁專用）
+// RO樂園 週期活動資料（週期活動頁專用）
 // 來源：官方公告 https://roz.gnjoy.com.tw/Notice
 // 欄位：id、name、start/end（活動期間，YYYY-MM-DD；end 當天維護前）、link、note、
 //       imgs：[{ src、alt、cap }] 參考圖（選填）
@@ -12,6 +12,28 @@ const EVENT_DB = [
       { id: 'hw-ghoul', kind: 'once', name: '活動一：綠腐屍的願望', npc: '聽懂人話的綠腐屍', map: 'gef_dun00', x: 110, y: 92, goal: '接取後前往找「普露娜絲」（morocc 69,156）', reward: '（服飾）咧嘴笑容的面具（歸屬）' },
       { id: 'hw-candy', kind: 'daily', name: '活動二：萬聖糖果祭', npc: '假扮妖道的里奇', map: 'geffen', x: 103, y: 57, goal: '六選一交材料：不死心臟 ×350／腐爛繃帶 ×400／南瓜頭 ×350／死人遺骨 ×450／龍鱗 ×300／哥布靈硬幣 ×1', reward: '2026 萬聖節糖果禮盒（開啟隨機一項）', note: '每日 04:00 重置。' },
       { id: 'hw-truth', kind: 'once', name: '活動三：神話(?)的真相', npc: '女神研究人員 薇奧娜', map: 'geffen', x: 85, y: 73, goal: '收集「研究員紀錄表」×500 交給薇奧娜', reward: '護身羽毛等' },
+    ]},
+  { id: 'academic-2026', name: '秋日祭：學術節', start: '2026-09-08', end: '2026-11-19',
+    link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219166',
+    note: '需先透過 Rodex 領「學術邀請信函」，開啟後取得「學術邀請信」才能與鎮內 NPC 對話；開啟後不可轉移，請選定角色。前往會場：找「秋日祭活動啵」（prontera 150,192／payon 170,84／yuno 169,187）。',
+    items: [
+      { id: 'ac-invite', kind: 'once', name: '活動零：學術邀請函（領取學術邀請信）', goal: '每個帳號透過 Rodex 領「學術邀請信函」，開啟後取得「學術邀請信」（不可轉移）' },
+      { id: 'ac-goblin', kind: 'once', name: '活動二：害羞哥布靈的戀情最終章─哥布歐的決心', goal: '在學術鎮與哥布歐對話，看完結局', reward: '稀有服飾' },
+      { id: 'ac-malice', kind: 'daily', name: '活動三：復活的惡意（普露娜絲）', npc: '普露娜絲（學術鎮）', goal: '收集道具交給普露娜絲，可重複接取' },
+      { id: 'ac-copernicus', kind: 'daily', name: '活動四：實務、務實。（哥白尼祝福）', npc: '哥白尼（朱諾學術鎮）', goal: '觸碰鎮內神秘氣息取得道具，交給哥白尼', reward: '祝福：狩獵經驗值 +50%' },
+      { id: 'ac-hunt', kind: 'daily', name: '活動五：直到你翱遊至盡頭（茜老闆）', npc: '茜老闆（學術鎮）', goal: '狩獵 Lv.70 以上魔物 ×300 後回報；給傑斯塔可增加耐心', reward: '禮包（隨機一項）', note: '每日一次，04:00 重置。' },
+      { id: 'ac-comet', kind: 'daily', name: '活動七：彗星襲來！（阿卡伊）', npc: '野心研究家 阿卡伊（學術鎮）', goal: '完成任務', reward: '學術節硬幣 ×1（可找扭蛋雞抽學術節認證卡）', note: '每日一次，04:00 重置。扭蛋雞每 10 分鐘重置 1,000 張限制。' },
+      { id: 'ac-snack', kind: 'once', name: '活動六：學術零食抽獎處（涼）', npc: '不是海邊的魔法助教─涼（學術鎮）', goal: '給學術節硬幣或哥布靈碎幣換食物（依需要）' },
+      { id: 'ac-cards', kind: 'once', name: '活動八：認證卡兌換（陳資涅／羅姆）', npc: '陳資涅、羅姆（學術鎮）', goal: '用不同顏色學術節認證卡換道具；羅姆用 3 張全色認證卡換「新星冠冕」' },
+    ]},
+  { id: 'shark-server-2026', name: '活動伺服器：深海鯊魚＆黃金的饋贈', start: '2026-10-20', end: '2027-01-12',
+    link: 'https://event.gnjoy.com.tw/RoZ/ACT_20260904_rozAutumnUpdate/Shark_server',
+    note: '活動伺服器專屬：常駐經驗 +100%、隱世之鑰二世（經驗掉寶 +30%、無死亡懲罰）、中央南門外定時賜福（經驗再 +50%）。2027/01/12 維護時合併回 Sigrun：只有第 1 格角色可合併（Sigrun 將開放第 7 格），只有第 1 個倉庫會以次元倉庫形式合併（開放至 2027/01/26 維護前）。',
+    items: [
+      { id: 'shark-bless', kind: 'daily', name: '中央南門外定時賜福（經驗再 +50%）', goal: '到中央（普隆德拉）南門外領定時賜福再去練' },
+      { id: 'shark-mvp', kind: 'daily', name: 'MVP 討伐殲滅任務（累積「離群的靈魂」）', goal: '依 MVP 強度配給「離群的靈魂」，計入排名競賽；排名以 2026/12/08 維護時結算（等級分數最高 8,000 ＋ 靈魂數）', reward: '前十名：純金卡片、（服飾）全場焦點、鐵匠的祝福' },
+      { id: 'shark-max', kind: 'once', name: '滿級領取記憶石板、伊美樂心臟粉末並附魔', goal: '活動伺服器角色達滿級後領取，並找對應職業 NPC 附魔（戰神傳承）' },
+      { id: 'shark-merge', kind: 'once', name: '合併前整理角色與倉庫', goal: '2027/01/12 前把要帶回的東西放到第 1 格角色與第 1 個倉庫', note: '次元倉庫只開放到 2027/01/26 維護前，記得領出。' },
     ]},
   { id: 'pass-autumn', name: '樂園通行證（秋季）', start: '2026-10-20', end: '2027-01-12',
     link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219454',

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>RO樂園限定活動待辦清單｜凌雲閣－師爺</title>
+<title>RO樂園週期活動待辦清單｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=11">
 <!-- Google tag (gtag.js) -->
@@ -63,8 +63,8 @@
 
   <div class="header">
     <div class="brand">
-      <h1>RO樂園限定活動待辦清單 <small>by 凌雲閣－師爺</small></h1>
-      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a class="active" href="events.html">🎃 限定活動</a></nav>
+      <h1>RO樂園週期活動待辦清單 <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a class="active" href="events.html">🎃 週期活動</a></nav>
     </div>
     <div class="row">
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
@@ -108,7 +108,7 @@
   </div>
 </div>
 
-<script src="events-data.js?v=3"></script>
+<script src="events-data.js?v=5"></script>
 <script>
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
@@ -161,7 +161,7 @@ async function addChar() {
 async function renameChar() { const n = await askText('角色改名', cur().name); if (n) { cur().name = n; save(); render(); } }
 async function deleteChar() {
   if (Object.keys(S.chars).length <= 1) { await dialog({ title: '至少要保留一個角色', okText: '知道了' }); return; }
-  if (!await askConfirm(`刪除「${cur().name}」？`, '此角色在每日任務頁與限定活動頁的紀錄會一併刪除。')) return;
+  if (!await askConfirm(`刪除「${cur().name}」？`, '此角色在每日任務頁與週期活動頁的紀錄會一併刪除。')) return;
   delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0]; save(); render();
 }
 function switchChar(id) { S.cur = id; save(); render(); }
@@ -211,7 +211,7 @@ function render() {
       ${ev.imgs ? ev.imgs.map(im => `<details class="ev-img"><summary>🖼️ ${im.cap || im.alt}</summary><a href="${im.src}" target="_blank" rel="noopener"><img src="${im.src}" alt="${im.alt}" loading="lazy"></a><div class="hint" style="margin-top:4px;">點圖可另開原圖</div></details>`).join('') : ''}
       ${items}</div>`;
   }).join('');
-  $('events').innerHTML = html || `<div class="empty">目前沒有進行中的限定活動。</div>`;
+  $('events').innerHTML = html || `<div class="empty">目前沒有進行中的週期活動。</div>`;
   $('sumDaily').innerText = `${dDone} / ${dAll}`; $('sumOnce').innerText = `${oDone} / ${oAll}`;
 }
 
