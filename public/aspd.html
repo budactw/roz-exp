@@ -182,6 +182,7 @@ const BUFFS = [
   { id: 'dexFood', name: 'DEX 料理', lv: LV10, def: 10, eff: l => ({ dex: l }), txt: l => `DEX +${l}` },
   { id: 'agiFood', name: 'AGI 料理', lv: LV10, def: 10, eff: l => ({ agi: l }), txt: l => `AGI +${l}` },
   { id: 'ygg', name: '天地樹的祝福（戰鬥繃帶）', eff: () => ({ agi: 7, dex: 7 }), txt: () => 'AGI +7、DEX +7' },
+  { id: 'chal', name: '挑戰藥水', eff: () => ({ flat: 1 }), txt: () => 'ASPD +1' },
   { id: 'bless', name: '天使之賜福', lv: LV10, def: 10, excl: 'clem', eff: l => ({ dex: l }), txt: l => `DEX +${l}` },
   { id: 'clem', name: '慈悲術', lv: LV10, def: 10, excl: 'bless', eff: (l, st) => ({ dex: l + st.priestJob / 10 }), txt: (l, st) => `DEX +${fmtN(l + st.priestJob / 10)}` },
   { id: 'agiUp', name: '加速術', lv: LV10, def: 10, excl: 'lily', eff: l => ({ agi: 2 + l, pct: l }), txt: l => `AGI +${2 + l}、攻速 +${l}%` },
@@ -324,11 +325,11 @@ function compute() {
   const jobIdx = Math.max(1, Math.round(st.jobLv)) - 1;
   const agiJob = st.maxJob ? Math.max(0, ...c.jobAgi) : (c.jobAgi[jobIdx] ?? 0);
   const dexJob = st.maxJob ? Math.max(0, ...c.jobDex) : (c.jobDex[jobIdx] ?? 0);
-  let agiBuff = 0, dexBuff = 0, mod = D.potions[st.potion] || 0, pct = 0, owl = 0, acMult = 0;
+  let agiBuff = 0, dexBuff = 0, mod = D.potions[st.potion] || 0, pct = 0, flat = 0, owl = 0, acMult = 0;
   for (const b of BUFFS) {
     if (!st.buffs[b.id] || available(b)) continue;
     const l = lvOf(b), e = b.eff(l, st);
-    agiBuff += e.agi || 0; dexBuff += e.dex || 0; mod += e.mod || 0; pct += e.pct || 0;
+    agiBuff += e.agi || 0; dexBuff += e.dex || 0; mod += e.mod || 0; pct += e.pct || 0; flat += e.flat || 0;
     if (b.id === 'owl') owl = l;
     if (b.id === 'ac') acMult = 1 + (l + 2) / 100;
   }
@@ -349,11 +350,12 @@ function compute() {
   const aspd1 = Math.floor(base + wpen + spen + statB + statusB);
   const pctTot = st.eqPct + pct;
   const aspd2 = aspd1 + (195 - aspd1) * pctTot / 100;
-  const finalRaw = aspd2 + st.eqFlat;
+  const flatTot = st.eqFlat + flat;
+  const finalRaw = aspd2 + flatTot;
   const finalInt = Math.floor(finalRaw);
   const eff = Math.min(finalInt, st.cap);
   const hits = eff < 200 ? Math.floor(50 / (200 - eff) * 100) / 100 : Infinity;
-  return { agiJob, dexJob, agiBuff, dexBuff, agi, dex, base, wpen, spen, ranged, statB, statusB, mod, aspd1, pct, pctTot, aspd2, finalRaw, finalInt, eff, hits };
+  return { agiJob, dexJob, agiBuff, dexBuff, agi, dex, base, wpen, spen, ranged, statB, statusB, mod, aspd1, pct, pctTot, aspd2, flat, flatTot, finalRaw, finalInt, eff, hits };
 }
 
 // ===== 畫面 =====
@@ -390,7 +392,7 @@ function render() {
     ['ASPD1', `${r.aspd1}`, '以上合計取整數', 'key'],
     ['攻速 % 合計', `${fmtN(r.pctTot)}%`, `裝備 ${fmtN(st.eqPct)}% ＋ 技能 ${fmtN(r.pct)}%`],
     ['ASPD2', fmtN(r.aspd2), 'ASPD1 ＋ (195 − ASPD1) × 攻速%'],
-    ['裝備固定 ASPD', `${fmtN(st.eqFlat)}`, ''],
+    ['固定 ASPD', fmtN(r.flatTot), r.flat ? `裝備 ${fmtN(st.eqFlat)} ＋ 挑戰藥水 ${r.flat}` : '裝備'],
     ['最終 ASPD', `${r.finalInt}`, `${fmtN(r.finalRaw)} 捨去小數`, 'key'],
   ].map(([k, v, s, cls]) => `<tr class="${cls || ''}"><td>${k}${s ? `<div class="sub">${s}</div>` : ''}</td><td>${v}</td></tr>`).join('');
   $('qFinal').innerText = r.finalInt; $('qHits').innerText = Number.isFinite(r.hits) ? r.hits.toFixed(2) : '—';
