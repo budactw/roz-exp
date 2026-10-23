@@ -50,6 +50,12 @@
   .chars .chip { user-select: none; }
   .chars .chip small { color: var(--dim); font-weight: 500; margin-left: 4px; }
   .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .ev-img { margin-top: 10px; }
+  .ev-img summary { cursor: pointer; color: var(--primary); font-size: .85rem; font-weight: 600; list-style: none; }
+  .ev-img summary::-webkit-details-marker { display: none; }
+  .ev-img summary::before { content: "▸ "; color: var(--dim); }
+  .ev-img[open] summary::before { content: "▾ "; }
+  .ev-img img { display: block; margin-top: 8px; max-width: 100%; width: 320px; border-radius: 8px; border: 1px solid var(--card-border); }
   .share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--primary); }
   .share-bar .t { flex: 1 1 auto; font-weight: 700; color: var(--primary); }
   .share-bar .acts { display: flex; gap: 8px; }
@@ -106,6 +112,11 @@
           </div>
         </div>
         <p class="note">技能攻速 % 不在下方 Buff 清單的，請一起加到「裝備攻速 %」。</p>
+        <details class="ev-img">
+          <summary>🖼️ 裝備數值去哪裡看？</summary>
+          <div class="hint" style="margin-top:8px;">遊戲內「裝備能力值」視窗：<br>攻擊速度 %（攻擊後延遲減少）→ 裝備攻速 %<br>ASPD → 裝備固定 ASPD<br>AGI／DEX → 素質的「裝備＋卡」</div>
+          <a href="img/aspd-equip-stats.png" target="_blank" rel="noopener"><img src="img/aspd-equip-stats.png" alt="裝備能力值視窗" loading="lazy"></a>
+        </details>
       </div>
 
       <div class="card">
