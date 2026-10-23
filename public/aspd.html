@@ -50,6 +50,10 @@
   .chars .chip { user-select: none; }
   .chars .chip small { color: var(--dim); font-weight: 500; margin-left: 4px; }
   .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--primary); }
+  .share-bar .t { flex: 1 1 auto; font-weight: 700; color: var(--primary); }
+  .share-bar .btn-sm { background: var(--seg-active); color: #fff; border: 0; }
+  .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
   .job-row { gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
   .job-row .lbl { font-size: .85rem; color: var(--dim); white-space: nowrap; }
   .job-row input { width: 80px; min-height: 38px; padding: 6px 10px; text-align: center; }
@@ -70,6 +74,12 @@
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
       <button class="btn-ghost" id="resetBtn" onclick="resetAll()">🗑 清除資料</button>
     </div>
+  </div>
+
+  <div class="share-bar hidden" id="shareBar">
+    <span class="t">👀 正在檢視分享的配置，修改不會儲存</span>
+    <button class="btn-sm" onclick="saveShared()">存成新角色</button>
+    <button class="btn-ghost" onclick="closeShared()">關閉</button>
   </div>
 
   <div class="card">
@@ -139,6 +149,7 @@
         </div>
         <div class="warn hidden" id="rWarn"></div>
         <table class="bd" id="rTable"></table>
+        <button class="btn-share" onclick="share(this)">🔗 分享這組配置</button>
       </div>
     </div>
   </div>
@@ -205,7 +216,7 @@ const fmtN = n => String(+(+n).toFixed(2));
 const KEY = 'roz-daily-v1';          // 與每日任務、期間活動共用角色
 const FREE_KEY = 'roz-aspd-v1';      // 「不分角色」時的設定
 const WHO_KEY = 'roz-aspd-who';      // 'free' 不分角色 / 'char' 使用角色
-let who = 'free';
+let who = 'free';                    // 另有 'shared'：檢視分享連結，不儲存
 const DEFAULT = { cls: '流氓', main: '短劍', off: '無', eqPct: 36, eqFlat: 3, cap: 190, maxJob: true, jobLv: 70, agiBase: 83, agiEq: 18, dexBase: 48, dexEq: 4, potion: '菠色克藥水', priestJob: 70, buffs: { plag: true }, lv: {} };
 let st;
 let S = { cur: null, chars: {} };
@@ -232,6 +243,7 @@ function load() {
   useChar();
 }
 function save() {
+  if (who === 'shared') return;
   localStorage.setItem(WHO_KEY, who);
   if (who === 'char') localStorage.setItem(KEY, JSON.stringify(S));
   else localStorage.setItem(FREE_KEY, JSON.stringify(st));
@@ -243,36 +255,85 @@ async function resetAll() {
   useChar(); save(); syncInputs(); render();
 }
 
+// ===== 分享（設定放在網址 # 後面，不會傳到伺服器）=====
+const b64e = str => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = str => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0)));
+function packState() {
+  const b = {};
+  for (const x of BUFFS) if (st.buffs[x.id]) b[x.id] = x.lv ? lvOf(x) : 1;
+  const o = { c: st.cls, m: st.main, o: st.off, e: [st.eqPct, st.eqFlat], k: st.cap, j: st.maxJob ? 0 : st.jobLv, a: [st.agiBase, st.agiEq], d: [st.dexBase, st.dexEq], p: st.potion, b };
+  if (st.buffs.clem) o.pj = st.priestJob;
+  return b64e(JSON.stringify(o));
+}
+function unpackState(code) {
+  const o = JSON.parse(b64d(code)), n = (v, d) => Number.isFinite(+v) ? +v : d;
+  if (!CLS[o.c]) throw new Error('bad class');
+  const s = clone(DEFAULT);
+  Object.assign(s, { cls: o.c, main: String(o.m || ''), off: String(o.o || '無'), potion: String(o.p || '無'), buffs: {}, lv: {} });
+  s.eqPct = n(o.e?.[0], 0); s.eqFlat = n(o.e?.[1], 0); s.cap = o.k === 193 ? 193 : 190;
+  s.maxJob = !o.j; if (o.j) s.jobLv = n(o.j, 70);
+  s.agiBase = n(o.a?.[0], 1); s.agiEq = n(o.a?.[1], 0); s.dexBase = n(o.d?.[0], 1); s.dexEq = n(o.d?.[1], 0);
+  if (o.pj != null) s.priestJob = n(o.pj, 70);
+  for (const x of BUFFS) {
+    const v = o.b?.[x.id]; if (v == null) continue;
+    s.buffs[x.id] = true;
+    if (x.lv) s.lv[x.id] = Math.min(x.lv[1], Math.max(x.lv[0], Math.round(n(v, x.def))));
+  }
+  return s;
+}
+function readHash() {
+  const m = location.hash.match(/^#s=([\w-]+)/); if (!m) return false;
+  try { st = unpackState(m[1]); who = 'shared'; track('aspd_share_open'); return true; }
+  catch { clearHash(); return false; }
+}
+function clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
+async function share(btn) {
+  const r = compute();
+  const url = `${location.origin}${location.pathname}#s=${packState()}`;
+  const wpn = st.main + (st.off !== '無' ? `＋${st.off}` : '');
+  const text = `${st.cls}／${wpn}　最終 ASPD ${r.finalInt}（每秒 ${Number.isFinite(r.hits) ? r.hits.toFixed(2) : '—'} 下）`;
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    try { await navigator.share({ title: 'RO樂園攻速計算', text, url }); track('aspd_share', { method: 'native' }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  copyText(`${text}\n${url}`, btn); track('aspd_share', { method: 'copy' });
+}
+async function saveShared() { await addChar(); }
+function closeShared() { clearHash(); load(); syncInputs(); render(); }
+window.addEventListener('hashchange', () => { if (readHash()) { syncInputs(); render(); } });
+
 // ===== 頁內對話框 =====
-function dialog({ title, msg = '', input = null, okText = '確定' }) {
+function dialog({ title, msg = '', input = null, okText = '確定', cancel = true }) {
   return new Promise(res => {
     const m = $('dlg'), inp = $('dlgInput');
     $('dlgTitle').innerText = title; $('dlgMsg').innerText = msg; $('dlgMsg').style.display = msg ? '' : 'none';
-    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText;
+    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText; $('dlgCancel').style.display = cancel ? '' : 'none';
     const close = v => { m.classList.remove('open'); $('dlgOk').onclick = $('dlgCancel').onclick = null; inp.onkeydown = null; res(v); };
     $('dlgOk').onclick = () => close(input === null ? true : inp.value.trim());
     $('dlgCancel').onclick = () => close(null);
     inp.onkeydown = e => { if (e.key === 'Enter') $('dlgOk').onclick(); };
-    m.classList.add('open'); if (input !== null) setTimeout(() => inp.focus(), 50);
+    m.classList.add('open'); if (input !== null) setTimeout(() => { inp.focus(); if (!cancel) inp.select(); }, 50);
   });
 }
 
 // ===== 角色（選用；與每日任務、期間活動共用）=====
 function renderChars() {
   const ids = Object.keys(S.chars);
+  $('shareBar').classList.toggle('hidden', who !== 'shared');
+  $('resetBtn').classList.toggle('hidden', who === 'shared');
   $('chars').innerHTML = `<span class="chip ${who === 'free' ? 'cur' : ''}" onclick="switchFree()">不分角色</span>` +
     ids.map(id => { const ch = S.chars[id]; return `<span class="chip ${who === 'char' && id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}${ch.aspd && ch.aspd.cls ? `<small>${ch.aspd.cls}</small>` : ''}</span>`; }).join('') +
     `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` +
     (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>` : '');
 }
-function switchFree() { who = 'free'; useChar(); save(); syncInputs(); render(); }
-function switchChar(id) { who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); }
+function switchFree() { clearHash(); who = 'free'; useChar(); save(); syncInputs(); render(); }
+function switchChar(id) { clearHash(); who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); }
 async function addChar() {
   const name = await dialog({ title: '新增角色：輸入角色名稱', input: '' }); if (!name) return;
   const id = 'c' + Date.now().toString(36);
   const base = who === 'char' && cur() && cur().sel ? cur().sel.slice() : [];
   S.chars[id] = { name, sel: base, st: {}, mats: {}, day: dayKey(), aspd: clone(st) };   // 新角色先複製目前的攻速設定
-  who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); track('add_char', { chars: Object.keys(S.chars).length, from: 'aspd' });
+  clearHash(); who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); track('add_char', { chars: Object.keys(S.chars).length, from: 'aspd' });
 }
 async function renameChar() { const n = await dialog({ title: '角色改名', input: cur().name }); if (n) { cur().name = n; save(); render(); } }
 async function deleteChar() {
@@ -401,8 +462,9 @@ function render() {
 // ===== 共用 =====
 function copyText(text, btn) {
   const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
-  else prompt('請手動複製：', text);
+  const manual = () => dialog({ title: '請手動複製', input: text.replace(/\n/g, ' '), okText: '關閉', cancel: false });
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(manual);
+  else manual();
 }
 function applyTheme(t) {
   if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
@@ -412,7 +474,7 @@ function toggleTheme() { const t = document.documentElement.getAttribute('data-t
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').classList.contains('open')) $('dlgCancel').onclick(); });
 
-load(); syncInputs(); render();
+load(); readHash(); syncInputs(); render();
 for (const id of ['cls', 'main', 'off', 'maxJob']) $(id).addEventListener('change', onSelect);
 for (const id of NUMS) $(id).addEventListener('input', onNum);
 </script>
