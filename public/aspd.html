@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園攻速計算｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=12">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+<style>
+  select.inp { width: 100%; padding: 10px 12px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: 1rem; font-family: inherit; min-height: 42px; }
+  select.inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--soft); }
+  .grid-3 { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 640px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+  .stat-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .stat-table th { font-size: .76rem; color: var(--dim); font-weight: 600; text-align: center; padding: 4px; }
+  .stat-table td { padding: 4px; text-align: center; }
+  .stat-table td:first-child { font-weight: 800; color: var(--primary); width: 3.5em; }
+  .stat-table input { text-align: center; padding: 8px 6px; min-height: 38px; }
+  .stat-table .auto { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-table .total { font-weight: 800; color: var(--primary); font-size: 1rem; }
+  .buffs { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .buff { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); cursor: pointer; user-select: none; }
+  .buff input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; margin: 0; }
+  .buff .nm { font-size: .88rem; font-weight: 600; }
+  .buff .ef { font-size: .72rem; color: var(--dim); display: block; font-weight: 500; }
+  .buff .body { flex: 1; min-width: 0; }
+  .buff select { padding: 4px 6px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); font-size: .8rem; font-family: inherit; }
+  .buff.on { border-color: var(--primary); background: var(--soft); box-shadow: 0 0 0 1px var(--primary) inset; }
+  .buff.on .nm { color: var(--primary); }
+  .buff.na { opacity: .45; cursor: not-allowed; }
+  .buff.na .ef { color: var(--danger); }
+  .big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .big .v { font-size: 2.4rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1; }
+  .big .s { color: var(--dim); font-size: .85rem; }
+  .bd { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  .bd td { padding: 6px 4px; border-bottom: 1px solid var(--card-border); }
+  .bd td:last-child { text-align: right; font-weight: 600; }
+  .bd tr.key td { font-weight: 800; color: var(--primary); }
+  .bd .sub { color: var(--dim); font-size: .74rem; font-weight: 500; }
+  .warn { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(246,195,67,.22); color: #8a5a00; font-size: .82rem; }
+  [data-theme="dark"] .warn { color: #ffd66b; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1>RO樂園攻速計算 <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a class="active" href="aspd.html">⚔️ 攻速計算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+      <button class="btn-ghost" onclick="resetAll()">🗑 清除資料</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="main">
+
+      <div class="card">
+        <h2><span class="n">1</span> 🗡️ 職業與裝備</h2>
+        <div class="grid-3">
+          <div><label>職業</label><select class="inp" id="cls"></select></div>
+          <div><label>主手</label><select class="inp" id="main"></select></div>
+          <div><label>副手</label><select class="inp" id="off"></select></div>
+          <div><label>裝備攻速 %</label><input type="number" id="eqPct" step="0.1" inputmode="decimal"></div>
+          <div><label>裝備固定 ASPD</label><input type="number" id="eqFlat" step="1" inputmode="numeric"></div>
+          <div><label>Base 等級</label>
+            <div class="seg" id="capSeg" style="width:100%;">
+              <button type="button" data-v="190" class="active" onclick="setCap(190)">99 以下</button>
+              <button type="button" data-v="193" onclick="setCap(193)">100 以上</button>
+            </div>
+          </div>
+        </div>
+        <p class="note">技能攻速 % 不在下方 Buff 清單的，請一起加到「裝備攻速 %」。</p>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">2</span> 📊 素質</h2>
+        <div class="chips" style="margin-bottom:10px;">
+          <label class="chip"><input type="checkbox" id="maxJob">使用最大 Job 加成</label>
+        </div>
+        <div id="jobLvBox" style="max-width:200px; margin-bottom:10px;"><label>Job 等級</label><input type="number" id="jobLv" min="1" max="70" inputmode="numeric"></div>
+        <table class="stat-table">
+          <thead><tr><th></th><th>純 base</th><th>Job 加成</th><th>裝備＋卡</th><th>Buff</th><th>總計</th></tr></thead>
+          <tbody>
+            <tr><td>AGI</td><td><input type="number" id="agiBase" inputmode="numeric"></td><td class="auto" id="agiJob"></td><td><input type="number" id="agiEq" inputmode="numeric"></td><td class="auto" id="agiBuff"></td><td class="total" id="agiTot"></td></tr>
+            <tr><td>DEX</td><td><input type="number" id="dexBase" inputmode="numeric"></td><td class="auto" id="dexJob"></td><td><input type="number" id="dexEq" inputmode="numeric"></td><td class="auto" id="dexBuff"></td><td class="total" id="dexTot"></td></tr>
+          </tbody>
+        </table>
+        <p class="note">請填沒開 Buff 的面板素質。「裝備＋卡」放卡片、附魔、裝備附屬、寵物等加成（可填負數），這部分不受心神凝聚影響。</p>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">3</span> ✨ Buff</h2>
+        <label class="sub-h">攻速藥水</label>
+        <div class="seg" id="potSeg"></div>
+        <hr class="divider">
+        <label class="sub-h">技能與料理</label>
+        <div class="buffs" id="buffs"></div>
+        <div id="clemBox" class="row" style="margin-top:10px; display:none; gap:8px; flex-wrap:wrap;">
+          <label style="margin:0; white-space:nowrap;">慈悲術：祭司 Job 等級</label>
+          <input type="number" id="priestJob" min="1" max="70" inputmode="numeric" style="max-width:120px;">
+        </div>
+        <p class="note">不符合職業或武器的技能無法勾選；天使之賜福與慈悲術、加速術與純白百合花擇一計算。</p>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="result">
+        <h2>📈 計算結果</h2>
+        <div class="big"><span class="v" id="rFinal">—</span><span class="s" id="rFinalSub"></span></div>
+        <div class="tiles">
+          <div class="tile"><div class="k">每秒攻擊次數</div><div class="v" id="rHits">—</div></div>
+          <div class="tile"><div class="k">攻速上限</div><div class="v" id="rCap">—</div></div>
+        </div>
+        <div class="warn hidden" id="rWarn"></div>
+        <table class="bd" id="rTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　公式與資料來源：巴哈姆特 <a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=1159" target="_blank" rel="noopener" style="color:var(--primary)">RO樂園攻速計算機</a>（原作者、青楓、折本 2026/09/07 版）　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
+  </div>
+</div>
+
+<div class="quickbar">
+  <div class="qv">最終 ASPD<b id="qFinal">—</b></div>
+  <div class="qv">每秒攻擊<b id="qHits">—</b></div>
+  <button onclick="document.querySelector('.side').scrollIntoView({behavior:'smooth'})">看結果 ↓</button>
+</div>
+
+<script src="aspd-data.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const D = ASPD_DATA;
+const CLS = Object.fromEntries(D.classes.map(c => [c.name, c]));
+const ARCHERS = ['弓箭手', '獵人', '詩人', '舞孃'];
+const AXE_MACE = ['單手斧', '雙手斧', '鈍器'];
+const LV10 = [1, 10];
+
+// Buff 定義：eff(lv, st) 回傳 { agi, dex, mod（狀態修正）, pct（攻速%）}；cls/wpn 為適用限制
+const BUFFS = [
+  { id: 'dexFood', name: 'DEX 料理', lv: LV10, def: 10, eff: l => ({ dex: l }), txt: l => `DEX +${l}` },
+  { id: 'agiFood', name: 'AGI 料理', lv: LV10, def: 10, eff: l => ({ agi: l }), txt: l => `AGI +${l}` },
+  { id: 'ygg', name: '天地樹的祝福（戰鬥繃帶）', eff: () => ({ agi: 7, dex: 7 }), txt: () => 'AGI +7、DEX +7' },
+  { id: 'bless', name: '天使之賜福', lv: LV10, def: 10, excl: 'clem', eff: l => ({ dex: l }), txt: l => `DEX +${l}` },
+  { id: 'clem', name: '慈悲術', lv: LV10, def: 10, excl: 'bless', eff: (l, st) => ({ dex: l + st.priestJob / 10 }), txt: (l, st) => `DEX +${fmtN(l + st.priestJob / 10)}` },
+  { id: 'agiUp', name: '加速術', lv: LV10, def: 10, excl: 'lily', eff: l => ({ agi: 2 + l, pct: l }), txt: l => `AGI +${2 + l}、攻速 +${l}%` },
+  { id: 'lily', name: '純白百合花', excl: 'agiUp', eff: () => ({ agi: 19, pct: 17 }), txt: () => 'AGI +19、攻速 +17%' },
+  { id: 'owl', name: '鶚梟之眼', lv: LV10, def: 10, cls: ARCHERS, eff: l => ({ dex: l }), txt: l => `DEX +${l}` },
+  { id: 'ac', name: '心神凝聚', lv: LV10, def: 10, cls: ARCHERS, eff: () => ({}), txt: l => `base＋Job AGI/DEX ×${(1 + (l + 2) / 100).toFixed(2)}` },
+  { id: 'trueSight', name: '狙殺瞄準', cls: ARCHERS, eff: () => ({ agi: 5, dex: 5 }), txt: () => 'AGI +5、DEX +5' },
+  { id: 'edp', name: '刺客的黃昏', lv: LV10, def: 10, eff: l => ({ pct: l === 10 ? 20 : 1 + 2 * (l - 1) }), txt: l => `攻速 +${l === 10 ? 20 : 1 + 2 * (l - 1)}%` },
+  { id: 'poem', name: '操控樂器', lv: LV10, def: 10, cls: ['詩人'], eff: l => ({ pct: l }), txt: l => `攻速 +${l}%` },
+  { id: 'plag', name: '抄襲', lv: LV10, def: 10, cls: ['流氓'], eff: l => ({ pct: l }), txt: l => `攻速 +${l}%` },
+  { id: 'book', name: '進化之書', lv: LV10, def: 5, cls: ['賢者'], wpn: ['書'], eff: l => ({ mod: 0.5 * l }), txt: l => `狀態修正 +${0.5 * l}` },
+  { id: 'adrSelf', name: '速度激發（自身）', cls: ['鐵匠'], wpn: AXE_MACE, eff: () => ({ mod: 7, pct: 10 }), txt: () => '修正 +7、攻速 +10%' },
+  { id: 'adrParty', name: '速度激發（隊友）', wpn: AXE_MACE, eff: () => ({ mod: 6, pct: 10 }), txt: () => '修正 +6、攻速 +10%' },
+  { id: 'thq', name: '雙手劍加速', cls: ['騎士'], wpn: ['雙手劍'], eff: () => ({ mod: 7, pct: 10 }), txt: () => '修正 +7、攻速 +10%' },
+  { id: 'spq', name: '長矛加速', cls: ['十字軍'], wpn: ['單手矛', '雙手矛'], eff: () => ({ mod: 7, pct: 10 }), txt: () => '修正 +7、攻速 +10%' },
+];
+const fmtN = n => String(+(+n).toFixed(2));
+
+// ===== 狀態（預設為試算表範例：流氓、最終 ASPD 188）=====
+const KEY = 'roz-aspd-v1';
+const DEFAULT = { cls: '流氓', main: '短劍', off: '無', eqPct: 36, eqFlat: 3, cap: 190, maxJob: true, jobLv: 70, agiBase: 83, agiEq: 18, dexBase: 48, dexEq: 4, potion: '菠色克藥水', priestJob: 70, buffs: { plag: true }, lv: {} };
+let st;
+function load() { try { st = { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { st = { ...DEFAULT }; } st.buffs = st.buffs || {}; st.lv = st.lv || {}; }
+function save() { localStorage.setItem(KEY, JSON.stringify(st)); }
+function resetAll() { localStorage.removeItem(KEY); load(); syncInputs(); render(); }
+const lvOf = b => b.lv ? (st.lv[b.id] ?? b.def) : 0;
+function available(b) {
+  if (b.cls && !b.cls.includes(st.cls)) return `限 ${b.cls.join('／')}`;
+  if (b.wpn && !b.wpn.includes(st.main)) return `需裝備 ${b.wpn.join('／')}`;
+  return '';
+}
+
+// ===== 輸入同步 =====
+const fill = (sel, list, val) => { sel.innerHTML = list.map(v => `<option value="${v}">${v}</option>`).join(''); sel.value = list.includes(val) ? val : list[0]; return sel.value; };
+function syncInputs() {
+  fill($('cls'), D.classes.map(c => c.name), st.cls); st.cls = $('cls').value;
+  const c = CLS[st.cls];
+  st.main = fill($('main'), c.main, st.main);
+  const offList = D.twoHanded[st.main] ? ['無'] : c.off;
+  st.off = fill($('off'), offList, st.off);
+  for (const id of NUMS) $(id).value = st[id];
+  $('maxJob').checked = !!st.maxJob;
+  if (!c.potions.includes(st.potion)) st.potion = '無';
+}
+const NUMS = ['eqPct', 'eqFlat', 'jobLv', 'agiBase', 'agiEq', 'dexBase', 'dexEq', 'priestJob'];
+function onSelect() {   // 下拉選單：職業／武器變動時重建選項
+  st.cls = $('cls').value; st.main = $('main').value; st.off = $('off').value; st.maxJob = $('maxJob').checked;
+  syncInputs(); save(); render();
+}
+function onNum() {      // 數字欄位：只讀值，不回寫，避免打字被打斷
+  for (const id of NUMS) st[id] = parseFloat($(id).value) || 0;
+  save(); render();
+}
+function setCap(v) { st.cap = v; save(); render(); }
+function setPotion(p) { st.potion = p; save(); render(); }
+function toggleBuff(id, on) {
+  const b = BUFFS.find(x => x.id === id); if (available(b)) return;
+  st.buffs[id] = on; if (on && b.excl) st.buffs[b.excl] = false;
+  save(); render(); if (on) track('aspd_buff', { buff: id });
+}
+function setLv(id, v) { st.lv[id] = parseInt(v); save(); render(); }
+
+// ===== 計算 =====
+function compute() {
+  const c = CLS[st.cls];
+  const jobIdx = Math.max(1, Math.round(st.jobLv)) - 1;
+  const agiJob = st.maxJob ? Math.max(0, ...c.jobAgi) : (c.jobAgi[jobIdx] ?? 0);
+  const dexJob = st.maxJob ? Math.max(0, ...c.jobDex) : (c.jobDex[jobIdx] ?? 0);
+  let agiBuff = 0, dexBuff = 0, mod = D.potions[st.potion] || 0, pct = 0, owl = 0, acMult = 0;
+  for (const b of BUFFS) {
+    if (!st.buffs[b.id] || available(b)) continue;
+    const l = lvOf(b), e = b.eff(l, st);
+    agiBuff += e.agi || 0; dexBuff += e.dex || 0; mod += e.mod || 0; pct += e.pct || 0;
+    if (b.id === 'owl') owl = l;
+    if (b.id === 'ac') acMult = 1 + (l + 2) / 100;
+  }
+  let agi, dex;
+  if (acMult) {
+    agi = Math.round((st.agiBase + agiJob) * acMult) + st.agiEq + agiBuff;
+    dex = Math.round((st.dexBase + dexJob + owl) * acMult) + st.dexEq + (dexBuff - owl);
+  } else {
+    agi = st.agiBase + agiJob + st.agiEq + agiBuff;
+    dex = st.dexBase + dexJob + st.dexEq + dexBuff;
+  }
+  const base = c.base;
+  const wpen = st.main === '無' ? 0 : (c.pen[st.main] || 0);
+  const spen = st.off === '無' ? 0 : ((st.cls === '刺客' && c.left ? c.left[st.off] : c.pen[st.off]) || 0);
+  const ranged = ['弓', '樂器', '鞭子'].includes(st.main);
+  const statB = Math.sqrt(dex * dex / (ranged ? 7 : 5) + agi * agi / 2) / 4;
+  const statusB = mod * agi / 200;
+  const aspd1 = Math.floor(base + wpen + spen + statB + statusB);
+  const pctTot = st.eqPct + pct;
+  const aspd2 = aspd1 + (195 - aspd1) * pctTot / 100;
+  const finalRaw = aspd2 + st.eqFlat;
+  const finalInt = Math.floor(finalRaw);
+  const eff = Math.min(finalInt, st.cap);
+  const hits = eff < 200 ? Math.floor(50 / (200 - eff) * 100) / 100 : Infinity;
+  return { agiJob, dexJob, agiBuff, dexBuff, agi, dex, base, wpen, spen, ranged, statB, statusB, mod, aspd1, pct, pctTot, aspd2, finalRaw, finalInt, eff, hits };
+}
+
+// ===== 畫面 =====
+function render() {
+  const c = CLS[st.cls], r = compute();
+  $('jobLvBox').style.display = st.maxJob ? 'none' : '';
+  $('agiJob').innerText = r.agiJob; $('dexJob').innerText = r.dexJob;
+  $('agiBuff').innerText = fmtN(r.agiBuff); $('dexBuff').innerText = fmtN(r.dexBuff);
+  $('agiTot').innerText = fmtN(r.agi); $('dexTot').innerText = fmtN(r.dex);
+  document.querySelectorAll('#capSeg button').forEach(b => b.classList.toggle('active', +b.dataset.v === st.cap));
+  $('potSeg').innerHTML = ['無', ...c.potions].map(p => `<button type="button" class="${st.potion === p ? 'active' : ''}" onclick="setPotion('${p}')">${p}${D.potions[p] ? `（+${D.potions[p]}）` : ''}</button>`).join('');
+  $('buffs').innerHTML = BUFFS.map(b => {
+    const na = available(b), on = !na && !!st.buffs[b.id], l = lvOf(b);
+    const lvSel = b.lv ? `<select onclick="event.stopPropagation()" onchange="setLv('${b.id}', this.value)">${Array.from({ length: b.lv[1] - b.lv[0] + 1 }, (_, i) => b.lv[0] + i).map(v => `<option value="${v}" ${v === l ? 'selected' : ''}>Lv ${v}</option>`).join('')}</select>` : '';
+    return `<label class="buff ${on ? 'on' : ''} ${na ? 'na' : ''}" title="${na}"><input type="checkbox" ${on ? 'checked' : ''} ${na ? 'disabled' : ''} onchange="toggleBuff('${b.id}', this.checked)"><span class="body"><span class="nm">${b.name}</span><span class="ef">${na || b.txt(l, st)}</span></span>${lvSel}</label>`;
+  }).join('');
+  $('clemBox').style.display = st.buffs.clem ? 'flex' : 'none';
+
+  $('rFinal').innerText = r.finalInt;
+  $('rFinalSub').innerText = `ASPD（${fmtN(r.finalRaw)}）`;
+  $('rHits').innerText = Number.isFinite(r.hits) ? r.hits.toFixed(2) : '—';
+  $('rCap').innerText = st.cap;
+  const w = $('rWarn');
+  if (r.finalInt > st.cap) { w.classList.remove('hidden'); w.innerText = `超過 Base ${st.cap === 190 ? '99 以下' : '100 以上'} 的上限 ${st.cap}，實際以 ${st.cap} 計算，多出的 ${r.finalInt - st.cap} 點不會生效。`; }
+  else w.classList.add('hidden');
+  $('rTable').innerHTML = [
+    ['Base ASPD', `${r.base}`, st.cls],
+    ['武器懲罰', `${r.wpen}`, st.main],
+    ['副手懲罰', `${r.spen}`, st.off],
+    ['素質加成', fmtN(r.statB), `√(DEX²/${r.ranged ? 7 : 5} + AGI²/2) / 4`],
+    ['狀態加成', fmtN(r.statusB), `修正 ${fmtN(r.mod)} × AGI / 200`],
+    ['ASPD1', `${r.aspd1}`, '以上合計取整數', 'key'],
+    ['攻速 % 合計', `${fmtN(r.pctTot)}%`, `裝備 ${fmtN(st.eqPct)}% ＋ 技能 ${fmtN(r.pct)}%`],
+    ['ASPD2', fmtN(r.aspd2), 'ASPD1 ＋ (195 − ASPD1) × 攻速%'],
+    ['裝備固定 ASPD', `${fmtN(st.eqFlat)}`, ''],
+    ['最終 ASPD', `${r.finalInt}`, `${fmtN(r.finalRaw)} 捨去小數`, 'key'],
+  ].map(([k, v, s, cls]) => `<tr class="${cls || ''}"><td>${k}${s ? `<div class="sub">${s}</div>` : ''}</td><td>${v}</td></tr>`).join('');
+  $('qFinal').innerText = r.finalInt; $('qHits').innerText = Number.isFinite(r.hits) ? r.hits.toFixed(2) : '—';
+}
+
+// ===== 共用 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+load(); syncInputs(); render();
+for (const id of ['cls', 'main', 'off', 'maxJob']) $(id).addEventListener('change', onSelect);
+for (const id of NUMS) $(id).addEventListener('input', onNum);
+</script>
+<script src="report.js?v=4"></script>
+</body>
+</html>
