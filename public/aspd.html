@@ -65,7 +65,7 @@
     </div>
     <div class="row">
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
-      <button class="btn-ghost" onclick="resetAll()">🗑 清除此角色設定</button>
+      <button class="btn-ghost" id="resetBtn" onclick="resetAll()">🗑 清除資料</button>
     </div>
   </div>
 
@@ -199,7 +199,9 @@ const fmtN = n => String(+(+n).toFixed(2));
 
 // ===== 狀態（預設為試算表範例：流氓、最終 ASPD 188）=====
 const KEY = 'roz-daily-v1';          // 與每日任務、期間活動共用角色
-const OLD_KEY = 'roz-aspd-v1';       // 舊版單一設定，第一次載入時搬到目前角色
+const FREE_KEY = 'roz-aspd-v1';      // 「不分角色」時的設定
+const WHO_KEY = 'roz-aspd-who';      // 'free' 不分角色 / 'char' 使用角色
+let who = 'free';
 const DEFAULT = { cls: '流氓', main: '短劍', off: '無', eqPct: 36, eqFlat: 3, cap: 190, maxJob: true, jobLv: 70, agiBase: 83, agiEq: 18, dexBase: 48, dexEq: 4, potion: '菠色克藥水', priestJob: 70, buffs: { plag: true }, lv: {} };
 let st;
 let S = { cur: null, chars: {} };
@@ -208,22 +210,33 @@ function dayKey(d = new Date()) { const t = new Date(d.getTime() - 4 * 3600e3); 
 const clone = o => JSON.parse(JSON.stringify(o));
 function cur() { return S.chars[S.cur]; }
 function useChar() {
-  const c = cur();
-  st = { ...clone(DEFAULT), ...(c.aspd || {}) }; st.buffs = st.buffs || {}; st.lv = st.lv || {};
-  c.aspd = st;
+  if (who === 'char' && cur()) {
+    const c = cur();
+    st = { ...clone(DEFAULT), ...(c.aspd || {}) }; st.buffs = st.buffs || {}; st.lv = st.lv || {};
+    c.aspd = st;
+  } else {
+    who = 'free';
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem(FREE_KEY) || '{}'); } catch {}
+    st = { ...clone(DEFAULT), ...saved }; st.buffs = st.buffs || {}; st.lv = st.lv || {};
+  }
 }
 function load() {
   try { S = JSON.parse(localStorage.getItem(KEY)) || S; } catch {}
-  if (!S.chars || !Object.keys(S.chars).length) { S.chars = {}; const id = 'c' + Date.now().toString(36); S.chars[id] = { name: '角色 1', sel: [], st: {}, mats: {}, day: dayKey() }; S.cur = id; }
-  if (!S.chars[S.cur]) S.cur = Object.keys(S.chars)[0];
-  const old = localStorage.getItem(OLD_KEY);
-  if (old) { try { if (!cur().aspd) cur().aspd = JSON.parse(old); } catch {} localStorage.removeItem(OLD_KEY); }
-  useChar(); save();
+  S.chars = S.chars || {};
+  if (S.cur && !S.chars[S.cur]) S.cur = Object.keys(S.chars)[0] || null;
+  who = localStorage.getItem(WHO_KEY) === 'char' && cur() ? 'char' : 'free';
+  useChar();
 }
-function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
+function save() {
+  localStorage.setItem(WHO_KEY, who);
+  if (who === 'char') localStorage.setItem(KEY, JSON.stringify(S));
+  else localStorage.setItem(FREE_KEY, JSON.stringify(st));
+}
 async function resetAll() {
-  if (!await dialog({ title: `清除「${cur().name}」的攻速設定？`, msg: '只會重設這個角色的攻速計算資料，其他頁面的紀錄不受影響。' })) return;
-  cur().aspd = clone(DEFAULT); useChar(); save(); syncInputs(); render();
+  const label = who === 'char' ? `「${cur().name}」的攻速設定` : '攻速設定';
+  if (!await dialog({ title: `清除${label}？`, msg: '只會重設攻速計算的資料，其他頁面的紀錄不受影響。' })) return;
+  if (who === 'char') cur().aspd = clone(DEFAULT); else localStorage.removeItem(FREE_KEY);
+  useChar(); save(); syncInputs(); render();
 }
 
 // ===== 頁內對話框 =====
@@ -240,25 +253,31 @@ function dialog({ title, msg = '', input = null, okText = '確定' }) {
   });
 }
 
-// ===== 角色 =====
+// ===== 角色（選用；與每日任務、期間活動共用）=====
 function renderChars() {
-  $('chars').innerHTML = Object.entries(S.chars).map(([id, ch]) =>
-    `<span class="chip ${id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}${ch.aspd && ch.aspd.cls ? `<small>${ch.aspd.cls}</small>` : ''}</span>`).join('') +
-    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button><button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>`;
+  const ids = Object.keys(S.chars);
+  $('chars').innerHTML = `<span class="chip ${who === 'free' ? 'cur' : ''}" onclick="switchFree()">不分角色</span>` +
+    ids.map(id => { const ch = S.chars[id]; return `<span class="chip ${who === 'char' && id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}${ch.aspd && ch.aspd.cls ? `<small>${ch.aspd.cls}</small>` : ''}</span>`; }).join('') +
+    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` +
+    (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>` : '');
 }
-function switchChar(id) { S.cur = id; useChar(); save(); syncInputs(); render(); }
+function switchFree() { who = 'free'; useChar(); save(); syncInputs(); render(); }
+function switchChar(id) { who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); }
 async function addChar() {
   const name = await dialog({ title: '新增角色：輸入角色名稱', input: '' }); if (!name) return;
   const id = 'c' + Date.now().toString(36);
-  S.chars[id] = { name, sel: cur().sel ? cur().sel.slice() : [], st: {}, mats: {}, day: dayKey(), aspd: clone(st) };   // 新角色先複製目前的攻速設定
-  S.cur = id; useChar(); save(); syncInputs(); render(); track('add_char', { chars: Object.keys(S.chars).length, from: 'aspd' });
+  const base = who === 'char' && cur() && cur().sel ? cur().sel.slice() : [];
+  S.chars[id] = { name, sel: base, st: {}, mats: {}, day: dayKey(), aspd: clone(st) };   // 新角色先複製目前的攻速設定
+  who = 'char'; S.cur = id; useChar(); save(); syncInputs(); render(); track('add_char', { chars: Object.keys(S.chars).length, from: 'aspd' });
 }
 async function renameChar() { const n = await dialog({ title: '角色改名', input: cur().name }); if (n) { cur().name = n; save(); render(); } }
 async function deleteChar() {
-  if (Object.keys(S.chars).length <= 1) { await dialog({ title: '至少要保留一個角色', okText: '知道了' }); return; }
   if (!await dialog({ title: `刪除「${cur().name}」？`, msg: '此角色在每日任務、期間活動與攻速計算的紀錄會一併刪除。' })) return;
-  delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0]; useChar(); save(); syncInputs(); render();
+  delete S.chars[S.cur]; S.cur = Object.keys(S.chars)[0] || null;
+  localStorage.setItem(KEY, JSON.stringify(S));
+  who = S.cur ? 'char' : 'free'; useChar(); save(); syncInputs(); render();
 }
+
 const lvOf = b => b.lv ? (st.lv[b.id] ?? b.def) : 0;
 function available(b) {
   if (b.cls && !b.cls.includes(st.cls)) return `限 ${b.cls.join('／')}`;
@@ -337,6 +356,7 @@ function compute() {
 // ===== 畫面 =====
 function render() {
   renderChars();
+  $('resetBtn').innerText = who === 'char' ? '🗑 清除此角色設定' : '🗑 清除資料';
   const c = CLS[st.cls], r = compute();
   $('jobLvBox').style.display = st.maxJob ? 'none' : '';
   $('agiJob').innerText = r.agiJob; $('dexJob').innerText = r.dexJob;
