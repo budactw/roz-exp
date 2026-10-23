@@ -52,6 +52,7 @@
   .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
   .share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--primary); }
   .share-bar .t { flex: 1 1 auto; font-weight: 700; color: var(--primary); }
+  .share-bar .acts { display: flex; gap: 8px; }
   .share-bar .btn-sm { background: var(--seg-active); color: #fff; border: 0; }
   .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
   .job-row { gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -78,11 +79,10 @@
 
   <div class="share-bar hidden" id="shareBar">
     <span class="t">👀 正在檢視分享的配置，修改不會儲存</span>
-    <button class="btn-sm" onclick="saveShared()">存成新角色</button>
-    <button class="btn-ghost" onclick="closeShared()">關閉</button>
+    <span class="acts"><button class="btn-sm" onclick="saveShared()">存成新角色</button><button class="btn-ghost" onclick="closeShared()">關閉</button></span>
   </div>
 
-  <div class="card">
+  <div class="card" id="charCard">
     <h2>👤 角色</h2>
     <div class="chars" id="chars"></div>
   </div>
@@ -321,6 +321,7 @@ function renderChars() {
   const ids = Object.keys(S.chars);
   $('shareBar').classList.toggle('hidden', who !== 'shared');
   $('resetBtn').classList.toggle('hidden', who === 'shared');
+  $('charCard').classList.toggle('hidden', who === 'shared');
   $('chars').innerHTML = `<span class="chip ${who === 'free' ? 'cur' : ''}" onclick="switchFree()">不分角色</span>` +
     ids.map(id => { const ch = S.chars[id]; return `<span class="chip ${who === 'char' && id === S.cur ? 'cur' : ''}" onclick="switchChar('${id}')">${ch.name}${ch.aspd && ch.aspd.cls ? `<small>${ch.aspd.cls}</small>` : ''}</span>`; }).join('') +
     `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` +
