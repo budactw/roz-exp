@@ -7,11 +7,12 @@
     for (const k of KEYS) { const v = localStorage.getItem(k); if (v) out[k] = v.length > 420 ? v.slice(0, 420) + '…' : v; }
     return JSON.stringify(out).slice(0, 900);
   }
-  function ctx() {
-    return { page: location.href, ua: navigator.userAgent, viewport: `${innerWidth}×${innerHeight}`, state: snapshot() };
+  function ctx(withState) {   // 只有使用者主動回報才附上填的資料；自動錯誤回報不帶
+    const base = { page: withState ? location.href : location.origin + location.pathname, ua: navigator.userAgent, viewport: `${innerWidth}×${innerHeight}` };
+    return withState ? { ...base, state: snapshot() } : base;
   }
   async function send(kind, text, contact, hp) {
-    const r = await fetch('/api/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind, text, contact, hp, ...ctx() }) });
+    const r = await fetch('/api/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind, text, contact, hp, ...ctx(kind === 'user') }) });
     let data = {}; try { data = await r.json(); } catch {}
     return { status: r.status, ...data };
   }
