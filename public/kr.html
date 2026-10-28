@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園韓服資料整理｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=14">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+<style>
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toolbar input { flex: 1 1 220px; }
+  .kr { border: 1px solid var(--card-border); border-radius: 14px; background: var(--card); box-shadow: var(--card-glow); padding: 16px; margin-bottom: 14px; }
+  .kr-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .kr-head h3 { margin: 0; font-size: 1.05rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .kr-head h3 .arrow { color: var(--dim); font-size: .85rem; transition: transform .2s; display: inline-block; }
+  .kr.collapsed .kr-head h3 .arrow { transform: rotate(-90deg); }
+  .kr.collapsed > :not(.kr-head) { display: none; }
+  .kr-head .ko { font-size: .78rem; color: var(--dim); font-weight: 400; }
+  .kr-head .type { font-size: .7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: var(--primary); border: 1px solid currentColor; }
+  .kr-head .date { font-size: .8rem; color: var(--dim); }
+  .kr-head a { margin-left: auto; font-size: .8rem; color: var(--primary); }
+  .kr-info { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 4px; font-size: .84rem; }
+  .kr-info .k { color: var(--dim); margin-right: 4px; font-size: .78rem; }
+  .kr-intro { font-size: .84rem; margin: 8px 0 0; }
+  .kr h4 { margin: 18px 0 8px; font-size: .95rem; }
+  .kr h5 { margin: 12px 0 6px; font-size: .84rem; color: var(--primary); }
+  .kr .note { font-size: .8rem; color: var(--dim); margin: 0 0 8px; }
+  .eq-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+  .eq { border: 1px solid var(--card-border); border-radius: 10px; background: var(--tile-bg); padding: 10px 12px; }
+  .eq .nm { font-weight: 700; }
+  .eq .nm small { font-weight: 400; color: var(--dim); font-size: .74rem; margin-left: 4px; }
+  .eq .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .eq .tags span { font-size: .7rem; padding: 1px 6px; border-radius: 4px; background: var(--soft); color: var(--dim); }
+  .eq .from { font-size: .76rem; color: var(--dim); margin-top: 4px; }
+  .eq ul { margin: 6px 0 0; padding-left: 18px; font-size: .82rem; line-height: 1.55; }
+  .recipe { margin: 0 0 8px; padding-left: 18px; font-size: .84rem; line-height: 1.7; }
+  .kr table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .kr td, .kr th { border-bottom: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; }
+  .kr th { font-size: .74rem; color: var(--dim); font-weight: 600; }
+  .kr details { margin-top: 8px; border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 12px; background: var(--tile-bg); }
+  .kr details summary { cursor: pointer; font-weight: 700; font-size: .86rem; }
+  .kr details ul { margin: 8px 0 0; padding-left: 18px; font-size: .82rem; line-height: 1.6; }
+  .quest { border-left: 3px solid var(--primary); padding: 4px 0 4px 12px; margin-bottom: 12px; }
+  .quest .nm { font-weight: 700; }
+  .quest ol { margin: 6px 0 0; padding-left: 20px; font-size: .84rem; line-height: 1.6; }
+  .quest .rw { font-size: .82rem; margin-top: 4px; }
+  mark { background: rgba(246,195,67,.45); color: inherit; border-radius: 3px; }
+  .empty { color: var(--dim); font-size: .85rem; padding: 14px; text-align: center; border: 1px dashed var(--card-border); border-radius: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1>RO樂園韓服資料整理 <small>by 凌雲閣－師爺</small></h1>
+      <div class="hint" style="margin:0;">整理韓服已開放、台服還沒有的內容（裝備與任務為主）。中文名稱為暫譯，台服實裝時可能不同。</div>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="aspd.html">⚔️ 攻速計算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a class="active" href="kr.html">🇰🇷 韓服資料</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="搜尋裝備、卡片、任務（中文或韓文）" autocomplete="off">
+      <button class="btn-ghost" id="expAll" onclick="toggleAll()"></button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　資料來源：<a href="https://roz.gnjoy.com/news/update/list.asp?bbsmode=10014" target="_blank" rel="noopener" style="color:var(--primary)">韓服官網更新公告</a>　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
+    <div class="privacy">🔒 本站不會記錄你輸入的資料，所有資料只儲存在你這台裝置的瀏覽器中（換裝置或清除瀏覽器資料就會消失）。僅使用 Google Analytics 統計瀏覽次數；主動回報問題時才會附上你填的資料。</div>
+  </div>
+</div>
+
+<script src="kr-data.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const OPEN_KEY = 'roz-kr-open';
+let open = new Set(JSON.parse(localStorage.getItem(OPEN_KEY) || 'null') || [KR_DATA[0]?.id]);
+let query = '';
+
+// 搜尋時把命中的字標出來
+function hl(s) {
+  const t = esc(s);
+  if (!query) return t;
+  const q = esc(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return t.replace(new RegExp(q, 'gi'), m => `<mark>${m}</mark>`);
+}
+const hit = (...parts) => !query || parts.flat(Infinity).some(p => p && String(p).toLowerCase().includes(query.toLowerCase()));
+
+function itemHtml(it) {
+  return `<div class="eq"><div class="nm">${hl(it.name)}<small>${hl(it.kr)}</small></div>` +
+    (it.tags ? `<div class="tags">${it.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : '') +
+    (it.from ? `<div class="from">取得：${hl(it.from)}</div>` : '') +
+    `<ul>${it.eff.map(e => `<li>${hl(e)}</li>`).join('')}</ul></div>`;
+}
+
+function entryHtml(e) {
+  // 搜尋時只顯示命中的裝備／卡片／任務；沒有命中的整篇隱藏
+  const groups = (e.equips || []).map(g => ({ ...g, items: g.items ? g.items.filter(it => hit(it.name, it.kr, it.from, it.eff)) : null }));
+  const cards = (e.cards || []).filter(c => hit(c.name, c.kr, c.from, c.eff, c.slot));
+  const quests = (e.quests || []).filter(q => hit(q.name, q.kr, q.npc, q.steps, q.reward));
+  const nameHit = hit(e.name, e.kr);
+  const anyHit = nameHit || groups.some(g => g.items && g.items.length) || cards.length || quests.length;
+  if (!anyHit) return '';
+  const show = (arr, full) => (query && !nameHit ? arr : full);
+  const isOpen = query ? true : open.has(e.id);
+
+  let h = `<div class="kr ${isOpen ? '' : 'collapsed'}" id="kr-${e.id}">
+    <div class="kr-head"><h3 onclick="toggle('${e.id}')"><span class="arrow">▾</span>${hl(e.name)} <span class="ko">${hl(e.kr)}</span></h3>
+      <span class="type">${esc(e.type)}</span><span class="date">韓服 ${esc(e.date)}</span>
+      <a href="${e.url}" target="_blank" rel="noopener">韓服原文 ↗</a></div>`;
+  if (e.info) h += `<div class="kr-info">${e.info.map(([k, v]) => `<span><span class="k">${esc(k)}</span>${esc(v)}</span>`).join('')}</div>`;
+  if (e.intro) h += `<p class="kr-intro">${esc(e.intro)}</p>`;
+
+  const qs = show(quests, e.quests || []);
+  if (qs.length) {
+    h += `<h4>📜 任務</h4>` + qs.map(q => `<div class="quest"><div class="nm">${hl(q.name)} <small style="color:var(--dim); font-weight:400;">${hl(q.kr || '')}</small></div>` +
+      (q.npc ? `<div class="from" style="font-size:.78rem; color:var(--dim);">NPC：${hl(q.npc)}</div>` : '') +
+      `<ol>${q.steps.map(s => `<li>${hl(s)}</li>`).join('')}</ol>` +
+      (q.reward ? `<div class="rw">🎁 ${hl(q.reward)}</div>` : '') + `</div>`).join('');
+  }
+
+  const gs = query && !nameHit ? groups.filter(g => g.items && g.items.length) : (e.equips || []);
+  if (gs.length) {
+    h += `<h4>🛡️ 裝備</h4>`;
+    for (const g of gs) {
+      h += `<h5>${esc(g.group)}</h5>`;
+      if (g.note && !(query && !nameHit)) h += `<p class="note">${esc(g.note)}</p>`;
+      if (g.rows && !(query && !nameHit)) h += `<ul class="recipe">${g.rows.map(([a, b]) => `<li>${esc(a)} → <b>${esc(b)}</b></li>`).join('')}</ul>`;
+      if (g.items) h += `<div class="eq-grid">${g.items.map(itemHtml).join('')}</div>`;
+    }
+  }
+
+  const cs = show(cards, e.cards || []);
+  if (cs.length) {
+    h += `<h4>🃏 卡片</h4>` + (e.cardNote && !(query && !nameHit) ? `<p class="note">${esc(e.cardNote)}</p>` : '') +
+      `<div class="eq-grid">${cs.map(c => itemHtml({ name: c.name, kr: c.kr, tags: [c.slot], from: c.from, eff: c.eff.split('；') })).join('')}</div>`;
+  }
+
+  if (e.enchants && !(query && !nameHit)) {
+    h += `<h4>✨ 附魔</h4>` + e.enchants.map(x => `<details><summary>${esc(x.title)}</summary><ul>${x.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul></details>`).join('');
+  }
+  return h + `</div>`;
+}
+
+function render() {
+  const html = KR_DATA.map(entryHtml).join('');
+  $('list').innerHTML = html || `<div class="empty">找不到「${esc(query)}」。</div>`;
+  $('expAll').innerText = KR_DATA.every(e => open.has(e.id)) ? '⤴ 全部收合' : '⤵ 全部展開';
+  $('expAll').classList.toggle('hidden', !!query);
+}
+function saveOpen() { localStorage.setItem(OPEN_KEY, JSON.stringify([...open])); }
+function toggle(id) { if (query) return; open.has(id) ? open.delete(id) : open.add(id); saveOpen(); render(); }
+function toggleAll() { open = KR_DATA.every(e => open.has(e.id)) ? new Set() : new Set(KR_DATA.map(e => e.id)); saveOpen(); render(); }
+let qTimer;
+$('q').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(() => { query = $('q').value.trim(); render(); if (query) track('kr_search'); }, 200); });
+
+// ===== 共用：複製、主題 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+render();
+</script>
+<script src="report.js?v=5"></script>
+</body>
+</html>

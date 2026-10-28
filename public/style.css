@@ -271,6 +271,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 /* 頁面分頁：不換行，窄螢幕縮小並可橫向捲動 */
 .tabs a { white-space: nowrap; }
 @media (max-width: 520px) {
+  .brand { max-width: 100%; min-width: 0; }
   .tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .tabs a { padding: 6px 9px; font-size: .8rem; }
