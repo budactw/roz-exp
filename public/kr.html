@@ -54,7 +54,7 @@
   .kr table.ench { min-width: 100%; background: var(--card); border-radius: 8px; }
   .kr table.ench th { background: var(--soft); white-space: nowrap; }
   .kr table.ench td { min-width: 6.5em; }
-  .kr table.ench td:first-child { font-weight: 700; min-width: 0; white-space: nowrap; }
+  .kr table.ench td.h { font-weight: 700; min-width: 5em; width: 1%; }
   .kr table.ench td small { font-weight: 400; color: var(--dim); }
   .quest { border-left: 3px solid var(--primary); padding: 4px 0 4px 12px; margin-bottom: 12px; }
   .quest .nm { font-weight: 700; }
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<script src="kr-data.js?v=4"></script>
+<script src="kr-data.js?v=8"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -136,6 +136,8 @@ function entryHtml(e) {
   if (e.info) h += `<div class="kr-info">${e.info.map(([k, v]) => `<span><span class="k">${esc(k)}</span>${esc(v)}</span>`).join('')}</div>`;
   if (e.intro) h += `<p class="kr-intro">${esc(e.intro)}</p>`;
 
+  if (e.mats && !query) h += `<h4>🧱 材料</h4><ul class="recipe">${e.mats.map(m => `<li><b>${esc(m.name)}</b> <small style="color:var(--dim);">${esc(m.kr)}</small>　${esc(m.from || '')}</li>`).join('')}</ul>`;
+
   const qs = show(quests, e.quests || []);
   if (qs.length) {
     h += `<h4>📜 任務</h4>` + qs.map(q => `<div class="quest"><div class="nm">${hl(q.name)} <small style="color:var(--dim); font-weight:400;">${hl(q.kr || '')}</small></div>` +
@@ -162,8 +164,10 @@ function entryHtml(e) {
   }
 
   if (e.enchants && !(query && !nameHit)) {
+    // 儲存格為 null 表示與上一列合併
+    const span = (rows, i, j) => { let n = 1; while (rows[i + n] && rows[i + n][j] === null) n++; return n > 1 ? ` rowspan="${n}"` : ''; };
     const tbl = t => `<div class="tbl-cap">${esc(t.caption)}</div><div class="tbl-wrap"><table class="ench"><thead><tr>${t.head.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>` +
-      `<tbody>${t.rows.map(r => `<tr>${r.map(c => `<td>${esc(c).replace(/\n(.*)/, '<br><small>$1</small>')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      `<tbody>${t.rows.map((r, i) => `<tr>${r.map((c, j) => c === null ? '' : `<td${j === 0 ? ' class="h"' : ''}${span(t.rows, i, j)}>${esc(c).replace(/\n(.*)/, '<br><small>$1</small>')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     h += `<h4>✨ 附魔</h4>` + e.enchants.map(x => `<details><summary>${esc(x.title)}</summary>` +
       (x.lines ? `<ul>${x.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : '') + (x.tables || []).map(tbl).join('') + `</details>`).join('');
   }
