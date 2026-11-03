@@ -40,6 +40,12 @@
   .toc a:hover { color: var(--primary); }
   .toc .n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--seg-active); color: #fff; font-size: .75rem; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
   @media (max-width: 640px) { .toc { grid-template-columns: repeat(2, 1fr); } }
+  details.cards { margin-bottom: 8px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--tile-bg); padding: 8px 12px; }
+  details.cards summary { cursor: pointer; font-weight: 700; font-size: .9rem; }
+  details.cards summary small { margin-left: 8px; color: var(--dim); font-weight: 400; }
+  details.cards .tbl-wrap { margin: 8px 0 0; }
+  details.cards td:first-child { white-space: normal; min-width: 5.5em; }
+  details.cards td:nth-child(2) { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -151,6 +157,72 @@
       </tbody>
     </table></div>
     <div class="note-box">怪物的暴擊攻擊：體型、階級、屬性減傷都無效，只能靠種族減傷（只減前段）、暴擊減傷、遠距減傷（遠距暴擊），以及念屬性鎧甲（−30%）。</div>
+    <div class="sub-h">RO樂園目前可用的減傷卡片</div>
+    <div class="hint" style="margin:0 0 8px;">依巴哈〈<a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=3578" target="_blank" rel="noopener" style="color:var(--primary)">《RO樂園TWROZ》卡片檔案室</a>〉整理，資料到 2026/10/15（企業之都）；未實裝的卡片不列入。體型減傷、暴擊減傷目前沒有已開放的卡片。</div>
+    <details class="cards"><summary>種族減傷（物理全段／魔法全段）<small>12 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>卡利斯格卡片</td><td>盾牌</td><td style="text-align:left;">受惡魔型 −30%</td></tr>
+      <tr><td>米杜沙卡片</td><td>盾牌</td><td style="text-align:left;">受惡魔型 −15%，免疫石化</td></tr>
+      <tr><td>突變蛙卡片</td><td>盾牌</td><td style="text-align:left;">受玩家型、人類型 −30%</td></tr>
+      <tr><td>獸人戰士卡片</td><td>盾牌</td><td style="text-align:left;">受動物型 −30%</td></tr>
+      <tr><td>大腳熊卡片</td><td>盾牌</td><td style="text-align:left;">受昆蟲型 −30%</td></tr>
+      <tr><td>梅納海葵卡片</td><td>盾牌</td><td style="text-align:left;">受無形 −30%</td></tr>
+      <tr><td>畢帝特飛龍卡片</td><td>盾牌</td><td style="text-align:left;">受龍族 −30%</td></tr>
+      <tr><td>安畢斯卡片</td><td>盾牌</td><td style="text-align:left;">受天使型 −30%（胡狼頭神掉落）</td></tr>
+      <tr><td>玩偶熊卡片</td><td>盾牌</td><td style="text-align:left;">受不死型 −30%</td></tr>
+      <tr><td>草精卡片</td><td>盾牌</td><td style="text-align:left;">受魚貝型 −30%</td></tr>
+      <tr><td>蟻后卡片［MVP］</td><td>盾牌</td><td style="text-align:left;">受人類型、玩家型、動物型 −30%；另見攻擊屬性</td></tr>
+      <tr><td>服事套卡</td><td>五件套</td><td style="text-align:left;">服事系列裝備時，受惡魔型、不死型 −30%</td></tr>
+    </tbody></table></div></details>
+    <details class="cards"><summary>階級減傷（物理後段／魔法全段）<small>1 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>愛麗絲女僕卡片</td><td>盾牌</td><td style="text-align:left;">受首領階級 −40%，但受一般階級 +40%</td></tr>
+    </tbody></table></div></details>
+    <details class="cards"><summary>屬性鎧甲（物理後段／魔法全段）<small>10 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>帕莎納卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變火屬性</td></tr>
+      <tr><td>異變魚卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變水屬性</td></tr>
+      <tr><td>土人卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變風屬性</td></tr>
+      <tr><td>泥人卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變地屬性</td></tr>
+      <tr><td>巫婆卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變暗屬性</td></tr>
+      <tr><td>艾吉歐蜈蚣卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變毒屬性</td></tr>
+      <tr><td>闇神官卡片</td><td>盔甲</td><td style="text-align:left;">鎧甲變不死屬性</td></tr>
+      <tr><td>天使波利卡片［BOSS］</td><td>盔甲</td><td style="text-align:left;">鎧甲變聖屬性</td></tr>
+      <tr><td>幽靈波利卡片［BOSS］</td><td>盔甲</td><td style="text-align:left;">鎧甲變念屬性，HP 恢復 −25%</td></tr>
+      <tr><td>十字軍套卡</td><td>四件套</td><td style="text-align:left;">十字軍裝備時鎧甲變聖屬性</td></tr>
+    </tbody></table></div></details>
+    <details class="cards"><summary>攻擊屬性減傷（物理後段／魔法全段）<small>23 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>幽靈劍士卡片</td><td>披肩</td><td style="text-align:left;">無屬性 −20%</td></tr>
+      <tr><td>鳥人哈比卡片</td><td>披肩</td><td style="text-align:left;">無屬性 −15%</td></tr>
+      <tr><td>獸人嬰兒卡片</td><td>披肩</td><td style="text-align:left;">無屬性 −10%，+9 再 −5%</td></tr>
+      <tr><td>廢氣魔卡片</td><td>披肩</td><td style="text-align:left;">無屬性 −10%；另見遠距</td></tr>
+      <tr><td>苗娃佩瑞絲卡片</td><td>盾牌</td><td style="text-align:left;">無屬性 −5%</td></tr>
+      <tr><td>南瓜先生卡片</td><td>披肩</td><td style="text-align:left;">火屬性 −30%</td></tr>
+      <tr><td>烏賊卡片</td><td>披肩</td><td style="text-align:left;">水屬性 −30%</td></tr>
+      <tr><td>獵蠅卡片</td><td>披肩</td><td style="text-align:left;">風屬性 −30%</td></tr>
+      <tr><td>蚯蚓卡片</td><td>披肩</td><td style="text-align:left;">地屬性 −30%</td></tr>
+      <tr><td>麥斯特卡片</td><td>披肩</td><td style="text-align:left;">毒屬性 −30%</td></tr>
+      <tr><td>獸人腐屍卡片</td><td>披肩</td><td style="text-align:left;">不死屬性 −30%</td></tr>
+      <tr><td>蛇女伊絲卡片</td><td>披肩</td><td style="text-align:left;">暗屬性 −30%</td></tr>
+      <tr><td>傀儡娃娃卡片</td><td>披肩</td><td style="text-align:left;">念屬性 −30%</td></tr>
+      <tr><td>蟻后卡片［MVP］</td><td>盾牌</td><td style="text-align:left;">念、風屬性 −20%，但火、暗屬性 +15%</td></tr>
+      <tr><td>基爾瑟卡片</td><td>頭盔</td><td style="text-align:left;">地屬性 −15%，免疫混亂</td></tr>
+      <tr><td>果樹龜卡片</td><td>頭盔</td><td style="text-align:left;">暗、不死屬性 −15%</td></tr>
+      <tr><td>狂暴大腳熊卡片</td><td>頭盔</td><td style="text-align:left;">火屬性 −10%</td></tr>
+      <tr><td>群葉貓卡片</td><td>頭盔</td><td style="text-align:left;">水屬性 −10%</td></tr>
+      <tr><td>狂暴蜂兵卡片</td><td>頭盔</td><td style="text-align:left;">風屬性 −10%</td></tr>
+      <tr><td>森林妖姬卡片</td><td>頭盔</td><td style="text-align:left;">地屬性 −10%</td></tr>
+      <tr><td>綠蒼蠅卡片</td><td>盔甲</td><td style="text-align:left;">風屬性 −10%</td></tr>
+      <tr><td>馬克卡片</td><td>盔甲</td><td style="text-align:left;">水屬性 −5%，免疫冰凍</td></tr>
+      <tr><td>殭屍卡片</td><td>盾牌</td><td style="text-align:left;">地屬性 −5%</td></tr>
+    </tbody></table></div></details>
+    <details class="cards"><summary>怪物屬性減傷（物理後段／魔法全段）<small>2 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>滷哥與港口之都卡片［聯名］</td><td>披肩</td><td style="text-align:left;">受無屬性敵人的物理傷害 −5%，+9 再 −10%</td></tr>
+      <tr><td>阿吉與魔法之都卡片［聯名］</td><td>披肩</td><td style="text-align:left;">受無屬性敵人的魔法傷害 −5%，+9 再 −10%</td></tr>
+    </tbody></table></div></details>
+    <details class="cards"><summary>遠距減傷（物理全段）<small>4 張</small></summary><div class="tbl-wrap"><table class="t"><thead><tr><th>卡片</th><th>部位</th><th>效果</th></tr></thead><tbody>
+      <tr><td>鍬形蟲卡片</td><td>盾牌</td><td style="text-align:left;">遠距物理 −35%</td></tr>
+      <tr><td>廢氣魔卡片</td><td>披肩</td><td style="text-align:left;">遠距物理 −10%</td></tr>
+      <tr><td>珍妮佛卡片</td><td>盔甲</td><td style="text-align:left;">遠距物理 −5%，鎧甲每精煉 +1 再 −1%</td></tr>
+      <tr><td>鱷魚人卡片</td><td>飾品</td><td style="text-align:left;">遠距物理 −5%</td></tr>
+    </tbody></table></div></details>
   </div>
 
   <!-- 屬性 -->
