@@ -35,6 +35,11 @@
   table.elem td.zero { color: var(--danger); font-weight: 700; }
   table.elem td.hl, table.elem th.hl { background: rgba(0,114,255,.08); }
   .elem-ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; font-size: .85rem; }
+  .toc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 16px; }
+  .toc a { display: flex; align-items: center; gap: 8px; padding: 6px 4px; color: var(--text); text-decoration: none; font-size: .9rem; border-bottom: 1px dashed var(--card-border); }
+  .toc a:hover { color: var(--primary); }
+  .toc .n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--seg-active); color: #fff; font-size: .75rem; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+  @media (max-width: 640px) { .toc { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -51,9 +56,14 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2>📑 目錄</h2>
+    <ol class="toc"><li><a href="#atk"><span class="n">1</span>物理 ATK</a></li><li><a href="#matk"><span class="n">2</span>魔法 MATK</a></li><li><a href="#def"><span class="n">3</span>防禦</a></li><li><a href="#reduce"><span class="n">4</span>減傷作用範圍</a></li><li><a href="#elem"><span class="n">5</span>屬性倍率表</a></li><li><a href="#size"><span class="n">6</span>武器體型修正</a></li><li><a href="#refine"><span class="n">7</span>精煉加值</a></li><li><a href="#round"><span class="n">8</span>捨入規則</a></li></ol>
+  </div>
+
   <!-- 物理 -->
   <div class="card" id="atk">
-    <h2>🗡️ 物理 ATK</h2>
+    <h2><span class="n">1</span> 🗡️ 物理 ATK</h2>
     <div class="note-box">傷害分成「前段」（素質）和「後段」（武器＋卡裝）兩部分，加總後再乘全段倍率、扣防禦。卡片和裝備的增傷大多只作用在後段。</div>
 
     <div class="f"><b>素質 ATK（前 ATK）</b><br><span class="eq">BaseLv/4 + STR + DEX/5 + LUK/3</span>
@@ -85,7 +95,7 @@
 
   <!-- 魔法 -->
   <div class="card" id="matk">
-    <h2>✨ 魔法 MATK</h2>
+    <h2><span class="n">2</span> ✨ 魔法 MATK</h2>
     <div class="note-box">魔法沒有前後段之分，卡片與裝備的增減傷都作用在整段 MATK。</div>
 
     <div class="f"><b>素質 MATK（前 MATK）</b><br><span class="eq">INT × 1.5 + LUK/3 + BaseLv/4 + DEX/5</span></div>
@@ -102,7 +112,7 @@
 
   <!-- 防禦 -->
   <div class="card" id="def">
-    <h2>🛡️ 防禦</h2>
+    <h2><span class="n">3</span> 🛡️ 防禦</h2>
     <div class="f"><b>前 DEF（素質）</b><br><span class="eq">(BaseLv + VIT)/2 + AGI/5</span>
       <ul><li>最後直接從傷害中扣掉，不受對方無視防禦影響</li></ul></div>
     <div class="f"><b>後 DEF（裝備）乘算</b><br><span class="eq">(4000 + DEF) ÷ (4000 + 10 × DEF)</span></div>
@@ -124,7 +134,7 @@
 
   <!-- 減傷範圍 -->
   <div class="card" id="reduce">
-    <h2>📉 減傷作用範圍</h2>
+    <h2><span class="n">4</span> 📉 減傷作用範圍</h2>
     <div class="note-box">同一類減傷可以加總，不同類之間相乘。「後段」只減武器＋卡裝那段，「全段」連素質 ATK 一起減。</div>
     <div class="tbl-wrap"><table class="t">
       <thead><tr><th>減傷類型</th><th>對物理</th><th>對魔法</th><th>例子</th></tr></thead>
@@ -144,7 +154,7 @@
 
   <!-- 屬性 -->
   <div class="card" id="elem">
-    <h2>🔥 屬性倍率表（%）</h2>
+    <h2><span class="n">5</span> 🔥 屬性倍率表（%）</h2>
     <div class="elem-ctl">
       <span>防守方屬性等級</span>
       <div class="seg" id="lvSeg"></div>
@@ -156,14 +166,14 @@
 
   <!-- 體型 -->
   <div class="card" id="size">
-    <h2>📏 武器體型修正（%）</h2>
+    <h2><span class="n">6</span> 📏 武器體型修正（%）</h2>
     <div class="tbl-wrap"><table class="t" id="sizeTbl"></table></div>
     <div class="hint" style="margin:0;">素質 ATK 沒有體型修正；計算後無條件捨去小數。</div>
   </div>
 
   <!-- 精煉 -->
   <div class="card" id="refine">
-    <h2>🔨 精煉加值</h2>
+    <h2><span class="n">7</span> 🔨 精煉加值</h2>
     <div class="tbl-wrap"><table class="t">
       <thead><tr><th>武器等級</th><th>安定值</th><th>每精煉 +1</th><th>過度精煉起始</th><th>過度精煉每 +1 額外隨機</th></tr></thead>
       <tbody>
@@ -178,7 +188,7 @@
 
   <!-- 捨入 -->
   <div class="card" id="round">
-    <h2>⚖️ 捨入規則</h2>
+    <h2><span class="n">8</span> ⚖️ 捨入規則</h2>
     <div class="f" style="font-size:.88rem;">
       <ul style="color:var(--text); font-size:.88rem;">
         <li>增傷（倍率大於 1）：每一步算完<b>無條件捨去</b>小數。例：999 × 1.25 = 1248.75 → 1248</li>
