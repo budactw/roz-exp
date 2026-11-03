@@ -35,8 +35,10 @@
   table.elem td.zero { color: var(--danger); font-weight: 700; }
   table.elem td.hl, table.elem th.hl { background: rgba(0,114,255,.08); }
   .elem-ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; font-size: .85rem; }
-  .toc { display: flex; flex-wrap: wrap; gap: 6px; }
-  .toc a { text-decoration: none; font-size: .82rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--primary); border: 1px solid var(--card-border); }
+  .toc { font-size: .88rem; line-height: 2; color: var(--dim); }
+  .toc a { color: var(--primary); text-decoration: none; white-space: nowrap; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .sep { margin: 0 6px; opacity: .5; }
 </style>
 </head>
 <body>
@@ -54,10 +56,7 @@
   </div>
 
   <div class="card">
-    <div class="toc">
-      <a href="#atk">🗡️ 物理 ATK</a><a href="#matk">✨ 魔法 MATK</a><a href="#def">🛡️ 防禦</a><a href="#reduce">📉 減傷作用範圍</a>
-      <a href="#elem">🔥 屬性倍率</a><a href="#size">📏 體型修正</a><a href="#refine">🔨 精煉</a><a href="#round">⚖️ 捨入規則</a>
-    </div>
+    <div class="toc">📑 目錄：<a href="#atk">物理 ATK</a><span class="sep">·</span><a href="#matk">魔法 MATK</a><span class="sep">·</span><a href="#def">防禦</a><span class="sep">·</span><a href="#reduce">減傷作用範圍</a><span class="sep">·</span><a href="#elem">屬性倍率</a><span class="sep">·</span><a href="#size">體型修正</a><span class="sep">·</span><a href="#refine">精煉</a><span class="sep">·</span><a href="#round">捨入規則</a></div>
   </div>
 
   <!-- 物理 -->
