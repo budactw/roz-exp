@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園傷害公式整理｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=14">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+<style>
+  .card h2 { margin-bottom: 12px; }
+  .f { font-size: .92rem; line-height: 1.7; padding: 10px 14px; margin: 0 0 10px; border-radius: 10px; background: var(--tile-bg); border: 1px solid var(--card-border); }
+  .f b { color: var(--primary); }
+  .f .eq { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86rem; }
+  .f ul { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; color: var(--dim); }
+  .f ul li { margin: 2px 0; }
+  .sub-h { margin-top: 16px; }
+  .note-box { font-size: .88rem; line-height: 1.65; padding: 8px 12px; margin: 0 0 10px; border-radius: 8px; background: var(--soft); border-left: 3px solid var(--primary); }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 10px; }
+  table.t { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  table.t th, table.t td { border-bottom: 1px solid var(--card-border); padding: 6px 8px; text-align: center; white-space: normal; }
+  table.t th { font-size: .76rem; color: var(--dim); font-weight: 600; background: var(--soft); white-space: nowrap; }
+  table.t td:first-child, table.t th:first-child { text-align: left; font-weight: 700; white-space: nowrap; }
+  table.elem td, table.elem th { padding: 5px 4px; min-width: 2.6em; font-variant-numeric: tabular-nums; }
+  table.elem td.up { color: var(--green); font-weight: 700; }
+  table.elem td.down { color: #c2410c; }
+  table.elem td.zero { color: var(--danger); font-weight: 700; }
+  table.elem td.hl, table.elem th.hl { background: rgba(0,114,255,.08); }
+  .elem-ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; font-size: .85rem; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc a { text-decoration: none; font-size: .82rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--primary); border: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1>RO樂園傷害公式整理 <small>by 凌雲閣－師爺</small></h1>
+      <div class="hint" style="margin:0;">整理自巴哈姆特〈<a href="https://forum.gamer.com.tw/C.php?bsn=4212&snA=424078" target="_blank" rel="noopener" style="color:var(--primary)">TWRO 攻擊力和防禦力的計算方式系統整合介紹</a>〉。原文為 RO 本傳（台服 2020）的實測公式，RO樂園可能有差異，僅供參考。</div>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="aspd.html">⚔️ 攻速計算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="kr.html">🇰🇷 韓服資料</a><a class="active" href="formula.html">📐 公式</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toc">
+      <a href="#atk">🗡️ 物理 ATK</a><a href="#matk">✨ 魔法 MATK</a><a href="#def">🛡️ 防禦</a><a href="#reduce">📉 減傷作用範圍</a>
+      <a href="#elem">🔥 屬性倍率</a><a href="#size">📏 體型修正</a><a href="#refine">🔨 精煉</a><a href="#round">⚖️ 捨入規則</a>
+    </div>
+  </div>
+
+  <!-- 物理 -->
+  <div class="card" id="atk">
+    <h2>🗡️ 物理 ATK</h2>
+    <div class="note-box">傷害分成「前段」（素質）和「後段」（武器＋卡裝）兩部分，加總後再乘全段倍率、扣防禦。卡片和裝備的增傷大多只作用在後段。</div>
+
+    <div class="f"><b>素質 ATK（前 ATK）</b><br><span class="eq">BaseLv/4 + STR + DEX/5 + LUK/3</span>
+      <ul><li>弓、樂器、鞭子：STR 與 DEX 對調</li><li>強制無屬性、沒有體型修正、沒有浮動</li></ul></div>
+
+    <div class="f"><b>武器 ATK</b><br><span class="eq">( 武器基礎ATK × ( 1 + STR/200 ± 武器等級×0.05 ) + 精煉ATK ) × 體型修正 + 箭矢ATK</span>
+      <ul><li>± 武器等級×0.05 是浮動範圍，例：基礎 200、STR 100、4 級武器 → 260～340</li>
+        <li>怒爆（火屬 +20%）或致命塗毒（毒屬 +25%）二選一，只加在武器 ATK，並受對方屬性影響</li></ul></div>
+
+    <div class="f"><b>前段總 ATK</b><br><span class="eq">素質ATK × 2 + 修練ATK</span>
+      <ul><li>修練 ATK：武器熟練度等被動技能</li><li>左手武器的素質 ATK 只算 1 倍</li></ul></div>
+
+    <div class="f"><b>後段總 ATK</b><br><span class="eq">[ (武器ATK + 卡裝ATK) × 後段增傷倍率 + (武器ATK + 卡裝ATK) × ATK% ] × 對方後段減傷 × 屬性倍率</span>
+      <ul><li>後段增傷倍率 = (1+種族%) × (1+體型%) × (1+屬性%) × (1+階級%)；同一類加總，不同類相乘</li>
+        <li>對方後段減傷 = (1−體型減傷%) × (1−階級減傷%) × (1−攻擊屬性減傷%) × (1−怪物屬性減傷%)</li>
+        <li>卡裝 ATK：卡片、裝備、附魔（鬥志：3 × (等級+1)）、技能、藥水、料理的 ATK 加值</li></ul></div>
+
+    <div class="f"><b>全段 ATK</b><br><span class="eq">(前段 + 後段) × (1+遠距增傷%) × (1+暴擊增傷%) × 對方 (1−遠距減傷%) × (1−種族減傷%) × (1−暴擊減傷%)</span></div>
+
+    <div class="f"><b>最終傷害</b><br><span class="eq">( 全段ATK × 技能倍率 × 後DEF乘算 − 前DEF ) × (1+技能增傷裝備%) × (1+技能增傷技能%)</span>
+      <ul><li>後 DEF 乘算 = (4000 + 後DEF) ÷ (4000 + 10 × 後DEF)</li><li>暴擊：傷害 +40%、無視迴避、武器浮動取最大值，但仍要算防禦</li></ul></div>
+
+    <div class="sub-h">藥水與料理的 ATK／MATK 加值</div>
+    <div class="f" style="font-size:.86rem;">藥水和料理是不同系統，可以疊加（例：料理 ATK +30 ＋ 揮擊藥水 ATK +50 = +80）；同樣是料理的只取最高的一個。</div>
+
+    <div class="sub-h">左手武器（雙刀）</div>
+    <div class="f" style="font-size:.86rem;">後段 ATK −25%、素質 ATK 只算 1 倍、不會暴擊（暴擊增傷無效）、不觸發自動施放；最終傷害再乘左手修練的倍率。左右手的體型修正與命中各自計算，其他增傷共用。</div>
+  </div>
+
+  <!-- 魔法 -->
+  <div class="card" id="matk">
+    <h2>✨ 魔法 MATK</h2>
+    <div class="note-box">魔法沒有前後段之分，卡片與裝備的增減傷都作用在整段 MATK。</div>
+
+    <div class="f"><b>素質 MATK（前 MATK）</b><br><span class="eq">INT × 1.5 + LUK/3 + BaseLv/4 + DEX/5</span></div>
+
+    <div class="f"><b>武器 MATK</b><br><span class="eq">( 武器基礎MATK + 精煉MATK ) × ( 1 ± 武器等級 × 0.1 )</span></div>
+
+    <div class="f"><b>最終 MATK</b><br><span class="eq">(素質MATK + 武器MATK + 卡裝MATK) × (1+MATK%) × (1+我方屬性魔法%) × (1+對敵屬性%) × (1+種族%) × (1+體型%) × 對方減傷</span>
+      <ul><li>對方減傷 = (1−體型減傷%) × (1−屬性減傷%) × (1−種族減傷%) × (1−階級減傷%)</li>
+        <li>卡裝 MATK：卡片、裝備、附魔（魔力：MATK 3 × (等級+1)）、技能、藥水、料理</li></ul></div>
+
+    <div class="f"><b>最終傷害</b><br><span class="eq">( 最終MATK × 技能倍率 × 後MDEF乘算 − 前MDEF ) × 屬性倍率 × (1+技能增傷裝備%) × (1+技能增傷技能%)</span>
+      <ul><li>後 MDEF 乘算 = (1000 + 後MDEF) ÷ (1000 + 10 × 後MDEF)</li></ul></div>
+  </div>
+
+  <!-- 防禦 -->
+  <div class="card" id="def">
+    <h2>🛡️ 防禦</h2>
+    <div class="f"><b>前 DEF（素質）</b><br><span class="eq">(BaseLv + VIT)/2 + AGI/5</span>
+      <ul><li>最後直接從傷害中扣掉，不受對方無視防禦影響</li></ul></div>
+    <div class="f"><b>後 DEF（裝備）乘算</b><br><span class="eq">(4000 + DEF) ÷ (4000 + 10 × DEF)</span></div>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>裝備 DEF</th><th>50</th><th>114</th><th>200</th><th>320</th><th>500</th><th>800</th><th>1400</th><th>3200</th></tr></thead>
+      <tbody><tr><td>物理減傷</td><td>10%</td><td>20%</td><td>30%</td><td>40%</td><td>50%</td><td>60%</td><td>70%</td><td>80%</td></tr></tbody>
+    </table></div>
+
+    <div class="f"><b>前 MDEF（素質）</b><br><span class="eq">INT + BaseLv/4 + VIT/5 + DEX/5</span></div>
+    <div class="f"><b>後 MDEF（裝備）乘算</b><br><span class="eq">(1000 + MDEF) ÷ (1000 + 10 × MDEF)</span></div>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>裝備 MDEF</th><th>12.5</th><th>28.6</th><th>50</th><th>80</th><th>125</th><th>200</th><th>350</th><th>800</th></tr></thead>
+      <tbody><tr><td>魔法減傷</td><td>10%</td><td>20%</td><td>30%</td><td>40%</td><td>50%</td><td>60%</td><td>70%</td><td>80%</td></tr></tbody>
+    </table></div>
+
+    <div class="note-box">被 3 隻以上圍攻時，DEF −5%、迴避 −10%；之後每多 1 隻，再降 DEF 5%、迴避 10%。MDEF 不受圍攻影響。<br>
+      穿屬性鎧甲（卷軸或卡片）等於自己變成該屬性 1 等，受到的傷害照下方屬性倍率表計算。</div>
+  </div>
+
+  <!-- 減傷範圍 -->
+  <div class="card" id="reduce">
+    <h2>📉 減傷作用範圍</h2>
+    <div class="note-box">同一類減傷可以加總，不同類之間相乘。「後段」只減武器＋卡裝那段，「全段」連素質 ATK 一起減。</div>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>減傷類型</th><th>對物理</th><th>對魔法</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td>種族減傷</td><td>全段</td><td>全段</td><td>對人形 −30% 等卡片</td></tr>
+        <tr><td>體型減傷</td><td>後段</td><td>全段</td><td>對中型 −25% 等卡片</td></tr>
+        <tr><td>階級減傷</td><td>後段</td><td>全段</td><td>首領 −40%（一般 +40%）</td></tr>
+        <tr><td>屬性鎧甲</td><td>後段</td><td>全段</td><td>屬性鎧甲卷軸、鎧甲屬性卡</td></tr>
+        <tr><td>攻擊屬性減傷</td><td>後段</td><td>全段</td><td>披肩卡（抗無屬性等）、抵抗藥水</td></tr>
+        <tr><td>怪物屬性減傷</td><td>後段</td><td>全段</td><td>來自某屬性怪物的傷害 −20%</td></tr>
+        <tr><td>遠距減傷</td><td>全段</td><td>只減遠距物理輸出</td><td>遠距物理攻擊 −35% 等卡片</td></tr>
+        <tr><td>暴擊減傷</td><td>全段</td><td>—</td><td>受到暴擊傷害減少的裝備</td></tr>
+      </tbody>
+    </table></div>
+    <div class="note-box">怪物的暴擊攻擊：體型、階級、屬性減傷都無效，只能靠種族減傷（只減前段）、暴擊減傷、遠距減傷（遠距暴擊），以及念屬性鎧甲（−30%）。</div>
+  </div>
+
+  <!-- 屬性 -->
+  <div class="card" id="elem">
+    <h2>🔥 屬性倍率表（%）</h2>
+    <div class="elem-ctl">
+      <span>防守方屬性等級</span>
+      <div class="seg" id="lvSeg"></div>
+      <span class="hint" style="margin:0;">橫列＝攻擊屬性，直欄＝防守屬性</span>
+    </div>
+    <div class="tbl-wrap"><table class="t elem" id="elemTbl"></table></div>
+    <div class="hint" style="margin:0;">綠色＝傷害增加，橘色＝減少，紅色＝無效或補血。</div>
+  </div>
+
+  <!-- 體型 -->
+  <div class="card" id="size">
+    <h2>📏 武器體型修正（%）</h2>
+    <div class="tbl-wrap"><table class="t" id="sizeTbl"></table></div>
+    <div class="hint" style="margin:0;">素質 ATK 沒有體型修正；計算後無條件捨去小數。</div>
+  </div>
+
+  <!-- 精煉 -->
+  <div class="card" id="refine">
+    <h2>🔨 精煉加值</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>武器等級</th><th>安定值</th><th>每精煉 +1</th><th>過度精煉起始</th><th>過度精煉每 +1 額外隨機</th></tr></thead>
+      <tbody>
+        <tr><td>1 級</td><td>+7</td><td>ATK／MATK +2</td><td>+8</td><td>+1～3</td></tr>
+        <tr><td>2 級</td><td>+6</td><td>ATK／MATK +3</td><td>+7</td><td>+1～5</td></tr>
+        <tr><td>3 級</td><td>+5</td><td>ATK／MATK +5</td><td>+6</td><td>+1～8</td></tr>
+        <tr><td>4 級</td><td>+4</td><td>ATK／MATK +7</td><td>+5</td><td>+1～14</td></tr>
+      </tbody>
+    </table></div>
+    <div class="hint" style="margin:0;">弓沒有過度精煉 ATK，也沒有精煉 MATK。</div>
+  </div>
+
+  <!-- 捨入 -->
+  <div class="card" id="round">
+    <h2>⚖️ 捨入規則</h2>
+    <div class="f" style="font-size:.88rem;">
+      <ul style="color:var(--text); font-size:.88rem;">
+        <li>增傷（倍率大於 1）：每一步算完<b>無條件捨去</b>小數。例：999 × 1.25 = 1248.75 → 1248</li>
+        <li>減傷（倍率小於 1）：每一步算完<b>無條件進位</b>。例：999 × 0.6 = 599.4 → 600</li>
+        <li>體型修正：算完無條件捨去。例：雙手斧打小型 999 × 50% = 499.5 → 499</li>
+        <li>同一層的增減傷（例如後段的種族、體型、屬性、階級）要先彼此相乘，再和前面的數值計算</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　公式來源：巴哈姆特 <a href="https://forum.gamer.com.tw/C.php?bsn=4212&snA=424078" target="_blank" rel="noopener" style="color:var(--primary)">TWRO 攻擊力和防禦力計算方式整合</a>　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
+    <div class="privacy">🔒 本站不會記錄你輸入的資料，所有資料只儲存在你這台裝置的瀏覽器中（換裝置或清除瀏覽器資料就會消失）。僅使用 Google Analytics 統計瀏覽次數；主動回報問題時才會附上你填的資料。</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// 屬性倍率：ELEM[等級][攻擊屬性] = 對 10 種防守屬性的倍率
+const ELEMS = ['無', '火', '水', '風', '地', '毒', '聖', '闇', '念', '死'];
+const ELEM = {
+  1: [[100,100,100,100,100,100,100,100,70,100],[100,25,90,100,150,100,75,100,100,125],[100,150,25,90,100,100,75,100,100,100],[100,100,175,25,90,100,75,100,100,100],[100,90,100,150,25,100,75,100,100,100],[100,125,100,125,125,0,75,50,100,-25],[100,100,100,100,100,100,0,125,100,150],[100,100,100,100,100,50,125,0,100,-25],[70,100,100,100,100,100,75,75,125,100],[100,100,100,100,100,50,100,0,100,0]],
+  2: [[100,100,100,100,100,100,100,100,50,100],[100,0,80,100,175,100,50,75,100,150],[100,175,0,80,100,100,50,75,100,100],[100,100,175,0,80,100,50,75,100,100],[100,80,100,175,0,100,50,75,100,100],[100,125,75,125,125,0,50,25,75,-50],[100,100,100,100,100,100,-25,150,100,175],[100,100,100,100,100,25,150,-25,100,-50],[50,75,75,75,75,75,50,50,150,125],[100,75,75,75,75,25,125,0,100,0]],
+  3: [[100,100,100,100,100,100,100,100,0,100],[100,-25,70,100,200,100,25,50,100,175],[100,200,-25,70,100,100,25,50,100,125],[100,100,200,-25,70,100,25,50,100,100],[100,70,100,200,-25,100,25,50,100,75],[100,100,50,100,100,0,25,0,50,-75],[100,100,100,100,100,125,-50,175,100,200],[100,100,100,100,100,0,175,-50,100,-75],[0,50,50,50,50,50,25,25,175,150],[100,50,50,50,50,0,150,0,100,0]],
+  4: [[100,100,100,100,100,100,100,100,0,100],[100,-50,60,100,200,75,0,25,100,200],[100,200,-50,60,100,75,0,25,100,150],[100,100,200,-50,60,75,0,25,100,100],[100,60,100,200,-50,75,0,25,100,50],[100,75,25,75,75,0,0,-25,25,-100],[100,75,75,75,75,125,-100,200,100,200],[100,75,75,75,75,-25,200,-100,100,-100],[0,25,25,25,25,25,0,0,200,175],[100,25,25,25,25,-25,175,0,100,0]],
+};
+let lv = 1;
+function renderElem() {
+  $('lvSeg').innerHTML = [1, 2, 3, 4].map(n => `<button type="button" class="${n === lv ? 'active' : ''}" onclick="lv=${n}; renderElem()">Lv ${n}</button>`).join('');
+  const cls = v => v > 100 ? 'up' : v <= 0 ? 'zero' : v < 100 ? 'down' : '';
+  $('elemTbl').innerHTML = `<thead><tr><th>攻＼防</th>${ELEMS.map((e, j) => `<th data-c="${j}">${e}</th>`).join('')}</tr></thead><tbody>` +
+    ELEM[lv].map((row, i) => `<tr><td>${ELEMS[i]}</td>${row.map((v, j) => `<td class="${cls(v)}" data-c="${j}">${v}</td>`).join('')}</tr>`).join('') + `</tbody>`;
+}
+// 滑過時標出同一欄
+$('elemTbl').addEventListener('mouseover', e => {
+  const c = e.target.dataset && e.target.dataset.c;
+  $('elemTbl').querySelectorAll('.hl').forEach(x => x.classList.remove('hl'));
+  if (c != null) $('elemTbl').querySelectorAll(`[data-c="${c}"]`).forEach(x => x.classList.add('hl'));
+});
+
+// 武器體型修正（小、中、大）
+const SIZE = [
+  ['短劍', 100, 75, 50], ['單手劍', 75, 100, 75], ['雙手劍', 75, 75, 100], ['拳刃', 75, 100, 75],
+  ['單手矛／雙手矛', 75, 75, 100], ['單手斧／雙手斧', 50, 75, 100], ['鈍器', 75, 100, 100],
+  ['弓', 100, 100, 75], ['單手杖／雙手杖', 100, 100, 100], ['書', 100, 100, 50], ['拳套', 100, 100, 75],
+  ['樂器／鞭子', 75, 100, 75], ['手裏劍', 75, 75, 100]
+];
+$('sizeTbl').innerHTML = `<thead><tr><th>武器</th><th>小型</th><th>中型</th><th>大型</th></tr></thead><tbody>` +
+  SIZE.map(([w, s, m, l]) => `<tr><td>${w}</td>${[s, m, l].map(v => `<td style="${v < 100 ? 'color:#c2410c;' : ''}">${v}</td>`).join('')}</tr>`).join('') + `</tbody>`;
+
+// ===== 共用：複製、主題 =====
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
+  else prompt('請手動複製：', text);
+}
+function applyTheme(t) {
+  if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
+  else { document.documentElement.removeAttribute('data-theme'); $('themeBtn').innerText = '🌙 夜間模式'; }
+}
+function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+renderElem();
+</script>
+<script src="report.js?v=5"></script>
+</body>
+</html>
