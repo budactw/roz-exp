@@ -133,6 +133,15 @@
   @media (max-width: 700px) { .server-grid { grid-template-columns: 1fr; } }
   .tasks { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
   @media (max-width: 760px) { .tasks { grid-template-columns: repeat(2, 1fr); } }
+  .mq-list { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin-top: 10px; }
+  @media (max-width: 760px) { .mq-list { grid-template-columns: repeat(2, 1fr); } }
+  .mq { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--tile-bg); cursor: pointer; user-select: none; margin: 0; color: var(--text); }
+  .mq input { display: none; }
+  .mq .mq-n { grid-column: 1 / -1; font-weight: 700; font-size: .9rem; }
+  .mq .mq-x { grid-row: 2; grid-column: 1; font-size: .82rem; color: var(--dim); }
+  .mq .mq-lv { grid-row: 2; grid-column: 2; font-size: .74rem; color: var(--dim); text-align: right; align-self: center; white-space: nowrap; }
+  .mq:has(input:checked) { border-color: var(--primary); background: var(--soft); box-shadow: 0 0 0 1px var(--primary) inset; }
+  .mq:has(input:checked) .mq-n, .mq:has(input:checked) .mq-x { color: var(--primary); }
   .task { background: var(--tile-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; }
   .task b { color: var(--primary); font-size: .85rem; display: block; margin-bottom: 6px; }
   .task small { color: var(--dim); font-size: .72rem; display: block; margin-top: 4px; line-height: 1.5; white-space: nowrap; }

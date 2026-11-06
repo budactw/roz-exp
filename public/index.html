@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=20">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -189,6 +189,21 @@
           </div>
           <div class="q-body q-body-inline questBody"></div>
         </details>
+        <hr class="divider">
+        <label class="sub-h">主線任務（一次性） <span class="hint" style="display:inline; margin:0; font-weight:500;">勾選要解的區域；不吃任何經驗加成（含伺服器加倍）</span></label>
+        <div class="mq-list">
+          <label class="mq"><input type="checkbox" id="mq1" data-save><span class="mq-n">斐楊</span><span class="mq-lv">不限等級</span><span class="mq-x" id="mqx1"></span></label>
+          <label class="mq"><input type="checkbox" id="mq2" data-save><span class="mq-n">依斯魯得島</span><span class="mq-lv">等級待確認</span><span class="mq-x" id="mqx2"></span></label>
+          <label class="mq"><input type="checkbox" id="mq3" data-save><span class="mq-n">艾爾貝塔</span><span class="mq-lv">等級待確認</span><span class="mq-x" id="mqx3"></span></label>
+          <label class="mq"><input type="checkbox" id="mq4" data-save><span class="mq-n">普隆德拉</span><span class="mq-lv">等級待確認</span><span class="mq-x" id="mqx4"></span></label>
+          <label class="mq"><input type="checkbox" id="mq5" data-save><span class="mq-n">吉芬</span><span class="mq-lv">約 Lv 51</span><span class="mq-x" id="mqx5"></span></label>
+          <label class="mq"><input type="checkbox" id="mq6" data-save><span class="mq-n">普隆德拉</span><span class="mq-lv">Lv 61</span><span class="mq-x" id="mqx6"></span></label>
+          <label class="mq"><input type="checkbox" id="mq7" data-save><span class="mq-n">普隆德拉</span><span class="mq-lv">Lv 71</span><span class="mq-x" id="mqx7"></span></label>
+          <label class="mq"><input type="checkbox" id="mq8" data-save><span class="mq-n">普隆德拉</span><span class="mq-lv">Lv 81</span><span class="mq-x" id="mqx8"></span></label>
+          <label class="mq"><input type="checkbox" id="mq9" data-save><span class="mq-n">克魔島</span><span class="mq-lv">Lv 91</span><span class="mq-x" id="mqx9"></span></label>
+          <label class="mq"><input type="checkbox" id="mq10" data-save><span class="mq-n">汶巴拉</span><span class="mq-lv">Lv 100</span><span class="mq-x" id="mqx10"></span></label>
+        </div>
+        <div class="hint" id="mqInfo" style="margin-top:8px;"></div>
       </div>
 
       <div class="card">
@@ -221,6 +236,7 @@
             <div class="tile wide grind-only"><div class="k" id="rCombinedK">純掛機（不做每日任務）→ 到達目標</div><div class="v p" id="rCombined"></div><div class="s" id="rCombinedSub"></div></div>
           </div>
 
+          <div class="lines" id="rMain"></div>
           <div class="lines" id="rServer"></div>
           <div class="lines" id="rPotion"></div>
 
@@ -332,6 +348,19 @@ const EXP_DATA = {
 const MAX_LV = 120;
 const BASE_EXP_90 = 8850000, BASE_EXP_100 = 54166667, BASE_EXP_105 = 136226815;
 const BASE_EXP_110 = 374075509 / 2.2; // ≈170,034,322，由全加成(角色10%+帳號10%+EXPUP50%+伺服器50% = ×2.2)觀測值 374,075,509 回推
+// 主線任務（一次性，不吃任何加成）：巴哈〈主線任務經驗分享〉實測；Lv61 依 2026/01 留言改為降低後的 7,368,304
+const MAIN_QUESTS = [
+  { id: 1, n: '斐楊', lv: 1, exp: 2443 * 10 },
+  { id: 2, n: '依斯魯得島', lv: 1, exp: 4974 * 3 },
+  { id: 3, n: '艾爾貝塔', lv: 1, exp: 4974 * 5 },
+  { id: 4, n: '普隆德拉', lv: 1, exp: 16884 * 7 + 57313 * 10 },
+  { id: 5, n: '吉芬', lv: 51, exp: 211770 * 8 },
+  { id: 6, n: '普隆德拉', lv: 61, exp: 7368304 * 7 },
+  { id: 7, n: '普隆德拉', lv: 71, exp: 38680459 * 6 },
+  { id: 8, n: '普隆德拉', lv: 81, exp: 91099012 * 8 },
+  { id: 9, n: '克魔島', lv: 91, exp: 212204776 * 13 },
+  { id: 10, n: '汶巴拉', lv: 100, exp: 4613530747 },
+];
 const CUM = {};
 (function(){ let s = 0; for (let lv = 1; lv <= MAX_LV; lv++) { s += EXP_DATA[lv]; CUM[lv] = s; } })();
 const needFor = lv => EXP_DATA[lv + 1] || 0;
@@ -532,8 +561,16 @@ function calculate() {
   if (!Number.isInteger(targetLv) || targetLv < 2 || targetLv > MAX_LV) return setStatus('目標等級必須介於 2 ~ 120。', true);
   if (targetLv <= r2.lv) return setStatus('目標等級必須高於當前等級。', true);
 
-  const nextNeed = r2.need - r2.expInLv;
-  const remainToTarget = CUM[targetLv] - r2.total;
+  // 主線任務：要升到 L 級之前能解的（任務等級 < L）直接抵扣；但至少要先練到任務等級
+  const mqPicked = MAIN_QUESTS.filter(q => $('mq' + q.id).checked);
+  const mqTotal = mqPicked.reduce((a, q) => a + q.exp, 0);
+  const eff = (L, raw) => {
+    let lump = 0, gate = 0;
+    for (const q of mqPicked) if (q.lv < L) { lump += q.exp; if (q.lv > r2.lv) gate = Math.max(gate, CUM[q.lv] - r2.total); }
+    return Math.max(0, raw - lump, gate);
+  };
+  const nextNeed = eff(r2.lv + 1, r2.need - r2.expInLv);
+  const remainToTarget = eff(targetLv, CUM[targetLv] - r2.total);
 
   // ---- 加成倍率（伺服器加成另外處理，因為有期間限制）----
   let baseMult = 1;
@@ -606,7 +643,7 @@ function calculate() {
   $('rCurLv').innerText = `Lv ${r2.lv}`;
   $('rCurPct').innerText = r2.pct.toFixed(1) + ' %';
   $('rBar').style.width = Math.min(100, r2.pct).toFixed(2) + '%';
-  $('rCurExp').innerHTML = `${fmtC(r2.expInLv)} / ${fmtC(r2.need)} EXP　距離升級 ${fmtC(nextNeed)}`;
+  $('rCurExp').innerHTML = `${fmtC(r2.expInLv)} / ${fmtC(r2.need)} EXP　距離升級 ${fmtC(r2.need - r2.expInLv)}`;
 
   $('rRate').innerHTML = fmtC(grindNow);
   $('rRateSub').innerHTML = tracking ? `實測 ${fmtDur(diffMin / 60)}，共獲得 ${fmtC(gained)} EXP（已含加成）` : `手動輸入（目前實際值）`;
@@ -657,6 +694,8 @@ function calculate() {
     const afterTask = taskBase * (baseMult + srvAt(nextBp + 0.001));
     if (Math.abs(afterTask - dailyNow) > 0.5) srvLines.push(`每日任務：目前 <span class="v">${fmtC(dailyNow)}</span> EXP／${fmtEta(t2, nextBp)} 起 <span class="v">${fmtC(afterTask)}</span> EXP`);
   }
+  $('rMain').innerHTML = mqPicked.length ? `<div class="sec-title" style="margin-top:12px">主線任務</div><div>已勾 ${mqPicked.length} 區，共 <span class="v">${fmtC(mqTotal)}</span> EXP（不吃加成，已從所需經驗扣除）</div>` +
+    (mqPicked.some(q => q.lv > r2.lv) ? `<div>${mqPicked.filter(q => q.lv > r2.lv).map(q => `${q.n} 需 Lv ${q.lv}`).join('、')}，練到該等級後才算入</div>` : '') : '';
   $('rServer').innerHTML = srvLines.length ? `<div class="sec-title" style="margin-top:12px">伺服器</div>` + srvLines.map(l => `<div>${l}</div>`).join('') : '';
 
   // ---- 補品（掛機模式：追蹤 = 先前/當前數量；直接輸入 = 每小時消耗量）----
@@ -699,12 +738,12 @@ function calculate() {
   const tb = $('msBody'); tb.innerHTML = '';
   let cumExp = 0;
   for (let lv = r2.lv + 1; lv <= targetLv; lv++) {
-    cumExp += (lv === r2.lv + 1) ? nextNeed : EXP_DATA[lv];
-    const h = hoursFor(cumExp);
+    cumExp += (lv === r2.lv + 1) ? r2.need - r2.expInLv : EXP_DATA[lv];
+    const h = hoursFor(eff(lv, cumExp));
     const tr = tb.insertRow();
     if (lv === targetLv) tr.className = 'target';
     tr.insertCell().innerText = lv;
-    tr.insertCell().innerHTML = fmtC(cumExp);
+    tr.insertCell().innerHTML = fmtC(eff(lv, cumExp));
     tr.insertCell().innerText = ok(h) ? fmtDur(h) : '—';
     tr.insertCell().innerText = ok(h) ? fmtEta(t2, h) : '—';
   }
@@ -753,9 +792,15 @@ function setServerKind(k, recalc = true) {
   $('serverKindHint').style.display = k === 'event' ? '' : 'none';
   if (recalc) onChange();
 }
+function updateMainQuestInfo() {
+  let n = 0, sum = 0;
+  for (const q of MAIN_QUESTS) { $('mqx' + q.id).innerHTML = fmtC(q.exp); if ($('mq' + q.id).checked) { n++; sum += q.exp; } }
+  $('mqInfo').innerHTML = n ? `已勾 ${n} 區，共 <b style="color:var(--primary)">${fmtC(sum)}</b> EXP。生命體會分走 10%。` : '生命體會分走 10%。';
+}
 function onChange() {
   $('serverBox').style.display = $('serverOn').checked ? 'block' : 'none';
   updateTaskInfo();
+  updateMainQuestInfo();
   if (typeof updatePickBar === 'function' && $('inlinePickInfo')) { updatePickBar(); refreshQuestTags(); }
   save();
   calculate();
