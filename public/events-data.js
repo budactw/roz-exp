@@ -21,7 +21,7 @@ const EVENT_DB = [
       { id: 'bs-hunt', kind: 'daily', name: '鯊魚寶寶的遊樂場擊殺魔物 ×20', npc: '鯊魚寶寶', map: 'comodo', x: 199, y: 145, goal: '在鯊魚寶寶的遊樂場（原野）擊殺魔物 ×20', reward: '鯊魚寶寶硬幣 ×3', note: '副本的梅納海葵與海葵不算。' },
       { id: 'bs-exchange', kind: 'once', name: '歐弗萬兌換（硬幣／披肩）', npc: '歐弗萬', map: 'prontera', x: 239, y: 267, goal: '鯊魚寶寶硬幣 ×15 → 神秘獎品箱（一般）×1；鯊魚家族披肩任意 3 件 → 異世之靈（海洋）頭盔自選箱 ×1 或神秘獎品箱（高級）×1' },
     ]},
-  { id: 'academic-2026', name: '秋日祭：學術節', start: '2026-09-08', end: '2026-11-19',
+  { id: 'academic-2026', name: '秋日祭：學術節', start: '2026-09-08', end: '2026-11-17',
     link: 'https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219166',
     note: '需先透過 Rodex 領「學術邀請信函」，開啟後取得「學術邀請信」才能與鎮內 NPC 對話；開啟後不可轉移，請選定角色。前往會場：找「秋日祭活動啵」（prontera 150,192／payon 170,84／yuno 169,187）。',
     items: [
