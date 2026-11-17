@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RO樂園升級經驗試算｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=21">
+<link rel="stylesheet" href="style.css?v=22">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -158,10 +158,11 @@
         <hr class="divider">
         <label class="sub-h">每日任務數 <span class="hint" style="display:inline; margin:0; font-weight:500;">（可直接輸入，或展開下方任務表勾選自動統計）</span></label>
         <div class="tasks">
-          <div class="task"><b>90 級每日任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
-          <div class="task"><b>100 級每日任務</b><label>達成任務數</label><input type="number" id="task100" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="100"></small></div>
-          <div class="task"><b>105 級每日任務</b><label>達成任務數</label><input type="number" id="task105" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="105"></small></div>
-          <div class="task"><b>110 級每日任務</b><label>達成任務數</label><input type="number" id="task110" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="110"></small></div>
+          <div class="task"><b>90 級任務</b><label>達成任務數</label><input type="number" id="task90" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="90"></small></div>
+          <div class="task"><b>100 級任務</b><label>達成任務數</label><input type="number" id="task100" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="100"></small></div>
+          <div class="task"><b>105 級任務</b><label>達成任務數</label><input type="number" id="task105" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="105"></small></div>
+          <div class="task"><b>110 級任務</b><label>達成任務數</label><input type="number" id="task110" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="110"></small></div>
+          <div class="task"><b>115 級任務</b><label>達成任務數</label><input type="number" id="task115" value="0" min="0" inputmode="numeric" data-save><small class="task-info" data-lv="115"></small></div>
         </div>
         <details class="q-inline" id="questInline">
           <summary>📋 從任務表勾選 <span class="hint" id="inlinePickInfo" style="display:inline; margin:0 0 0 6px;"></span></summary>
@@ -172,6 +173,7 @@
               <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
               <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
               <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
+              <button type=\"button\" data-lv=\"115\" onclick=\"setQuestLv('115')\">115 級</button>
             </div><div class="seg questTypeSeg">
               <button type="button" data-t="all" class="active" onclick="setQuestType('all')">全部類型</button>
               <button type="button" data-t="kill" onclick="setQuestType('kill')">打怪</button>
@@ -277,6 +279,7 @@
               <button type="button" data-lv="100" onclick="setQuestLv('100')">100 級</button>
         <button type="button" data-lv="105" onclick="setQuestLv('105')">105 級</button>
         <button type="button" data-lv="110" onclick="setQuestLv('110')">110 級</button>
+        <button type=\"button\" data-lv=\"115\" onclick=\"setQuestLv('115')\">115 級</button>
       </div><div class="seg questTypeSeg">
               <button type="button" data-t="all" class="active" onclick="setQuestType('all')">全部類型</button>
               <button type="button" data-t="kill" onclick="setQuestType('kill')">打怪</button>
@@ -348,6 +351,8 @@ const EXP_DATA = {
 const MAX_LV = 120;
 const BASE_EXP_90 = 8850000, BASE_EXP_100 = 54166667, BASE_EXP_105 = 136226815;
 const BASE_EXP_110 = 374075509 / 2.2; // ≈170,034,322，由全加成(角色10%+帳號10%+EXPUP50%+伺服器50% = ×2.2)觀測值 374,075,509 回推
+// 斐揚蛇林（110）實測 289,058,348 ÷ 1.7（角色10%+帳號10%+EXPUP50%）＝ 170,034,322，與上面一致
+const BASE_EXP_115 = 719269672 / 1.7; // ≈423,099,807，巨神蟒之森實測 719,269,672（角色10%+帳號10%+EXPUP50% = ×1.7）回推
 // 主線任務（一次性，不吃任何加成）：巴哈〈主線任務經驗分享〉實測；Lv61 依 2026/01 留言改為降低後的 7,368,304
 const MAIN_QUESTS = [
   { id: 1, n: '斐楊', lv: 1, exp: 2443 * 10 },
@@ -579,8 +584,8 @@ function calculate() {
   if ($('buffPotion').checked) baseMult += .50;
   const serverOn = $('serverOn').checked;
   const serverPct = serverOn ? (parseFloat($('serverPct').value) || 0) / 100 : 0;
-  const c90 = parseInt($('task90').value) || 0, c100 = parseInt($('task100').value) || 0, c105 = parseInt($('task105').value) || 0, c110 = parseInt($('task110').value) || 0;
-  const taskBase = BASE_EXP_90 * c90 + BASE_EXP_100 * c100 + BASE_EXP_105 * c105 + BASE_EXP_110 * c110;
+  const c90 = parseInt($('task90').value) || 0, c100 = parseInt($('task100').value) || 0, c105 = parseInt($('task105').value) || 0, c110 = parseInt($('task110').value) || 0, c115 = parseInt($('task115').value) || 0;
+  const taskBase = BASE_EXP_90 * c90 + BASE_EXP_100 * c100 + BASE_EXP_105 * c105 + BASE_EXP_110 * c110 + BASE_EXP_115 * c115;
 
   // ---- 伺服器加成期間（相對於推估起點 t2 的小時數；未填 = 無限）----
   const bs = serverOn && $('serverStart').value ? new Date($('serverStart').value) : null;
@@ -756,7 +761,7 @@ function calculate() {
   $('qTarget').innerText = ok(hToTarget) ? fmtDur(hToTarget) : '—';
 }
 
-const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110 };
+const TASK_BASE = { 90: BASE_EXP_90, 100: BASE_EXP_100, 105: BASE_EXP_105, 110: BASE_EXP_110, 115: BASE_EXP_115 };
 // 隱士加成（持續型，只影響掛機打怪，不計入每日任務；可自訂 %，預設 30）
 function hermitPct() { return $('buffHermit').checked ? (parseFloat($('hermitPct').value) || 0) / 100 : 0; }
 // 現在這一刻的伺服器加成（限時活動伺服器 + 一般伺服器加成）
@@ -972,6 +977,15 @@ const QUESTS = [
     { n: '闇十字刺客 × 10（研三）', lv: 110, d: 'expert', t: 'kill' },
     { n: '闇神工匠 × 10（研三）', lv: 110, d: 'expert', t: 'kill' },
   ]},
+  { map: '斐揚蛇林', items: [
+    { n: '驚駭森靈 20', lv: 110, d: 'time', t: 'kill' },
+    { n: '黑暗驚駭森靈 20', lv: 110, d: 'time', t: 'kill' },
+    { n: '驚駭森靈幼蟲 20', lv: 110, d: 'time', t: 'kill' },
+  ]},
+  { map: '巨神蟒之森', items: [
+    { n: '驚駭森靈皇后 50', lv: 115, d: 'expert', t: 'kill' },
+    { n: '斷角 3', lv: 115, d: 'time', t: 'item' },
+  ]},
 ];
 const QTYPE = { kill: '打怪', item: '交材料', talk: '對話', deliver: '運送' };
 let questLv = 'all';
@@ -991,13 +1005,13 @@ const picked = new Set();          // 已勾選任務的 id（地圖索引-項�
 QUESTS.forEach((m, mi) => m.items.forEach((it, ii) => it.id = `${mi}-${ii}`));
 const ALL_ITEMS = QUESTS.flatMap(m => m.items);
 function pickedCounts() {
-  const c = { 90: 0, 100: 0, 105: 0, 110: 0 };
+  const c = { 90: 0, 100: 0, 105: 0, 110: 0, 115: 0 };
   for (const it of ALL_ITEMS) if (picked.has(it.id)) c[it.lv]++;
   return c;
 }
 function applyPicked() {
   const c = pickedCounts();
-  $('task90').value = c[90]; $('task100').value = c[100]; $('task105').value = c[105]; $('task110').value = c[110];
+  $('task90').value = c[90]; $('task100').value = c[100]; $('task105').value = c[105]; $('task110').value = c[110]; $('task115').value = c[115];
 }
 function togglePick(id, on) {
   if (on) picked.add(id); else picked.delete(id);
@@ -1011,9 +1025,9 @@ function pickMap(mi, on) {
 function clearPicked() { picked.clear(); applyPicked(); onChange(); renderQuests(); }
 function updatePickBar() {
   const c = pickedCounts(), mult = currentTaskMult();
-  const total = (c[90] * TASK_BASE[90] + c[100] * TASK_BASE[100] + c[105] * TASK_BASE[105] + c[110] * TASK_BASE[110]) * mult;
-  document.querySelectorAll('.questPickInfo').forEach(el => el.innerHTML = `已勾選 <b>${picked.size}</b> 個：90 級 <b>${c[90]}</b>・100 級 <b>${c[100]}</b>・105 級 <b>${c[105]}</b>・110 級 <b>${c[110]}</b>・每日合計 <b>${fmtC(total)}</b> EXP`);
-  $('inlinePickInfo').innerText = picked.size ? `已勾選 ${picked.size} 個（90 級 ${c[90]}・100 級 ${c[100]}・105 級 ${c[105]}・110 級 ${c[110]}）` : '';
+  const total = [90, 100, 105, 110, 115].reduce((a, lv) => a + c[lv] * TASK_BASE[lv], 0) * mult;
+  document.querySelectorAll('.questPickInfo').forEach(el => el.innerHTML = `已勾選 <b>${picked.size}</b> 個：90 級 <b>${c[90]}</b>・100 級 <b>${c[100]}</b>・105 級 <b>${c[105]}</b>・110 級 <b>${c[110]}</b>・115 級 <b>${c[115]}</b>・每日合計 <b>${fmtC(total)}</b> EXP`);
+  $('inlinePickInfo').innerText = picked.size ? `已勾選 ${picked.size} 個（90 級 ${c[90]}・100 級 ${c[100]}・105 級 ${c[105]}・110 級 ${c[110]}・115 級 ${c[115]}）` : '';
 }
 function renderQuests() {
   const mult = currentTaskMult();

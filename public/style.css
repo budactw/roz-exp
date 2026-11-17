@@ -131,8 +131,9 @@
   .chip .pct { opacity: .8; font-size: .78rem; }
   .server-grid { display: grid; gap: 12px; grid-template-columns: 130px minmax(230px, 1fr) minmax(230px, 1fr); align-items: start; }
   @media (max-width: 700px) { .server-grid { grid-template-columns: 1fr; } }
-  .tasks { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
-  @media (max-width: 760px) { .tasks { grid-template-columns: repeat(2, 1fr); } }
+  .tasks { display: grid; gap: 10px; grid-template-columns: repeat(5, 1fr); margin-top: 12px; }
+  @media (max-width: 900px) { .tasks { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 520px) { .tasks { grid-template-columns: repeat(2, 1fr); } }
   .mq-list { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin-top: 10px; }
   @media (max-width: 760px) { .mq-list { grid-template-columns: repeat(2, 1fr); } }
   .mq { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--tile-bg); cursor: pointer; user-select: none; margin: 0; color: var(--text); }
