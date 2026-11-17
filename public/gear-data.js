@@ -9,7 +9,7 @@
 // 說明文字裡的「DEF+」推測已含在防禦欄位（例：各階鎧甲防禦扣掉 DEF+ 都是 26），所以不另外加。
 const GEAR_STAT = [
   ['STR', 'STR'], ['AGI', 'AGI'], ['VIT', 'VIT'], ['INT', 'INT'], ['DEX', 'DEX'], ['LUK', 'LUK'],
-  ['wATK', '武器攻擊'], ['refATK', '武器精煉（ATK／MATK）'], ['ATK', 'ATK'], ['ATKp', 'ATK', '%'], ['MATK', 'MATK'], ['MATKp', 'MATK', '%'],
+  ['wATK', '武器本身攻擊（ATK）'], ['refATK', '武器精煉（ATK／MATK）'], ['ATK', 'ATK'], ['ATKp', 'ATK', '%'], ['MATK', 'MATK'], ['MATKp', 'MATK', '%'],
   ['MHP', 'MHP'], ['MHPp', 'MHP', '%'], ['MSP', 'MSP'], ['MSPp', 'MSP', '%'], ['DEF', '裝備防禦'], ['MDEF', 'MDEF'],
   ['HIT', 'HIT'], ['FLEE', 'FLEE'], ['CRI', 'CRI'],
   ['aspd', '攻擊後延遲', '%', -1], ['aspdP', '攻擊速度', '%'], ['aspdFlat', 'ASPD'], ['vct', '變動詠唱', '%', -1], ['fct', '固定詠唱', '%', -1],
