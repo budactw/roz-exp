@@ -156,7 +156,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=12"></script>
+<script src="gear-data.js?v=13"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '新增雷吉亞狩獵套裝（含面具、三件各 +9 效果）；本件合計標示精煉浮動值'],
   ['2026/11/17', '武器精煉加成併入 ATK、MATK 顯示，並註明含精煉多少'],
   ['2026/11/17', '新增里希塔樂鎮（企業都市）精裝之書、魔法經典，以及雷擊經典；搭配清單只列已成立的'],
   ['2026/11/17', '依官方裝備道具查詢平台補齊：朱諾武器（攻擊、職業）、熔岩皮革與貝思波防禦、愛的記憶搭配貝思波核心、銀月魔女的皮鞋、暴風雪法杖；新增業火魔杖、寒冰魔杖'],
@@ -341,7 +342,9 @@ function compute() {
     const sumOn = full && s.sum && sum >= s.sum[0];
     if (full) add(tot, s.b);
     if (sumOn) add(tot, s.sum[1]);
-    setInfo.push({ s, have, full, sum, sumOn });
+    const eachOn = full && s.each && s.items.every(n => refOf(n) >= s.each[0]);
+    if (eachOn) add(tot, s.each[1]);
+    setInfo.push({ s, have, full, sum, sumOn, eachOn });
   }
   return { tot, notes, setInfo, combos, per, over };
 }
@@ -388,7 +391,8 @@ function slotBody(k, res) {
   const mine = res.per[k] || {};
   const keys = GEAR_STAT.map(x => x[0]).filter(x => mine[x]);
   const cs = Object.entries(mine._c || {}).filter(([, v]) => v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b));
-  if (keys.length || cs.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x])).concat(cs).join('、')}</li>`;
+  const ovs = it.w && it.ref ? overRange(it.wl, r) : null;
+  if (keys.length || cs.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x]) + (x === 'refATK' && ovs ? `（浮動 +${ovs[0]}～+${ovs[1]}）` : '')).concat(cs).join('、')}</li>`;
   return { meta: bits.join('　·　'), eff };
 }
 function slotHtml([k, label, kinds], res) {
@@ -421,11 +425,12 @@ function renderResult(res) {
   const shareCnt = n => GEAR_SETS.filter(x => x.items.includes(n)).length;
   const fullItems = new Set(setInfo.filter(x => x.full).flatMap(x => x.s.items));
   const shown = setInfo.filter(x => x.full || (x.have.some(n => shareCnt(n) < 3) && !x.have.every(n => fullItems.has(n))));
-  const setHtml = shown.map(({ s, have, full, sum, sumOn }) => {
+  const setHtml = shown.map(({ s, have, full, sum, sumOn, eachOn }) => {
     const miss = s.items.filter(n => !have.includes(n));
     const N = s.items.length, sumN = s.sumItems ? `${s.sumItems.length} 件` : '';
     return (`<div class="setc"><span class="nm">${s.label}</span>　${full ? `<span class="ok">${N}／${N} 件 ✓</span>` : `<span class="no">${have.length}／${N} 件</span>　<span class="miss">缺：${miss.join('、')}</span>`}<br>` +
       (Object.keys(s.b).length ? `<span class="${full ? 'ok' : 'no'}">${N} 件：${fmtEff(s.b)}</span><br>` : '') +
+      (!s.each ? '' : `<span class="${eachOn ? 'ok' : 'no'}">每件都精煉 +${s.each[0]} 以上${eachOn ? ' ✓' : `（目前最低 +${Math.min(...s.items.map(refOf))}）`}：${fmtEff(s.each[1])}</span><br>`) +
       (!s.sum ? '' : `<span class="${sumOn ? 'ok' : 'no'}">${sumN}精煉總和 ${sum}／${s.sum[0]}${sumOn ? ' ✓' : full ? `（再 +${s.sum[0] - sum}）` : ''}：${fmtEff(s.sum[1])}</span>`) + `</div>`).replace(/<br><\/div>$/, '</div>');
   });
   // 一件裝備有好幾組搭配時，只列已成立的，避免一堆「缺」

@@ -596,3 +596,17 @@ for (const st of GEAR_SETS) { gearConvert(st.b); if (st.sum) gearConvert(st.sum[
 // ===== 其他魔物掉落 =====
 // 銀月魔女的皮鞋：官方裝備道具查詢平台
 GEAR_DB.push({ n: '銀月魔女的皮鞋', g: '尼芙菲姆', s: 'shoes', def: 10, lv: 60, ref: true, b: { FLEE: 15, CRI: 3 }, r: { 7: { HIT: 15 }, 9: { aspd: 7 } }, t: ['1 洞', '銀月魔女掉落'] });
+
+// ===== 雷吉亞狩獵（官方裝備道具查詢平台）=====
+(() => {
+  const G = '雷吉亞';
+  const A6 = n => ({ STR: n, AGI: n, VIT: n, INT: n, DEX: n, LUK: n });
+  GEAR_DB.push({ n: '雷吉亞狩獵鎧甲', g: G, s: 'armor', def: 25, lv: 50, ref: true, b: { MHP: 500, MSP: 100, _c: { '對動物型、昆蟲型魔物的物理／魔法傷害': 7 } }, p3: { MHP: 50, MSP: 20 }, t: ['1 洞'] });
+  GEAR_DB.push({ n: '雷吉亞狩獵斗篷', g: G, s: 'garment', def: 9, lv: 50, ref: true, b: { FLEE: 15, aspd: 5, _c: { '受動物型、昆蟲型魔物的物理／魔法傷害': -7 } }, p3: { vct: 2 }, t: ['1 洞'] });
+  GEAR_DB.push({ n: '雷吉亞狩獵長靴', g: G, s: 'shoes', def: 5, lv: 50, ref: true, b: { aspd: 5 }, p3: { HIT: 2 }, t: ['1 洞'] });
+  GEAR_DB.push({ n: '雷吉亞狩獵面具', g: G, s: 'headMid', def: 2, lv: 50, b: A6(-10), t: ['1 洞'] });
+  const three = ['雷吉亞狩獵鎧甲', '雷吉亞狩獵斗篷', '雷吉亞狩獵長靴'];
+  // each：三件「各自」精煉 +9 以上
+  GEAR_SETS.push({ g: G, label: '雷吉亞狩獵（3 件）', items: three, b: { vct: 7, ATK: 20, MATK: 20, ranged: 7 }, each: [9, { vct: 5, aspd: 5, crit: 7 }] });
+  GEAR_SETS.push({ g: G, label: '雷吉亞狩獵（含面具）', items: [...three, '雷吉亞狩獵面具'], b: A6(10) });
+})();
