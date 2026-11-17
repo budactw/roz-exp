@@ -185,14 +185,14 @@ const QUEST_DB = [
     { id: 'lab3-assassin', name: '研三：闇．十字刺客', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．十字刺客 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
     { id: 'lab3-smith', name: '研三：闇．神工匠', type: 'kill', npc: '點火的痕跡', map: 'lighthalzen', x: 326, y: 202, goal: '討伐闇．神工匠 ×10', pre: '潛入任務「研究所進出卡片」；Base 110', preUrl: 'https://forum.gamer.com.tw/Co.php?bsn=83142&sn=13723&subbsn=4&bPage=0', note: '務必單個回任務。', reward: '勇者的保管箱Ⅱ ×10' },
   ]},
-  { region: '斐揚蛇林', lv: 110, tip: '<div class="tip-sec"><b>經驗</b>帳號＋必備＋50% 經驗水：289,058,348</div>', quests: [
-    { id: 'fw-1', name: '警衛兵的請求－擊殺驚駭森靈', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺驚駭森靈 ×20' },
-    { id: 'fw-2', name: '警衛兵的請求－擊殺黑暗驚駭森靈', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺黑暗驚駭森靈 ×20' },
-    { id: 'fw-3', name: '警衛兵的請求－擊殺驚駭森靈幼蟲', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺驚駭森靈幼蟲 ×20' },
+  { region: '斐揚蛇林', lv: 110, quests: [
+    { id: 'fw-1', name: '警衛兵的請求－擊殺驚駭森靈', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺驚駭森靈 ×20', reward: '經驗 289,058,348（帳號＋必備＋50% 經驗水）' },
+    { id: 'fw-2', name: '警衛兵的請求－擊殺黑暗驚駭森靈', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺黑暗驚駭森靈 ×20', reward: '經驗 289,058,348（帳號＋必備＋50% 經驗水）' },
+    { id: 'fw-3', name: '警衛兵的請求－擊殺驚駭森靈幼蟲', type: 'kill', npc: '警衛兵 金成', map: 'pay_fild11', x: 53, y: 311, goal: '擊殺驚駭森靈幼蟲 ×20', reward: '經驗 289,058,348（帳號＋必備＋50% 經驗水）' },
   ]},
-  { region: '巨神蟒之森', lv: 115, tip: '<div class="tip-sec"><b>經驗</b>帳號＋必備＋50% 經驗水：719,269,672（兩個任務相同）</div>', quests: [
-    { id: 'fw-4', name: '歌手的歌曲－蛇后的悲鳴', type: 'kill', npc: '說唱家 伊姆基', map: 'pay_fild05', x: 190, y: 270, goal: '擊殺驚駭森靈皇后 ×50' },
-    { id: 'fw-5', name: '歌手的歌曲－斷角', type: 'item', npc: '說唱家 伊姆基', map: 'pay_fild05', x: 190, y: 270, goal: '收集斷角 ×3', mats: [{ n: '斷角', q: 3 }] },
+  { region: '巨神蟒之森', lv: 115, quests: [
+    { id: 'fw-4', name: '歌手的歌曲－蛇后的悲鳴', type: 'kill', npc: '說唱家 伊姆基', map: 'pay_fild05', x: 190, y: 270, goal: '擊殺驚駭森靈皇后 ×50', reward: '經驗 719,269,672（帳號＋必備＋50% 經驗水）' },
+    { id: 'fw-5', name: '歌手的歌曲－斷角', type: 'item', npc: '說唱家 伊姆基', map: 'pay_fild05', x: 190, y: 270, goal: '收集斷角 ×3', mats: [{ n: '斷角', q: 3 }], reward: '經驗 719,269,672（帳號＋必備＋50% 經驗水）' },
   ]},
 ];
 const QUEST_TYPE = { kill: '打怪', item: '交材料', talk: '對話', deliver: '運送' };
