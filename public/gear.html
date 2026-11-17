@@ -56,6 +56,8 @@
   @media (max-width: 640px) { .ps-grid { grid-template-columns: repeat(3, 1fr); } }
   .ps-grid input { width: 100%; padding: 0 8px; min-height: 38px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .9rem; }
   .notes { margin: 0; padding-left: 18px; font-size: .84rem; line-height: 1.65; }
+  .eff li .tot { color: var(--green); font-weight: 700; margin-left: 4px; }
+  .eff li.sum { color: var(--text); border-left-color: var(--primary); background: var(--soft); border-radius: 0 6px 6px 0; margin-top: 4px; padding: 4px 8px; }
   .eff li.txt { color: var(--text); border-left-color: var(--card-border); }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 </style>
@@ -73,15 +75,16 @@
     </div>
   </div>
 
-  <div class="page-note">ℹ️ 收錄副本裝備、星級武防、驚駭森靈巢穴。副本與星級資料參考 <a href="https://ro-zero-site.pages.dev/instances" target="_blank" rel="noopener">RO補給站</a>，驚駭森靈巢穴為 11/17 台服解檔；附魔、卡片還沒加入，數值以遊戲內為準。</div>
+  <div class="page-note">ℹ️ 收錄副本裝備、星級武防、特色裝備（王頭）、驚駭森靈巢穴。副本、星級、特色資料參考 <a href="https://ro-zero-site.pages.dev/instances" target="_blank" rel="noopener">RO補給站</a>，驚駭森靈巢穴為 11/17 台服解檔；附魔、卡片還沒加入，數值以遊戲內為準。</div>
 
   <div class="card">
     <h2>⚙️ 設定</h2>
     <div class="set-row">
+      <div class="field"><label>職業（只列出能裝備的）</label><select id="job"></select></div>
       <div class="field"><label>Base 等級（部分飾品依等級加成）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
-      <div class="field"><label>一鍵套用套裝</label>
-        <select id="quickSet"><option value="">選一組套裝，四個部位一次換上…</option></select></div>
     </div>
+    <div class="field" style="margin-top:12px;"><label>一鍵套用套裝</label>
+      <select id="quickSet"><option value="">選一組套裝，四個部位一次換上…</option></select></div>
     <div class="field" style="margin-top:12px;"><label>整套精煉（拉動會把所有可精煉的裝備改成同一個值，之後還能個別調）</label>
       <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
     <details class="ps"><summary>純素質（選填，巨神蟒蛇皮「每 30 點純素質」用）</summary>
@@ -115,16 +118,21 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=2"></script>
+<script src="gear-data.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
 const STAT_INFO = Object.fromEntries(GEAR_STAT.map(([k, label, unit, sign]) => [k, { label, unit: unit || '', sign: sign || 1 }]));
 const KEY = 'roz-gear-v1';
-const DEF_SLOTS = ['shield', 'armor', 'garment', 'shoes', 'accR', 'accL'];   // 有精煉防禦的部位
+const DEF_SLOTS = ['shield', 'headTop', 'headMid', 'headLow', 'armor', 'garment', 'shoes', 'accR', 'accL'];   // 有精煉防禦的部位
 const PS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK'];
+const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
+const JOB_LINE = { 武僧: ['武道家'], 劍士: ['騎士', '十字軍'], 魔法師: ['巫師', '賢者'], 弓箭手: ['獵人', '吟遊詩人', '舞孃'], 服事: ['祭司', '武道家'], 商人: ['鐵匠', '鍊金術師'], 盜賊: ['刺客', '流氓'], 初學者: [] };
+// 裝備的職業欄（例：「劍士／商人系列」）→ 可裝備的二轉職業；沒寫＝全職業
+const jobsOf = it => it.j ? it.j.split(/[／、]/).map(x => x.replace('系列', '')).flatMap(x => JOB_LINE[x] || [x]) : JOBS;
+const canWear = it => !st.job || jobsOf(it).includes(st.job);
 
-let st = { lv: 120, all: 0, ps: {}, slots: {} };
+let st = { lv: 120, job: '', all: 0, ps: {}, slots: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.slots) st = { ...st, ...s }; } catch (e) {}
 st.ps = st.ps || {};
 for (const [k] of GEAR_SLOTS) if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
@@ -154,13 +162,14 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
 const refDef = r => { let d = 0; for (let k = 1; k <= r; k++) d += 10 * Math.ceil(k / 4); return d; };
 const refAtk = (wl, r) => { const [a, b] = WEAPON_REFINE[wl] || [0, 0]; return a * r + b * Math.max(0, r - 15); };
 
-function equipped() { return GEAR_SLOTS.map(([k]) => ({ slot: k, it: BY_NAME[st.slots[k].n], r: st.slots[k].r })).filter(x => x.it); }
+const occupiedBy = k => { for (const [o] of GEAR_SLOTS) { const it = BY_NAME[st.slots[o].n]; if (it && (it.occ || []).includes(k)) return it; } return null; };
+function equipped() { return GEAR_SLOTS.map(([k]) => ({ slot: k, it: BY_NAME[st.slots[k].n], r: st.slots[k].r })).filter(x => x.it && !occupiedBy(x.slot)); }
 const refOf = n => { const e = equipped().find(x => x.it.n === n); return e && e.it.ref ? e.r : 0; };
 
 function compute() {
-  const tot = {}, notes = [], names = equipped().map(x => x.it.n), combos = [];
+  const all = {}, notes = [], names = equipped().map(x => x.it.n), combos = [], per = {};
   for (const { slot, it, r } of equipped()) {
-    const nt = [];
+    const nt = [], tot = per[slot] = {};
     add(tot, it.b, nt);
     (it.t || []).forEach(x => nt.push(x));
     for (const n of perKeys(it)) if (Math.floor(r / n)) { add(tot, mul(it['p' + n], Math.floor(r / n)), null); if (it['p' + n]._t) nt.push(`${it['p' + n]._t}（×${Math.floor(r / n)}）`); }
@@ -177,7 +186,9 @@ function compute() {
       combos.push({ it, c, ok, sum, sumOn });
     }
     nt.forEach(x => notes.push(`${it.n}：${x}`));
+    add(all, tot);
   }
+  const tot = all;
   const setInfo = [];
   for (const s of GEAR_SETS) {
     const have = s.items.filter(n => names.includes(n));
@@ -189,7 +200,7 @@ function compute() {
     if (sumOn) add(tot, s.sum[1]);
     setInfo.push({ s, have, full, sum, sumOn });
   }
-  return { tot, notes, setInfo, combos };
+  return { tot, notes, setInfo, combos, per };
 }
 
 // ===== 畫面 =====
@@ -203,29 +214,36 @@ function slotBody(k, res) {
   bits.push(`需求 Lv ${it.lv}`);
   if (it.j) bits.push(it.j);
   if (!it.ref) bits.push('不可精煉');
+  if (!canWear(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ ${st.job}不能裝備</span>`);
   const ths = Object.keys(it.r || {}).map(Number).sort((a, b) => a - b);
   const next = ths.find(n => r < n);
   const li = (cls, t, body, tag) => `<li class="${cls}"><span class="t">${t}</span>${body}${tag ? `<span class="tag">${tag}</span>` : ''}</li>`;
   let eff = '';
   if (Object.keys(it.b).length) eff += li('on', '基本', fmtEff(it.b));
   for (const x of it.t || []) eff += li('txt', '效果', x);
-  for (const n of perKeys(it)) { const t = Math.floor(r / n); eff += li(t ? 'on' : '', `每精煉 ${n}`, fmtEff(it['p' + n]), `目前 ×${t}`); }
+  for (const n of perKeys(it)) { const t = Math.floor(r / n), e = it['p' + n]; eff += li(t ? 'on' : '', `每精煉 ${n}`, fmtEff(e) + (t > 1 && Object.keys(mul(e, 1)).length ? `<span class="tot">＝${fmtEff(mul(e, t))}</span>` : ''), `目前 ×${t}`); }
   eff += ths.map(n => li(r >= n ? 'on' : n === next ? 'next' : '', '+' + n, fmtEff(it.r[n]), n === next ? `再 +${n - r}` : '')).join('');
-  if (it.p11) eff += li(p11Times(r) ? 'on' : '', '+11 起每 +2', fmtEff(it.p11), p11Times(r) ? `目前 ×${p11Times(r)}` : `再 +${11 - r}`);
+  if (it.p11) { const t = p11Times(r); eff += li(t ? 'on' : '', '+11 起每 +2', fmtEff(it.p11) + (t > 1 ? `<span class="tot">＝${fmtEff(mul(it.p11, t))}</span>` : ''), t ? `目前 ×${t}` : `再 +${11 - r}`); }
   for (const x of res.combos.filter(x => x.it === it)) {
     eff += li(x.ok ? 'on' : '', '搭配', `${x.c.with.join('＋')}：${fmtEff(x.c.b)}`);
     if (x.c.sum) eff += li(x.sumOn ? 'on' : x.ok ? 'next' : '', '搭配', `精煉總和 ${x.sum}／${x.c.sum[0]}：${fmtEff(x.c.sum[1])}`);
   }
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   eff += GEAR_SETS.filter(s => s.items.includes(it.n)).map(s => li(full.includes(s) ? 'on' : '', '套裝', `${s.label} 4 件`)).join('');
+  const mine = res.per[k] || {};
+  const keys = GEAR_STAT.map(x => x[0]).filter(x => mine[x]);
+  if (keys.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x])).join('、')}</li>`;
   return { meta: bits.join('　·　'), eff };
 }
 function slotHtml([k, label, kinds], res) {
   const cur = st.slots[k], it = BY_NAME[cur.n];
-  const groups = [...new Set(GEAR_DB.filter(x => kinds.includes(x.s)).map(x => x.g))];
+  const list = GEAR_DB.filter(x => kinds.includes(x.s) && (canWear(x) || x.n === cur.n));
+  const groups = [...new Set(list.map(x => x.g))];
   const opt = x => `<option value="${x.n}"${x.n === cur.n ? ' selected' : ''}>${x.n}${x.type ? `（${x.type}${x.j ? '・' + x.j.replace('系列', '') : ''}）` : ''}</option>`;
   const opts = `<option value="">（未裝備）</option>` + groups.map(g => `<optgroup label="${g}">` +
-    GEAR_DB.filter(x => x.g === g && kinds.includes(x.s)).map(opt).join('') + `</optgroup>`).join('');
+    list.filter(x => x.g === g).map(opt).join('') + `</optgroup>`).join('');
+  const occ = occupiedBy(k);
+  if (occ) return `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
   let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><select onchange="pick('${k}', this.value)">${opts}</select></div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
@@ -261,7 +279,7 @@ function render() {
 function refreshSlots() {
   const res = compute();
   for (const [k] of GEAR_SLOTS) {
-    const el = $('slot-' + k); if (!el || !BY_NAME[st.slots[k].n]) continue;
+    const el = $('slot-' + k); if (!el || !BY_NAME[st.slots[k].n] || occupiedBy(k)) continue;
     const b = slotBody(k, res);
     el.querySelector('.meta').innerHTML = b.meta; el.querySelector('.eff').innerHTML = b.eff;
     const rv = el.querySelector('.rv'); if (rv) rv.innerText = '+' + st.slots[k].r;
@@ -272,6 +290,7 @@ function refreshSlots() {
 function pick(k, n) {
   const it = BY_NAME[n];
   st.slots[k] = { n, r: it && it.ref ? st.all : 0 };
+  for (const o of (it && it.occ) || []) st.slots[o] = { n: '', r: 0 };
   save(); render();
 }
 function setRef(k, v) { st.slots[k].r = +v; save(); refreshSlots(); }
@@ -280,6 +299,8 @@ $('allRef').addEventListener('input', e => {
   for (const { slot, it } of equipped()) if (it.ref) st.slots[slot].r = st.all;
   save(); render();
 });
+$('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
+$('job').addEventListener('change', e => { st.job = e.target.value; save(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); refreshSlots(); });
 $('psGrid').innerHTML = PS.map(s => `<div class="field"><label>純 ${s}</label><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0"></div>`).join('');
