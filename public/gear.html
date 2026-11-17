@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '技能／條件加成拆成個別技能、個別條件再加總'],
   ['2026/11/17', '新增雷吉亞狩獵套裝（含面具、三件各 +9 效果）；本件合計標示精煉浮動值'],
   ['2026/11/17', '武器精煉加成併入 ATK、MATK 顯示，並註明含精煉多少'],
   ['2026/11/17', '新增里希塔樂鎮（企業都市）精裝之書、魔法經典，以及雷擊經典；搭配清單只列已成立的'],
@@ -280,6 +281,24 @@ const mul = (eff, n) => { const o = Object.fromEntries(Object.entries(eff).filte
   if (eff._c) o._c = Object.fromEntries(Object.entries(eff._c).map(([k, v]) => [k, v * n])); return o; };
 const cLabel = k => k.replace(/#$/, '');
 const cVal = (k, v) => `${v >= 0 ? '+' : '−'}${Math.abs(+v.toFixed(2))}${k.endsWith('#') ? '' : '%'}`;
+// 複合名稱拆成個別技能／條件：「火箭術、冰箭術傷害」→ 火箭術傷害、冰箭術傷害；「對無形敵人、地屬性敵人的物理傷害」→ 兩條
+function splitLabel(label) {
+  const unit = label.endsWith('#') ? '#' : '', core = label.replace(/#$/, '');
+  const sl = core.match(/^(對|受到|受)?((?:[^／、]／)+[^／、])(屬性.*)$/);   // 「對地／火／風／水屬性敵人…」
+  if (sl) return sl[2].split('／').map(x => (sl[1] || '') + x + sl[3] + unit);
+  const parts = core.split('、');
+  if (parts.length < 2) return [label];
+  const pre = (parts[0].match(/^(對|受到|受)/) || [''])[0];
+  parts[0] = parts[0].slice(pre.length);
+  const last = parts.pop();
+  const m = last.match(/^(.+?)((屬性)?(敵人|魔物)?(的)?(物理|魔法|物理／魔法|物理和魔法)?(傷害|變動詠唱|抗性|攻擊力))$/);
+  if (!m) return [label];
+  let item = m[1], suf = m[2];
+  // 前面的項目自帶「敵人／魔物」時，最後一項也要包到同一個詞（例：地屬性敵人）
+  if (/(敵人|魔物)$/.test(parts[0])) { const k = last.search(/敵人|魔物/); if (k > 0) { item = last.slice(0, k + 2); suf = last.slice(k + 2); } }
+  return [...parts, item].map(x => pre + x + suf + unit);
+}
+function splitC(c) { const o = {}; for (const [k, v] of Object.entries(c || {})) for (const x of splitLabel(k)) o[x] = (o[x] || 0) + v; return o; }
 const pfTimes = (it, r) => it.pf ? Math.max(0, r - it.pf[0] + 1) : 0;
 function add(to, eff, notes) {
   for (const [k, v] of Object.entries(eff || {})) {
@@ -417,6 +436,9 @@ function renderResult(res) {
   // 武器精煉同時加 ATK 與 MATK，併進這兩行顯示（註明含精煉多少）
   const ref = tot.refATK || 0, view = { ...tot };
   if (ref) { view.ATK = (view.ATK || 0) + ref; view.MATK = (view.MATK || 0) + ref; delete view.refATK; }
+  // 「火、水屬性魔法傷害」改列到技能／條件加成，和其他火屬性、水屬性加成合併
+  const cAll = splitC(tot._c);
+  if (view.fwMagic) { for (const x of ['火屬性魔法傷害', '水屬性魔法傷害']) cAll[x] = (cAll[x] || 0) + view.fwMagic; delete view.fwMagic; }
   const refNote = ref ? `<small>（含武器精煉 +${ref}${over[1] ? `，浮動 +${over[0]}～+${over[1]}` : ''}）</small>` : '';
   const keys = GEAR_STAT.map(x => x[0]).filter(k => view[k]);
   $('totals').innerHTML = keys.length ? `<ul class="tot-list">${keys.map(k => { const i = STAT_INFO[k], n = view[k] * i.sign;
@@ -439,7 +461,7 @@ function renderResult(res) {
       return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${sum}／${n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
   const all = setHtml.concat(comboHtml).map(h => h.replace(/(<br>)+/g, '<br>'));
   $('sets').innerHTML = all.length ? all.join('') : `<div class="empty">沒有穿到任何套裝或搭配的部件。</div>`;
-  const cEnt = Object.entries(tot._c || {}).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
+  const cEnt = Object.entries(cAll).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
   // 備註類文字（不可破壞、資料待補、取得方式…）不算效果，不列在這裡
   const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
