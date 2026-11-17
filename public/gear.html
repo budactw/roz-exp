@@ -63,6 +63,11 @@
   details.log summary span { font-weight: 400; color: var(--dim); }
   details.log ul { margin: 6px 0 0; padding-left: 18px; }
   details.log li b { color: var(--text); margin-right: 6px; }
+  .share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--primary); }
+  .share-bar .t { flex: 1 1 auto; font-weight: 700; color: var(--primary); }
+  .share-bar .acts { display: flex; gap: 8px; }
+  .btn-sm { background: var(--seg-active); color: #fff; border: 0; }
+  .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 </style>
 </head>
@@ -80,6 +85,11 @@
   </div>
 
   <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
+
+  <div class="share-bar hidden" id="shareBar">
+    <span class="t">👀 正在檢視分享的配裝，修改不會儲存</span>
+    <span class="acts"><button class="btn-sm" onclick="saveShared()">存成我的配裝</button><button class="btn-ghost" onclick="closeShared()">關閉</button></span>
+  </div>
 
   <div class="card">
     <h2>⚙️ 設定</h2>
@@ -110,6 +120,7 @@
     <div class="sec-title">其他效果（技能、條件類，未列入加總）</div>
     <ul class="notes" id="notes"></ul>
     <div class="hint" style="margin-top:10px;">裝備防禦＝防禦欄位＋精煉防禦（+1～+4 每級 10、+5～+8 每級 20…，依官方精煉系統，飾品、盾牌同防具）＋精煉效果的 DEF；說明裡的基本「DEF+」推測已含在防禦欄位，不重複加。武器精煉攻擊依武器等級（官方精煉系統），過度精煉的浮動值不計。各精煉門檻的效果照資料文字逐條累加。附魔、卡片還沒加入，數值以遊戲內為準。</div>
+    <button class="btn-share" onclick="share(this)">🔗 分享這組配裝</button>
   </div>
 
   <div class="foot">
@@ -119,6 +130,18 @@
     </div>
     <div style="margin-top:8px;">作者：凌雲閣－師爺　·　裝備資料參考 <a href="https://ro-zero-site.pages.dev/instances" target="_blank" rel="noopener" style="color:var(--primary)">RO補給站</a>（驚駭森靈巢穴為 11/17 台服解檔）　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
     <div class="privacy">🔒 本站不會記錄你輸入的資料，所有資料只儲存在你這台裝置的瀏覽器中（換裝置或清除瀏覽器資料就會消失）。僅使用 Google Analytics 統計瀏覽次數；主動回報問題時才會附上你填的資料。</div>
+  </div>
+</div>
+
+<div class="modal" id="dlg">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><b id="dlgTitle"></b></div>
+    <div class="hint" id="dlgMsg" style="margin-bottom:10px;"></div>
+    <input type="text" id="dlgInput" class="hidden" style="margin-bottom:12px;" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn-ghost" id="dlgCancel">取消</button>
+      <button class="btn-sm" id="dlgOk">確定</button>
+    </div>
   </div>
 </div>
 
@@ -136,14 +159,84 @@ const JOB_LINE = { 武僧: ['武道家'], 劍士: ['騎士', '十字軍'], 魔�
 const jobsOf = it => it.j ? it.j.split(/[／、]/).map(x => x.replace('系列', '')).flatMap(x => JOB_LINE[x] || [x]) : JOBS;
 const canWear = it => !st.job || jobsOf(it).includes(st.job);
 
-let st = { lv: 120, job: '', all: 0, ps: {}, slots: {} };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.slots) st = { ...st, ...s }; } catch (e) {}
-st.ps = st.ps || {};
-for (const [k] of GEAR_SLOTS) if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
-const save = () => localStorage.setItem(KEY, JSON.stringify(st));
+const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {} });
+let st, shared = false;   // shared：正在檢視分享連結，不儲存
+function fixState() {
+  st.ps = st.ps || {};
+  for (const [k] of GEAR_SLOTS) if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
+}
+function load() {
+  st = DEFAULT();
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.slots) st = { ...st, ...s }; } catch (e) {}
+  fixState();
+}
+const save = () => { if (!shared) localStorage.setItem(KEY, JSON.stringify(st)); };
+load();
+
+// ===== 分享（配裝放在網址 # 後面，不會傳到伺服器）=====
+const b64e = str => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = str => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0)));
+function packState() {
+  const o = { l: st.lv, j: st.job, a: st.all, s: {} };
+  const ps = Object.fromEntries(PS.filter(k => st.ps[k]).map(k => [k, st.ps[k]])); if (Object.keys(ps).length) o.p = ps;
+  for (const [k] of GEAR_SLOTS) if (st.slots[k].n) o.s[k] = [st.slots[k].n, st.slots[k].r];
+  return b64e(JSON.stringify(o));
+}
+function unpackState(code) {
+  const o = JSON.parse(b64d(code)), n = (v, d, lo, hi) => Number.isFinite(+v) ? Math.max(lo, Math.min(hi, Math.round(+v))) : d;
+  const s = DEFAULT();
+  s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20);
+  for (const k of PS) if (o.p && o.p[k]) s.ps[k] = n(o.p[k], 0, 0, 300);
+  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0 }; }
+  return s;
+}
+function readHash() {
+  const m = location.hash.match(/^#s=([\w-]+)/); if (!m) return false;
+  try { st = unpackState(m[1]); fixState(); shared = true; track('gear_share_open'); return true; }
+  catch (e) { clearHash(); return false; }
+}
+function clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
+async function share(btn) {
+  const url = `${location.origin}${location.pathname}#s=${packState()}`;
+  const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''));
+  if (!names.length) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
+  const text = `RO樂園配裝${st.job ? `（${st.job}）` : ''}：${names.join('、')}`;
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    try { await navigator.share({ title: 'RO樂園配裝模擬器', text, url }); track('gear_share', { method: 'native' }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  copyText(`${text}\n${url}`, btn); track('gear_share', { method: 'copy' });
+}
+async function saveShared() {
+  if (!await dialog({ title: '存成我的配裝？', msg: '會取代你目前在這台裝置上的配裝。', okText: '存檔' })) return;
+  shared = false; clearHash(); save(); syncShared(); render(); track('gear_share_save');
+}
+function closeShared() { shared = false; clearHash(); load(); syncInputs(); render(); }
+function syncShared() { $('shareBar').classList.toggle('hidden', !shared); }
+function syncInputs() {
+  $('job').value = st.job; $('baseLv').value = st.lv;
+  document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
+  syncShared();
+}
+window.addEventListener('hashchange', () => { if (readHash()) { syncInputs(); render(); } });
+
+// ===== 頁內對話框 =====
+function dialog({ title, msg = '', input = null, okText = '確定', cancel = true }) {
+  return new Promise(res => {
+    const m = $('dlg'), inp = $('dlgInput');
+    $('dlgTitle').innerText = title; $('dlgMsg').innerText = msg; $('dlgMsg').style.display = msg ? '' : 'none';
+    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText; $('dlgCancel').style.display = cancel ? '' : 'none';
+    const close = v => { m.classList.remove('open'); $('dlgOk').onclick = $('dlgCancel').onclick = null; res(v); };
+    $('dlgOk').onclick = () => close(input === null ? true : inp.value.trim());
+    $('dlgCancel').onclick = () => close(null);
+    m.classList.add('open');
+  });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').classList.contains('open')) $('dlgCancel').onclick(); });
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '新增配裝分享：產生連結給別人看，對方可以存成自己的配裝'],
   ['2026/11/17', '新增盾牌（特殊合金鋼盾、上弦月圖騰護腕）、艾音布羅克庇佑墜子／肩飾（含精煉總和 14／18／20 效果）'],
   ['2026/11/17', '新增職業篩選、特色裝備（王頭與地龍／陰陽武器）、頭上／頭中部位；每精煉 N 列出總加成、每件裝備合計'],
   ['2026/11/17', '新增星級武防、驚駭森靈巢穴（11/17 台服解檔）；武器、左手、頭下部位、純素質'],
@@ -335,8 +428,9 @@ function clearAll() { for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 
 // ===== 共用：複製、主題 =====
 function copyText(text, btn) {
   const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => prompt('請手動複製：', text));
-  else prompt('請手動複製：', text);
+  const manual = () => dialog({ title: '請手動複製', input: text.replace(/\n/g, ' '), okText: '關閉', cancel: false });
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(manual);
+  else manual();
 }
 function applyTheme(t) {
   if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('themeBtn').innerText = '☀️ 日間模式'; }
@@ -345,7 +439,7 @@ function applyTheme(t) {
 function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
-render();
+readHash(); syncInputs(); render();
 </script>
 <script src="report.js?v=5"></script>
 </body>
