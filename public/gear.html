@@ -156,7 +156,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=13"></script>
+<script src="gear-data.js?v=14"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/18', '新增飾品：無顱武士的手套、某個魔法師的手套（官方查詢平台數值）'],
   ['2026/11/17', '配裝模擬器 Beta 上線：收錄副本、星級武防、特色（王頭）、驚駭森靈巢穴、雷吉亞、各地區與鐵匠裝備，數值以官方查詢平台核對'],
   ['2026/11/17', '功能：職業與等級篩選、整套／個別精煉拉霸、套裝與搭配（含精煉總和）、技能／條件加成分技能加總、精煉浮動值、分享連結'],
 ];
