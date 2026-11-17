@@ -217,7 +217,7 @@
 
 <script src="gear-data.js?v=25"></script>
 <script src="enchant-data.js?v=2"></script>
-<script src="addon-data.js?v=1"></script>
+<script src="addon-data.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -462,7 +462,20 @@ function setEnch(k, i, v) { const e = st.slots[k].e = (st.slots[k].e || []).slic
 
 // ===== 附加能力 =====
 // GEAR_ADDON（addon-data.js）：每件裝備可能有幾種能力池（例如物理／魔法），每池分第一條、第二條…，每條選一種能力並填數值
-function addonPools(it) { return !it || typeof GEAR_ADDON === 'undefined' ? [] : GEAR_ADDON.filter(c => c.test(it)).flatMap(c => c.pools); }
+// 不是打怪掉落的分類（副本、星武器、城戰、活動…）沒有原生附加能力
+const NO_DROP_ADDON = ['征伐隊', '遠征隊', '殲滅隊', '征服者', '征服者轉生', '一星武器', '二星武器', '一星防具', '城戰', '鯊魚寶寶聯名', '神器', '異世之靈', '雷吉亞', '波利村'];
+const RANGED_TYPES = ['弓', '手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍', '樂器', '鞭子'], MAGIC_TYPES = ['單手杖', '雙手杖', '書'];
+function addonPools(it) {
+  if (!it || typeof GEAR_ADDON === 'undefined') return [];
+  const own = GEAR_ADDON.filter(c => c.test(it)).flatMap(c => c.pools);
+  if (own.length || NO_DROP_ADDON.includes(it.g) || typeof GEAR_ADDON_DROP === 'undefined') return own;
+  // 一般掉落裝備：武器依類型把預設的近距離／遠距離／魔法排前面（池 4 最完整，排第一）
+  if (it.s === 'weapon') {
+    const first = MAGIC_TYPES.includes(it.type) ? '魔法' : RANGED_TYPES.includes(it.type) ? '遠距離' : '近距離';
+    return [first, ...['近距離', '遠距離', '魔法'].filter(x => x !== first)].flatMap(x => (GEAR_ADDON_DROP.weapon[x] || []).slice().reverse());
+  }
+  return GEAR_ADDON_DROP[it.s] || [];
+}
 function addonOn(k, it) {
   if (!st.ench) return [];
   const pools = addonPools(it), a = st.slots[k].a; if (!pools.length || !a) return [];
@@ -477,7 +490,8 @@ function addonHtml(k, it) {
   if (!st.ench) return '';
   const pools = addonPools(it); if (!pools.length) return '';
   const a = st.slots[k].a || { p: 0, v: [] }, pool = pools[a.p] || pools[0];
-  let h = `<div class="addon"><div class="addon-h">附加能力</div>`;
+  const isDrop = !GEAR_ADDON.some(c => c.test(it));
+  let h = `<div class="addon"><div class="addon-h">${isDrop ? '原生附加能力（掉落時隨機、不能洗）' : '附加能力'}</div>`;
   if (pools.length > 1) h += `<div class="ench-row"><label for="ap-${k}">種類</label><select id="ap-${k}" onchange="setAddonPool('${k}', +this.value)">${pools.map((p, i) => `<option value="${i}"${p === pool ? ' selected' : ''}>${p.name}</option>`).join('')}</select></div>`;
   h += pool.lines.map((l, i) => { const x = (a.v || [])[i] || [-1, 0], o = l.opts[x[0]];
     return `<div class="ench-row"><label for="ao-${k}-${i}">${l.name}</label><select id="ao-${k}-${i}" onchange="setAddon('${k}', ${i}, +this.value)"><option value="-1">（無）</option>` +

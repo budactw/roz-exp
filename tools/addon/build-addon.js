@@ -42,11 +42,24 @@ if (ph && mg) push('勇者改造許可執照', `it => ${JSON.stringify(ph.target
 const lava = J('out_lava.json'); if (lava) push('熔岩精華', `it => ${JSON.stringify(lava.targets)}.includes(it.n)`, [pool(lava.pools[0], '熔岩精華')]);
 const dr = J('out_dragon.json'); if (dr) push('漩渦的天龍神力', `it => ${JSON.stringify(dr.targets)}.includes(it.n)`, [pool(dr.pools[0], '漩渦的天龍神力')]);
 const fw = J('out_fw.json'); if (fw) push('巨神蟒的卷軸', `it => /^巨神蟒蛇皮（/.test(it.n)`, fw.pools.map(p => pool(p, /魔法/.test(p.title) ? '巨神蟒的卷軸（魔法）' : '巨神蟒的卷軸（物理）')));
-const drop = J('out_drop.json'); if (drop) fs.writeFileSync(path.join(dir, 'drop-pools.json'), JSON.stringify(drop.pools.map(p => ({ applies: p.applies, pool: pool(p, p.applies) })), null, 1));
+// 魔物掉落裝備（原生附加能力）：池 1～4 武器分近距離／遠距離／魔法，池 5 鎧甲／披肩／鞋子，克雷斯特漢姆只有披肩
+const drop = J('out_drop.json'), DROP = { weapon: {}, armor: [], garment: [], shoes: [] };
+if (drop) for (const p of drop.pools) {
+  const no = p.applies.replace('附加能力池-', '');
+  for (const sr of [...new Set(p.lines.map(l => l.series))]) {
+    const sub = { lines: p.lines.filter(l => l.series === sr).map(l => ({ ...l, line: l.line || '第一條' })) };
+    const short = sr.replace('系列', '');
+    const name = /^\d$/.test(no) ? `掉落池 ${no}（${short}）` : `掉落池・${no}（${short}）`;
+    if (/距離|魔法/.test(sr)) (DROP.weapon[short] = DROP.weapon[short] || []).push(pool(sub, name));
+    else DROP[{ 鎧甲: 'armor', 披肩: 'garment', 鞋子: 'shoes' }[sr]].push(pool(sub, name));
+  }
+}
 
 const js = `// 由 tools/addon/build-addon.js 產生：官方「遊戲指南 → 附加能力系統」各公告的附加能力池（逐項抄錄）
 // GEAR_ADDON：[{ label, test(it), pools: [{ name, lines: [{ name, note, opts: [[名稱, 效果鍵, 正負, 最小, 最大]] }] }] }]
 // 效果鍵以「_c:」開頭的是技能／條件加成
+// GEAR_ADDON_DROP：一般魔物掉落裝備的原生附加能力池（不能洗）
+const GEAR_ADDON_DROP = ${JSON.stringify(DROP)};
 const GEAR_ADDON = [
 ${out.map(c => `  { label: ${JSON.stringify(c.label)}, test: ${c.test}, pools: ${JSON.stringify(c.pools)} },`).join('\n')}
 ];
