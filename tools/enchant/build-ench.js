@@ -115,6 +115,18 @@ const gAmp = GUILD_SK.map(k => { const n = `增幅：${k}1Lv`; OPT[n] = { _c: { 
 const gRes = GUILD_SK.map(k => { const n = `抗性：${k}1Lv`; OPT[n] = { _c: { [`受${k}的傷害`]: -15 } }; return n; });
 out.push({ label: '中級公會員', test: `it => it.g === '城戰' && it.n.startsWith('中級公會員') && (it.s === 'weapon' || it.s === 'armor')`, slots: ['四洞', '三洞'].map(name => ({ name, parts: { weapon: [[0, gAmp]], armor: [[0, gRes]] } })) });
 
+// 藍焰彩杖：台服沒有公告，參考韓服 2018/01/31「[지역] 글래스트 헤임」(seq=14) 푸른 불꽃 지팡이 인챈트：
+// 秘銀附魔，最多 2 個，可重複（咒文 1～5、魔力 1～4Lv、MATK 1～3Lv、INT／VIT +1～4、HP、SP）
+const BF = [];
+const bf = (n, e) => { OPT[n] = e; BF.push(n); };
+[[5, 30], [4, 20], [3, 15], [2, 10], [1, 5]].forEach(([i, m]) => bf(`咒文${i}`, { MATK: m, vct: 3 }));
+[[4, 15, 10], [3, 12, 8], [2, 9, 6], [1, 6, 4]].forEach(([i, m, v]) => bf(`魔力${i}Lv`, { MATK: m, vct: v }));
+[3, 2, 1].forEach(i => bf(`MATK${i}Lv`, { MATKp: i, fct: 1 }));
+for (const st of ['INT', 'VIT']) [4, 3, 2, 1].forEach(i => bf(`${st}+${i}`, { [st]: i }));
+[300, 200, 100].forEach(i => bf(`HP+${i}`, { MHP: i }));
+[100, 50].forEach(i => bf(`SP+${i}`, { MSP: i }));
+out.push({ label: '藍焰彩杖', test: `it => it.n === '藍焰彩杖'`, slots: ['四洞', '三洞'].map(name => ({ name, parts: { all: [[0, BF]] } })) });
+
 const js = `// 由 tools/enchant/build-ench.js 產生：官方「遊戲指南 → 附魔系統」各專屬附魔公告的表格逐項抄錄
 // GEAR_ENCH：[{ label, test(it), slots: [{ name, parts: { armor|garment|shoes|acc|all: [[最低精煉, [選項…]], …] } }] }]
 // ENCH_OPT：選項 → 效果；_pr: [[N, 效果], …] 表示「鎧甲每精煉 +N」，依該件精煉值計算
