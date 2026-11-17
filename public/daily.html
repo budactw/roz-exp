@@ -241,6 +241,7 @@
         <button type="button" data-v="100" onclick="setSelFilter('lv','100')">100</button>
         <button type="button" data-v="105" onclick="setSelFilter('lv','105')">105</button>
         <button type="button" data-v="110" onclick="setSelFilter('lv','110')">110</button>
+        <button type="button" data-v="115" onclick="setSelFilter('lv','115')">115</button>
       </div>
       <div class="seg" id="selType">
         <button type="button" data-v="all" class="active" onclick="setSelFilter('type','all')">全部類型</button>
@@ -259,7 +260,7 @@
   </div>
 </div>
 
-<script src="quests-data.js?v=9"></script>
+<script src="quests-data.js?v=10"></script>
 <script>
 const $ = id => document.getElementById(id);
 const ALL = QUEST_DB.flatMap(r => r.quests.map(q => ({ ...q, region: r.region, rlv: r.lv })));
