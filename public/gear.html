@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '互為搭配的裝備，兩件都會顯示搭配效果'],
   ['2026/11/17', '搭配對象沒穿上時，精煉總和不再顯示單件數字，改寫需同時穿哪件'],
   ['2026/11/17', '技能／條件加成拆成個別技能、個別條件再加總'],
   ['2026/11/17', '新增雷吉亞狩獵套裝（含面具、三件各 +9 效果）；本件合計標示精煉浮動值'],
@@ -399,6 +400,17 @@ function slotBody(k, res) {
     const nx = x.c.sums.find(([n]) => x.sum < n);
     for (const [n, e] of x.c.sums) eff += li(x.ok && x.sum >= n ? 'on' : x.ok && nx && n === nx[0] ? 'next' : '', '搭配',
       x.ok ? `精煉總和 ${x.sum}／${n}：${fmtEff(e)}` : `精煉總和 ${n}（需同時穿 ${x.c.with.join('＋')}）：${fmtEff(e)}`, x.ok && nx && n === nx[0] ? `再 +${n - x.sum}` : '');
+  }
+  // 反向：別件裝備的搭配對象是這件時，也在這裡提醒
+  for (const h of GEAR_DB) for (const c of h.w2 || []) {
+    if (h === it || !c.with.includes(it.n)) continue;
+    const x = res.combos.find(y => y.it === h && y.c === c);
+    const need = [h.n, ...c.with.filter(n => n !== it.n)].join('＋');
+    const ok = !!(x && x.ok);
+    if (Object.keys(c.b).length) eff += li(ok ? 'on' : '', '搭配', `${need}：${fmtEff(c.b)}`);
+    const nx = ok ? c.sums.find(([n]) => x.sum < n) : null;
+    for (const [n, e] of c.sums) eff += li(ok && x.sum >= n ? 'on' : nx && n === nx[0] ? 'next' : '', '搭配',
+      ok ? `精煉總和 ${x.sum}／${n}：${fmtEff(e)}` : `精煉總和 ${n}（需同時穿 ${need}）：${fmtEff(e)}`, nx && n === nx[0] ? `再 +${n - x.sum}` : '');
   }
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   // 只列有關的套裝：穿齊的 → 已穿 2 件以上的 → 目前職業能穿的；都沒有就只寫可搭幾組
