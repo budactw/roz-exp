@@ -772,5 +772,9 @@ GEAR_DB.push({ n: '(服飾)鯊魚寶寶面具(歸屬)', g: '鯊魚寶寶聯名',
   GEAR_DB.push({ n: '雷神腰帶', g: G, s: 'accR', def: 2, lv: 94, ref: false, b: { STR: 40, MDEF: 7, _lv: [10, { STR: 2 }], _if: [['STR', 95, { _c: { '對 BOSS 階級敵人的物理傷害': 10 } }]] } });
 })();
 
+// ===== 波利村（官方公告 217651）=====
+for (const n of ['波利村紅蘿蔔', '波利村大蔥'])
+  GEAR_DB.push({ n, g: '波利村', s: 'headLow', def: 0, lv: 30, ref: false, b: {}, t: ['物理攻擊時，一定機率 5 秒內移動速度增加（與加速術不疊加）', `使用緊急治療時，10 秒內變身為${n === '波利村紅蘿蔔' ? '瘋兔' : '狸貓'}`] });
+
 // 必須放在檔案最後：w2 搭配的精煉總和統一成 sums 陣列
 for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);

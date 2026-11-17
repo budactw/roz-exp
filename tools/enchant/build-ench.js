@@ -104,6 +104,10 @@ const cqA = names(cq.tables[0]), cqB = names(cq.tables[1]).filter(n => !cqA.incl
 out.push({ label: '征服者轉生', test: `it => it.g === '征服者轉生' && it.s === 'armor'`, slots: [
   { name: '四洞', parts: { all: [[0, cqA], [9, cqB]] } }, { name: '三洞', parts: { all: [[0, cqA], [9, cqB]] } }, { name: '二洞', parts: { all: [[0, cqC]] } }] });
 
+// 波利村紅蘿蔔／大蔥（公告 217651，蔬果附魔師）：四洞
+const veg = ['STR+1', 'INT+1', 'DEX+1', 'AGI+1', 'VIT+1', 'LUK+1', 'HP+100', 'HP+200', 'SP+50', 'SP+25', 'SP+10'].map(n => add({ name: n, desc: n }));
+out.push({ label: '波利村', test: `it => ['波利村紅蘿蔔', '波利村大蔥'].includes(it.n)`, slots: [{ name: '四洞', parts: { all: [[0, veg]] } }] });
+
 const js = `// 由 tools/enchant/build-ench.js 產生：官方「遊戲指南 → 附魔系統」各專屬附魔公告的表格逐項抄錄
 // GEAR_ENCH：[{ label, test(it), slots: [{ name, parts: { armor|garment|shoes|acc|all: [[最低精煉, [選項…]], …] } }] }]
 // ENCH_OPT：選項 → 效果；_pr: [[N, 效果], …] 表示「鎧甲每精煉 +N」，依該件精煉值計算

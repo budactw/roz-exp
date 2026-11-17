@@ -92,6 +92,9 @@
   .ench-row label { white-space: nowrap; color: var(--dim); min-inline-size: 3.2em; }
   .ench-row select { flex: 1; min-width: 0; padding: 0 8px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   .ench-warn { color: var(--danger); font-size: .75rem; }
+  .addon { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--card-border); }
+  .addon-h { font-size: .78rem; font-weight: 700; color: var(--dim); }
+  .ench-row input[type=number] { inline-size: 4.6em; flex: 0 0 auto; padding: 0 6px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   /* 搜尋 */
   .gsearch-wrap { display: block; margin-bottom: 12px; }
   .gsearch { display: flex; gap: 8px; align-items: center; }
@@ -213,7 +216,8 @@
 </div>
 
 <script src="gear-data.js?v=25"></script>
-<script src="enchant-data.js?v=1"></script>
+<script src="enchant-data.js?v=2"></script>
+<script src="addon-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -254,7 +258,7 @@ const b64d = str => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-
 function packState() {
   const o = { l: st.lv, j: st.job, a: st.all, s: {} }; if (st.ench) o.e = 1;
   const ps = Object.fromEntries(PS.filter(k => st.ps[k]).map(k => [k, st.ps[k]])); if (Object.keys(ps).length) o.p = ps;
-  for (const [k] of GEAR_SLOTS) if (st.slots[k].n) { o.s[k] = [st.slots[k].n, st.slots[k].r]; const e = (st.slots[k].e || []).filter(Boolean); if (st.ench && e.length) o.s[k].push(st.slots[k].e); }
+  for (const [k] of GEAR_SLOTS) if (st.slots[k].n) { o.s[k] = [st.slots[k].n, st.slots[k].r]; const e = (st.slots[k].e || []).filter(Boolean), a = st.slots[k].a; if (st.ench && (e.length || a)) o.s[k].push(st.slots[k].e || [], a || 0); }
   return b64e(JSON.stringify(o));
 }
 function unpackState(code) {
@@ -262,7 +266,7 @@ function unpackState(code) {
   const s = DEFAULT();
   s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20); s.ench = !!o.e;
   for (const k of PS) if (o.p && o.p[k]) s.ps[k] = n(o.p[k], 0, 0, 300);
-  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [] }; }
+  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [], a: v[3] && typeof v[3] === 'object' && Array.isArray(v[3].v) ? { p: n(v[3].p, 0, 0, 9), v: v[3].v.slice(0, 5).map(x => Array.isArray(x) ? [n(x[0], -1, -1, 99), n(x[1], 0, 0, 9999)] : [-1, 0]) } : null }; }
   return s;
 }
 function readHash() {
@@ -311,6 +315,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/18', '新增附加能力：二級★武器、里希塔樂鎮勇者改造武器（物理／魔法改造許可執照）、熔岩皮革鎧甲、天龍鎧甲、巨神蟒蛇皮，可選能力並填數值；波利村紅蘿蔔、大蔥與蔬果附魔'],
   ['2026/11/18', '新增「設定附魔」：征伐隊～征服者轉生、毀葛紀念品、奧丁防具的專屬附魔（依官方附魔表，精煉 +9 限定選項會標示），附魔效果併入加總並可分享'],
   ['2026/11/18', '介面：電腦版能力加總固定在右側、手機版底部摘要列（換裝即時看到數字）、裝備搜尋框與武器類型篩選；新增神器：雷神之錘、雷神腰帶、史雷普尼爾之靴、女神頸鏈'],
   ['2026/11/18', '新增：靈幻、死靈全系列武器，地龍忍刀；Lv100 忍者鎧甲與圖騰護腕、古代菲力卡的頭箍、古代摩菲斯戒指／臂環、尾翎、獵鷹拳套、雙龍戒指；貓眼、烏鴉天狗面具、銀盾、鯊魚寶寶背包（新增「服飾」欄，可穿鯊魚寶寶面具算搭配）；地龍／陰陽殺刃更正為官方名稱「殺刀」'],
@@ -390,6 +395,7 @@ function compute() {
     if (pfTimes(it, r)) add(tot, mul(it.pf[1], pfTimes(it, r)), nt);
     for (const [n, eff] of Object.entries(it.r || {})) if (r >= +n) add(tot, eff, nt);
     for (const x of enchOn(slot, it, r)) add(tot, x.eff, nt);
+    for (const x of addonOn(slot, it)) add(tot, x.eff, nt);
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
@@ -454,6 +460,44 @@ function enchHtml(k, it, r) {
 }
 function setEnch(k, i, v) { const e = st.slots[k].e = (st.slots[k].e || []).slice(); e[i] = v; save(); render(); }
 
+// ===== 附加能力 =====
+// GEAR_ADDON（addon-data.js）：每件裝備可能有幾種能力池（例如物理／魔法），每池分第一條、第二條…，每條選一種能力並填數值
+function addonPools(it) { return !it || typeof GEAR_ADDON === 'undefined' ? [] : GEAR_ADDON.filter(c => c.test(it)).flatMap(c => c.pools); }
+function addonOn(k, it) {
+  if (!st.ench) return [];
+  const pools = addonPools(it), a = st.slots[k].a; if (!pools.length || !a) return [];
+  const pool = pools[a.p] || pools[0];
+  return pool.lines.map((l, i) => { const x = (a.v || [])[i]; const o = x && l.opts[x[0]]; if (!o) return null;
+    const val = Math.max(o[3], Math.min(o[4], x[1])), [name, key, sg] = o;
+    const eff = key.startsWith('_c:') ? { _c: { [key.slice(3)]: sg * val } } : { [key]: sg * val };
+    return { line: l.name, name, val, eff };
+  }).filter(Boolean);
+}
+function addonHtml(k, it) {
+  if (!st.ench) return '';
+  const pools = addonPools(it); if (!pools.length) return '';
+  const a = st.slots[k].a || { p: 0, v: [] }, pool = pools[a.p] || pools[0];
+  let h = `<div class="addon"><div class="addon-h">附加能力</div>`;
+  if (pools.length > 1) h += `<div class="ench-row"><label for="ap-${k}">種類</label><select id="ap-${k}" onchange="setAddonPool('${k}', +this.value)">${pools.map((p, i) => `<option value="${i}"${p === pool ? ' selected' : ''}>${p.name}</option>`).join('')}</select></div>`;
+  h += pool.lines.map((l, i) => { const x = (a.v || [])[i] || [-1, 0], o = l.opts[x[0]];
+    return `<div class="ench-row"><label for="ao-${k}-${i}">${l.name}</label><select id="ao-${k}-${i}" onchange="setAddon('${k}', ${i}, +this.value)"><option value="-1">（無）</option>` +
+      l.opts.map((o, j) => `<option value="${j}"${j === x[0] ? ' selected' : ''}>${o[0]}（${o[3] === o[4] ? o[3] : o[3] + '～' + o[4]}）</option>`).join('') + `</select>` +
+      (o ? `<input type="number" inputmode="numeric" min="${o[3]}" max="${o[4]}" value="${Math.max(o[3], Math.min(o[4], x[1]))}" aria-label="${l.name}數值" onchange="setAddonVal('${k}', ${i}, this.value)">` : '') + `</div>` +
+      (l.note ? `<div class="ench-warn" style="color:var(--dim)">${l.name}：${l.note}</div>` : '');
+  }).join('');
+  return h + `</div>`;
+}
+function addonState(k) { const a = st.slots[k].a = st.slots[k].a ? { p: st.slots[k].a.p, v: (st.slots[k].a.v || []).map(x => x.slice()) } : { p: 0, v: [] }; return a; }
+function setAddonPool(k, p) { st.slots[k].a = { p, v: [] }; save(); render(); }
+function setAddon(k, i, j) {
+  const a = addonState(k), pools = addonPools(BY_NAME[st.slots[k].n]), o = j >= 0 && (pools[a.p] || pools[0]).lines[i].opts[j];
+  a.v[i] = o ? [j, o[4]] : [-1, 0]; save(); render();
+}
+function setAddonVal(k, i, v) {
+  const a = addonState(k), pools = addonPools(BY_NAME[st.slots[k].n]), x = a.v[i], o = x && (pools[a.p] || pools[0]).lines[i].opts[x[0]];
+  if (o) x[1] = Math.max(o[3], Math.min(o[4], Math.round(+v) || o[3])); save(); render();
+}
+
 // ===== 畫面 =====
 function slotBody(k, res) {
   const cur = st.slots[k], it = BY_NAME[cur.n], r = cur.r;
@@ -497,6 +541,7 @@ function slotBody(k, res) {
       ok ? `精煉總和 ${x.sum}／${n}：${fmtEff(e)}` : `精煉總和 ${n}（需同時穿 ${need}）：${fmtEff(e)}`, nx && n === nx[0] ? `再 +${n - x.sum}` : '');
   }
   for (const x of enchOn(k, it, r)) eff += li('on', `附魔・${x.s.name}`, `${x.n}：${x.txt}`);
+  for (const x of addonOn(k, it)) eff += li('on', `附加・${x.line}`, fmtEff(x.eff));
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   // 只列有關的套裝：穿齊的 → 已穿 2 件以上的 → 目前職業能穿的；都沒有就只寫可搭幾組
   const mySets = GEAR_SETS.filter(s => s.items.includes(it.n));
@@ -533,7 +578,7 @@ function slotHtml([k, label, kinds], res) {
   const b = slotBody(k, res);
   h += `<div class="meta">${b.meta}</div>`;
   if (it.ref) h += `<div class="rf"><input type="range" min="0" max="20" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
-  h += enchHtml(k, it, cur.r);
+  h += enchHtml(k, it, cur.r) + addonHtml(k, it);
   return h + `<ul class="eff">${b.eff}</ul></div>`;
 }
 
@@ -623,7 +668,7 @@ function refreshSlots() {
 
 function pick(k, n) {
   const it = BY_NAME[n];
-  st.slots[k] = { n, r: it && it.ref ? st.all : 0, e: [] };
+  st.slots[k] = { n, r: it && it.ref ? st.all : 0, e: [], a: null };
   for (const o of (it && it.occ) || []) st.slots[o] = { n: '', r: 0 };
   save(); render();
 }

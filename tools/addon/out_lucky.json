@@ -1,0 +1,1453 @@
+{
+ "category": "幸運髮飾",
+ "targets": [
+  "幸運髮飾"
+ ],
+ "notes": [
+  "※ 附魔能力僅在隱世地圖、MVP-PK棲息地、公會密穴生效。"
+ ],
+ "pools": [
+  {
+   "image": "lucky1",
+   "variant": "附加能力",
+   "title": "附加能力池-幸運髮飾附加能力箱子",
+   "lines": [
+    {
+     "line": "第一條",
+     "note": "",
+     "options": [
+      {
+       "name": "MaxHP",
+       "range": "1 ~ 150"
+      },
+      {
+       "name": "MaxSP",
+       "range": "1 ~ 50"
+      }
+     ],
+     "subheader": "幸運髮飾"
+    },
+    {
+     "line": "第二條",
+     "note": "",
+     "options": [
+      {
+       "name": "MaxHP (%)",
+       "range": "1 ~ 5"
+      },
+      {
+       "name": "MaxSP (%)",
+       "range": "1 ~ 5"
+      }
+     ]
+    },
+    {
+     "line": "第三條",
+     "note": "",
+     "options": [
+      {
+       "name": "HP自然回復速度增加 (%)",
+       "range": "1 ~ 20"
+      },
+      {
+       "name": "SP自然回復速度增加 (%)",
+       "range": "1 ~ 20"
+      }
+     ]
+    },
+    {
+     "line": "第四條",
+     "note": "",
+     "options": [
+      {
+       "name": "MaxHP",
+       "range": "1 ~ 150"
+      },
+      {
+       "name": "MaxSP",
+       "range": "1 ~ 50"
+      },
+      {
+       "name": "HP自然回復速度增加 (%)",
+       "range": "1 ~ 20"
+      },
+      {
+       "name": "SP自然回復速度增加 (%)",
+       "range": "1 ~ 20"
+      },
+      {
+       "name": "受到治癒量",
+       "range": "5 ~ 10"
+      },
+      {
+       "name": "技能使用時，SP消耗量減少 (%)",
+       "range": "1 ~ 20"
+      }
+     ]
+    },
+    {
+     "line": "第五條",
+     "note": "機率取得",
+     "options": [
+      {
+       "name": "擊殺無型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺不死型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺動物型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺植物型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺昆蟲型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺魚貝類怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺惡魔型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺人類型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺天使型怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺龍族怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      },
+      {
+       "name": "擊殺所有怪物獲得經驗值增加 (%)",
+       "range": "1 ~ 10"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "image": "lucky2",
+   "variant": "指定",
+   "title": "幸運髮飾附魔內容 (指定)",
+   "column_header": "附魔能力-成功機率100% (指定選一)",
+   "layout_note": "The 23 enchant rows form one continuous block; the 階段 cells visually align with row groups (6/6/6/5) but every row is listed under each stage here.",
+   "lines": [
+    {
+     "line": "一洞指定附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*30",
+      "3,000,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      }
+     ]
+    },
+    {
+     "line": "二洞指定附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*30",
+      "3,000,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      }
+     ]
+    },
+    {
+     "line": "三洞指定附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*60",
+      "3,000,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      }
+     ]
+    },
+    {
+     "line": "四洞指定附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*90",
+      "幸運代幣*30",
+      "3,000,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞"
+      }
+     ]
+    },
+    {
+     "line": "重置附魔",
+     "note": "附魔重置 / 重置成功機率100%",
+     "materials": [
+      "傑斯塔*1"
+     ],
+     "options": []
+    }
+   ]
+  },
+  {
+   "image": "lucky3",
+   "variant": "隨機",
+   "title": "幸運髮飾附魔內容 (隨機)",
+   "column_header": "附魔能力-成功機率100% (隨機取一)",
+   "layout_note": "The 23 enchant rows form one continuous block; the 階段 cells visually align with row groups (6/6/6/5) but every row is listed under each stage here. 出現機率 of all 23 rows sums to exactly 100.00, indicating one shared pool.",
+   "lines": [
+    {
+     "line": "一洞隨機附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*1",
+      "100,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.40"
+      }
+     ]
+    },
+    {
+     "line": "二洞隨機附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*1",
+      "100,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.40"
+      }
+     ]
+    },
+    {
+     "line": "三洞隨機附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*2",
+      "100,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.40"
+      }
+     ]
+    },
+    {
+     "line": "四洞隨機附魔",
+     "note": "",
+     "materials": [
+      "哥布靈碎幣*3",
+      "幸運代幣*1",
+      "100,000 Zeny"
+     ],
+     "options": [
+      {
+       "name": "暴風雪抵抗精通",
+       "range": "",
+       "desc": "受到「暴風雪」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "隕石術抵抗精通",
+       "range": "",
+       "desc": "受到「隕石術」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "怒雷強擊抵抗精通",
+       "range": "",
+       "desc": "受到「怒雷強擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "十字驅魔攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「十字驅魔攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "黑暗瞬間抵抗精通",
+       "range": "",
+       "desc": "受到「黑暗瞬間」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "螺旋擊刺抵抗精通",
+       "range": "",
+       "desc": "受到「螺旋擊刺」的傷害-15%。",
+       "row_aligned_with_stage": "一洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "強酸火煙瓶投擲抵抗精通",
+       "range": "",
+       "desc": "受到「強酸火煙瓶投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "連刺攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「連刺攻擊的」傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "怪物互擊抵抗精通",
+       "range": "",
+       "desc": "受到「怪物互擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "水球術抵抗精通",
+       "range": "",
+       "desc": "受到「水球術」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "音速投擲抵抗精通",
+       "range": "",
+       "desc": "受到「音速投擲」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "連續盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「連續盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "二洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "迴旋盾擊抵抗精通",
+       "range": "",
+       "desc": "受到「迴旋盾擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "聖十字攻擊抵抗精通",
+       "range": "",
+       "desc": "受到「聖十字攻擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "獵鷹突擊抵抗精通",
+       "range": "",
+       "desc": "受到「獵鷹突擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "閃電衝擊抵抗精通",
+       "range": "",
+       "desc": "受到「閃電衝擊」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "阿修羅霸凰拳抵抗精通",
+       "range": "",
+       "desc": "受到「阿修羅霸凰拳」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.40"
+      },
+      {
+       "name": "浸透勁抵抗精通",
+       "range": "",
+       "desc": "受到「浸透勁」的傷害-15%。",
+       "row_aligned_with_stage": "三洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "奧義箭亂舞抵抗精通",
+       "range": "",
+       "desc": "受到「奧義箭亂舞」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.50"
+      },
+      {
+       "name": "二連矢抵抗精通",
+       "range": "",
+       "desc": "受到「二連矢」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "銳利射擊抵抗精通",
+       "range": "",
+       "desc": "受到「銳利射擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "念力連擊抵抗精通",
+       "range": "",
+       "desc": "受到「念力連擊」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.30"
+      },
+      {
+       "name": "重力原野抵抗精通",
+       "range": "",
+       "desc": "受到「重力原野」的傷害-15%。",
+       "row_aligned_with_stage": "四洞",
+       "rate": "4.40"
+      }
+     ]
+    },
+    {
+     "line": "重置附魔",
+     "note": "附魔重置 / 重置成功機率100%",
+     "materials": [
+      "傑斯塔*1"
+     ],
+     "options": []
+    }
+   ]
+  }
+ ]
+}
