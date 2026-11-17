@@ -744,10 +744,16 @@ GEAR_DB.push({ n: '銀月魔女的皮鞋', g: '尼芙菲姆', s: 'shoes', def: 1
   GEAR_DB.push({ n: '尾翎', g: G, s: 'headLow', def: 0, lv: 100, j: '獵人系列', ref: false, b: { ...FALCON } });
   GEAR_DB.push({ n: '獵鷹拳套', g: G, s: 'accR', def: 5, lv: 100, j: '獵人系列', ref: false, b: { ...FALCON },
     w2: [{ with: ['尾翎'], b: { _c: { '閃電衝擊、獵鷹突擊傷害': 10 }, _t: '一般遠距離物理攻擊時，高機率自動施放閃電衝擊（依習得等級）' } }] });
+  GEAR_DB.push({ n: '貓眼', g: G, s: 'headMid', def: 3, lv: 90, ref: false, b: { FLEE: 5, aspd: 1 } });
+  GEAR_DB.push({ n: '烏鴉天狗面具', g: G, s: 'headMid', def: 10, lv: 90, ref: false, b: { CRI: 3, crit: 3 } });
   // 雙龍戒指：左右邊效果不同，拆成兩個選項
   GEAR_DB.push({ n: '雙龍戒指（左邊）', g: G, s: 'accL', def: 0, lv: 100, ref: true, b: { _c: { '連環全身掌、猛龍誇強傷害': 5 } }, r: { 9: { _c: { '連環全身掌、猛龍誇強傷害': 10 } } }, t: ['官方同一件「雙龍戒指」，裝在左邊的效果'] });
   GEAR_DB.push({ n: '雙龍戒指（右邊）', g: G, s: 'accR', def: 0, lv: 100, ref: true, b: { ATK: 3, aspd: 3 }, r: { 9: { ATK: 12, aspd: 5 } }, t: ['官方同一件「雙龍戒指」，裝在右邊的效果'] });
 })();
+
+// ===== 鯊魚寶寶聯名（官方裝備道具查詢平台）=====
+GEAR_DB.push({ n: '鯊魚寶寶背包', g: '鯊魚寶寶聯名', s: 'garment', def: 0, lv: 1, ref: false, b: {},
+  t: ['搭配「(服飾)鯊魚寶寶面具(歸屬)」：FLEE+15、CRI+8', '插「鯊魚寶寶卡片」：ATK+30、攻擊後延遲-8%', '插「鯊魚家族卡片」：MATK+30、變動詠唱-8%', '可使用回歸普隆德拉'] });
 
 // 必須放在檔案最後：w2 搭配的精煉總和統一成 sums 陣列
 for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);
