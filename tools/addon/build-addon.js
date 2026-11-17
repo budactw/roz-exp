@@ -39,6 +39,10 @@ if (star) {
 }
 const ph = J('out_phys.json'), mg = J('out_magic.json');
 if (ph && mg) push('勇者改造許可執照', `it => ${JSON.stringify(ph.targets)}.includes(it.n)`, [pool(ph.pools[0], '物理改造許可執照'), pool(mg.pools[0], '魔法改造許可執照')]);
+// 里希塔樂鎮生體研究所武器：台服沒有公告，參考韓服 2019/01/30「[지역] 기업도시 리히타르젠」(roz.gnjoy.com seq=73)：
+// 「용사의 개조박스를 통한 아인브로크 무기 랜덤옵션」＝用勇者的改造箱套用艾音布羅克（勇者改造）武器的附加能力池
+const LHZ = ['女神之杖', '低音吉他', '克裡希納拳刃', '克羅納斯魔杖', '克羅琪聖杖', '貝伽勒巨斧', '刺針短劍', '恰克蘭拳刃', '紅手提包', '紅寶石劍', '紅蘿蔔鞭', '智慧之錘', '獵鷹閃電弓', '精裝之書', '魔法經典'];
+if (ph && mg) push('勇者的改造箱', `it => ${JSON.stringify(LHZ)}.includes(it.n)`, [pool(ph.pools[0], '物理改造（勇者的改造箱）'), pool(mg.pools[0], '魔法改造（勇者的改造箱）')]);
 const lava = J('out_lava.json'); if (lava) push('熔岩精華', `it => ${JSON.stringify(lava.targets)}.includes(it.n)`, [pool(lava.pools[0], '熔岩精華')]);
 const dr = J('out_dragon.json'); if (dr) push('漩渦的天龍神力', `it => ${JSON.stringify(dr.targets)}.includes(it.n)`, [pool(dr.pools[0], '漩渦的天龍神力')]);
 const fw = J('out_fw.json'); if (fw) push('巨神蟒的卷軸', `it => /^巨神蟒蛇皮（/.test(it.n)`, fw.pools.map(p => pool(p, /魔法/.test(p.title) ? '巨神蟒的卷軸（魔法）' : '巨神蟒的卷軸（物理）')));
