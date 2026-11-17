@@ -129,7 +129,7 @@
       <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
     <div class="field" style="margin-top:12px;"><label>整套精煉（拉動會把所有可精煉的裝備改成同一個值，之後還能個別調）</label>
       <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
-    <details class="ps"><summary>純素質（選填，巨神蟒蛇皮、雷神腰帶、史雷普尼爾之靴等依純素質加成）</summary>
+    <details class="ps"><summary>純素質（選填，巨神蟒蛇皮、神器等依純素質加成）</summary>
       <div class="ps-grid" id="psGrid"></div></details>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">🗑️ 全部卸下</button></div>
   </div>
@@ -181,7 +181,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=24"></script>
+<script src="gear-data.js?v=25"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -279,7 +279,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/18', '介面：底部加總摘要列（換裝即時看到數字，可展開完整加總）、裝備搜尋框與武器類型篩選；新增神器：雷神之錘、雷神腰帶、史雷普尼爾之靴'],
+  ['2026/11/18', '介面：底部加總摘要列（換裝即時看到數字，可展開完整加總）、裝備搜尋框與武器類型篩選；新增神器：雷神之錘、雷神腰帶、史雷普尼爾之靴、女神頸鏈'],
   ['2026/11/18', '新增：靈幻、死靈全系列武器，地龍忍刀；Lv100 忍者鎧甲與圖騰護腕、古代菲力卡的頭箍、古代摩菲斯戒指／臂環、尾翎、獵鷹拳套、雙龍戒指；貓眼、烏鴉天狗面具、銀盾、鯊魚寶寶背包（新增「服飾」欄，可穿鯊魚寶寶面具算搭配）；地龍／陰陽殺刃更正為官方名稱「殺刀」'],
   ['2026/11/18', '新增：異世之靈頭盔 10 頂（+9 依職業加總）、城戰下級／中級公會員武器與防具（含 3 件精煉總和套裝）、無顱武士的手套、某個魔法師的手套；數值皆依官方查詢平台'],
   ['2026/11/17', '配裝模擬器 Beta 上線：收錄副本、星級武防、特色（王頭）、驚駭森靈巢穴、雷吉亞、各地區與鐵匠裝備，數值以官方查詢平台核對'],

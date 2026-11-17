@@ -766,6 +766,9 @@ GEAR_DB.push({ n: '(服飾)鯊魚寶寶面具(歸屬)', g: '鯊魚寶寶聯名',
     t: ['近距離物理攻擊時，一定機率自動施放閃電風暴', '近距離物理攻擊時，一定機率 10 秒內擴散傷害', '無限攻擊速度加速', '無法破壞'] });
   GEAR_DB.push({ n: '史雷普尼爾之靴', g: G, s: 'shoes', def: 40, lv: 94, ref: false,
     b: { MHPp: 20, MSPp: 20, spRegen: 100, MDEF: 10, _lv: [10, { _c: { '對全屬性敵人的所有傷害': 1 } }], _ps: [['DEX', 15, { fct: 10 }, 8]] }, t: ['無限加速', '無法破壞'] });
+  GEAR_DB.push({ n: '女神頸鏈', g: G, s: 'accL', def: 7, lv: 94, ref: false,
+    b: { STR: 3, AGI: 3, DEX: 3, VIT: 3, LUK: 5, INT: 5, MDEF: 5, _ps: [['STR', 20, { ATK: 3 }], ['AGI', 20, { FLEE: 3, aspd: 2 }], ['VIT', 20, { MHPp: 2, DEF: 5 }],
+      ['INT', 20, { MATK: 3, heal: 3 }], ['DEX', 20, { HIT: 3, vct: 3 }], ['LUK', 20, { CRI: 2, crit: 3 }]] } });
   GEAR_DB.push({ n: '雷神腰帶', g: G, s: 'accR', def: 2, lv: 94, ref: false, b: { STR: 40, MDEF: 7, _lv: [10, { STR: 2 }], _if: [['STR', 95, { _c: { '對 BOSS 階級敵人的物理傷害': 10 } }]] } });
 })();
 
