@@ -156,7 +156,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=14"></script>
+<script src="gear-data.js?v=17"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -170,6 +170,8 @@ const JOB_LINE = { 武僧: ['武道家'], 煉金術師: ['鍊金術師'], 煉金
 const jobsOf = it => it.j ? it.j.split(/[／、]/).map(x => x.replace('系列', '')).flatMap(x => JOB_LINE[x] || [x]) : JOBS;
 const canWear = it => (!st.job || jobsOf(it).includes(st.job)) && lvOk(it);
 const lvOk = it => !it.lv || it.lv <= st.lv;
+// 「騎士系列」「吟遊詩人／舞孃系列」→ 目前職業是否符合
+const jobIn = j => jobsOf({ j: j.replace(/\//g, '／') }).includes(st.job);
 const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 // 刺客左手可拿短劍、單手劍、單手斧
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
@@ -252,7 +254,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/18', '新增飾品：無顱武士的手套、某個魔法師的手套（官方查詢平台數值）'],
+  ['2026/11/18', '新增：異世之靈頭盔 10 頂（+9 依職業加總）、城戰下級／中級公會員武器與防具（含 3 件精煉總和套裝）、無顱武士的手套、某個魔法師的手套；數值皆依官方查詢平台'],
   ['2026/11/17', '配裝模擬器 Beta 上線：收錄副本、星級武防、特色（王頭）、驚駭森靈巢穴、雷吉亞、各地區與鐵匠裝備，數值以官方查詢平台核對'],
   ['2026/11/17', '功能：職業與等級篩選、整套／個別精煉拉霸、套裝與搭配（含精煉總和）、技能／條件加成分技能加總、精煉浮動值、分享連結'],
 ];
@@ -290,6 +292,7 @@ function add(to, eff, notes) {
   for (const [k, v] of Object.entries(eff || {})) {
     if (k === '_t') { if (notes) notes.push(v); }
     else if (k === '_c') { to._c = to._c || {}; for (const [a, b] of Object.entries(v)) to._c[a] = (to._c[a] || 0) + b; }
+    else if (k === '_job') { for (const [j, e] of v) { if (!st.job) notes && notes.push(`${j}：${fmtEff(e)}（選職業後才加總）`); else if (jobIn(j)) add(to, e, notes); } }
     else if (k === '_lv') add(to, mul(v[1], Math.floor(st.lv / v[0])), notes);
     else if (k === '_if') { for (const [s, n, e] of v) if ((st.ps[s] || 0) >= n) add(to, e, notes); }
     else if (k === '_ps') for (const [s, n, e] of v) { const t = Math.floor((st.ps[s] || 0) / n); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
@@ -301,6 +304,7 @@ const fmtVal = (k, v) => { const i = STAT_INFO[k]; const n = v * i.sign; return 
 const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_t' ? v :
   k === '_c' ? Object.entries(v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b)).join('、') :
+  k === '_job' ? v.map(([j, e]) => `${j}：${fmtEff(e)}${st.job && jobIn(j) ? ' ✓' : ''}`).join('；') :
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
   k === '_ps' ? v.map(([s, n, e]) => `每 ${n} 點純 ${s}：${fmtEff(e)}`).join('、') :
   k === '_if' ? v.map(([s, n, e]) => `純 ${s} ${n} 以上：${fmtEff(e)}${(st.ps[s] || 0) >= n ? ' ✓' : ''}`).join('、') :
