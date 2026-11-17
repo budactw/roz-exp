@@ -87,12 +87,12 @@
   .sw input.sw-fb:checked { background: var(--seg-active); border-color: var(--seg-active); }
   .sw input.sw-fb:checked::before { transform: translateX(18px); }
   @media (prefers-reduced-motion: reduce) { .sw input.sw-fb, .sw input.sw-fb::before { transition: none; } }
-  .ench { display: grid; gap: 6px; margin-top: 8px; }
-  .ench-row { display: flex; align-items: center; gap: 8px; font-size: .82rem; }
+  .ench { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-top: 8px; }
+  .ench-row { display: flex; align-items: center; gap: 8px; font-size: .82rem; min-inline-size: 0; }
   .ench-row label { white-space: nowrap; color: var(--dim); min-inline-size: 3.2em; }
   .ench-row select { flex: 1; min-width: 0; padding: 0 8px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   .ench-warn { color: var(--danger); font-size: .75rem; }
-  .addon { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--card-border); }
+  .addon { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--card-border); }
   .addon-h { font-size: .78rem; font-weight: 700; color: var(--dim); }
   .ench-row input[type=number] { inline-size: 4.6em; flex: 0 0 auto; padding: 0 6px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   /* 搜尋 */
