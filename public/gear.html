@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '武器精煉加成併入 ATK、MATK 顯示，並註明含精煉多少'],
   ['2026/11/17', '新增里希塔樂鎮（企業都市）精裝之書、魔法經典，以及雷擊經典；搭配清單只列已成立的'],
   ['2026/11/17', '依官方裝備道具查詢平台補齊：朱諾武器（攻擊、職業）、熔岩皮革與貝思波防禦、愛的記憶搭配貝思波核心、銀月魔女的皮鞋、暴風雪法杖；新增業火魔杖、寒冰魔杖'],
   ['2026/11/17', '新增銀月魔女鞋；標題加上 Beta'],
@@ -409,10 +410,13 @@ function slotHtml([k, label, kinds], res) {
 
 function renderResult(res) {
   const { tot, setInfo, combos, notes, over } = res;
-  const keys = GEAR_STAT.map(x => x[0]).filter(k => tot[k]);
-  $('totals').innerHTML = keys.length ? `<ul class="tot-list">${keys.map(k => { const i = STAT_INFO[k], n = tot[k] * i.sign;
-    const ov = k === 'refATK' && over[1] ? `<small>（過度精煉另 +${over[0]}～+${over[1]}）</small>` : '';
-    return `<li><span>${i.label}</span><b>${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}${ov}</b></li>`; }).join('')}</ul>` : `<div class="empty">還沒有裝備。</div>`;
+  // 武器精煉同時加 ATK 與 MATK，併進這兩行顯示（註明含精煉多少）
+  const ref = tot.refATK || 0, view = { ...tot };
+  if (ref) { view.ATK = (view.ATK || 0) + ref; view.MATK = (view.MATK || 0) + ref; delete view.refATK; }
+  const refNote = ref ? `<small>（含武器精煉 +${ref}${over[1] ? `，過度精煉另 +${over[0]}～+${over[1]}` : ''}）</small>` : '';
+  const keys = GEAR_STAT.map(x => x[0]).filter(k => view[k]);
+  $('totals').innerHTML = keys.length ? `<ul class="tot-list">${keys.map(k => { const i = STAT_INFO[k], n = view[k] * i.sign;
+    return `<li><span>${i.label}</span><b>${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}${(k === 'ATK' || k === 'MATK') ? refNote : ''}</b></li>`; }).join('')}</ul>` : `<div class="empty">還沒有裝備。</div>`;
   // 共用部件（例如時光斗篷、天龍披風）會讓很多套裝顯示「缺幾件」；只顯示穿齊的，或有穿到專屬部件的
   const shareCnt = n => GEAR_SETS.filter(x => x.items.includes(n)).length;
   const fullItems = new Set(setInfo.filter(x => x.full).flatMap(x => x.s.items));
