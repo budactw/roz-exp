@@ -78,6 +78,20 @@
   .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
   .beta { display: inline-block; vertical-align: middle; font-size: .62rem; font-weight: 800; letter-spacing: .5px; padding: 2px 8px; border-radius: 999px; background: #f59e0b; color: #fff; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .sw { display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; font-size: .92rem; font-weight: 700; cursor: pointer; min-height: 32px; }
+  .sw input[switch] { accent-color: var(--seg-active); margin: 0; cursor: pointer; }
+  .sw input[switch]:focus-visible { outline: 3px solid var(--primary); outline-offset: 4px; }
+  /* 不支援原生 switch 的瀏覽器：自繪開關 */
+  .sw input.sw-fb { appearance: none; -webkit-appearance: none; position: relative; inline-size: 42px; block-size: 24px; border-radius: 999px; background: var(--bar-bg); border: 1px solid var(--input-border); transition: background .15s; flex: 0 0 auto; }
+  .sw input.sw-fb::before { content: ""; position: absolute; inset-block-start: 2px; inset-inline-start: 2px; inline-size: 18px; block-size: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s; }
+  .sw input.sw-fb:checked { background: var(--seg-active); border-color: var(--seg-active); }
+  .sw input.sw-fb:checked::before { transform: translateX(18px); }
+  @media (prefers-reduced-motion: reduce) { .sw input.sw-fb, .sw input.sw-fb::before { transition: none; } }
+  .ench { display: grid; gap: 6px; margin-top: 8px; }
+  .ench-row { display: flex; align-items: center; gap: 8px; font-size: .82rem; }
+  .ench-row label { white-space: nowrap; color: var(--dim); min-inline-size: 3.2em; }
+  .ench-row select { flex: 1; min-width: 0; padding: 0 8px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
+  .ench-warn { color: var(--danger); font-size: .75rem; }
   /* 搜尋 */
   .gsearch-wrap { display: block; margin-bottom: 12px; }
   .gsearch { display: flex; gap: 8px; align-items: center; }
@@ -143,6 +157,7 @@
       <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
     <div class="field" style="margin-top:12px;"><label>整套精煉（拉動會把所有可精煉的裝備改成同一個值，之後還能個別調）</label>
       <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
+    <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 設定附魔</label>
     <details class="ps"><summary>純素質（選填，巨神蟒蛇皮、神器等依純素質加成）</summary>
       <div class="ps-grid" id="psGrid"></div></details>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">🗑️ 全部卸下</button></div>
@@ -198,6 +213,7 @@
 </div>
 
 <script src="gear-data.js?v=25"></script>
+<script src="enchant-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -218,7 +234,7 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {} });
+const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {}, ench: false });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 function fixState() {
   st.ps = st.ps || {};
@@ -236,17 +252,17 @@ load();
 const b64e = str => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = str => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0)));
 function packState() {
-  const o = { l: st.lv, j: st.job, a: st.all, s: {} };
+  const o = { l: st.lv, j: st.job, a: st.all, s: {} }; if (st.ench) o.e = 1;
   const ps = Object.fromEntries(PS.filter(k => st.ps[k]).map(k => [k, st.ps[k]])); if (Object.keys(ps).length) o.p = ps;
-  for (const [k] of GEAR_SLOTS) if (st.slots[k].n) o.s[k] = [st.slots[k].n, st.slots[k].r];
+  for (const [k] of GEAR_SLOTS) if (st.slots[k].n) { o.s[k] = [st.slots[k].n, st.slots[k].r]; const e = (st.slots[k].e || []).filter(Boolean); if (st.ench && e.length) o.s[k].push(st.slots[k].e); }
   return b64e(JSON.stringify(o));
 }
 function unpackState(code) {
   const o = JSON.parse(b64d(code)), n = (v, d, lo, hi) => Number.isFinite(+v) ? Math.max(lo, Math.min(hi, Math.round(+v))) : d;
   const s = DEFAULT();
-  s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20);
+  s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20); s.ench = !!o.e;
   for (const k of PS) if (o.p && o.p[k]) s.ps[k] = n(o.p[k], 0, 0, 300);
-  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0 }; }
+  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [] }; }
   return s;
 }
 function readHash() {
@@ -273,7 +289,7 @@ async function saveShared() {
 function closeShared() { shared = false; clearHash(); load(); syncInputs(); render(); }
 function syncShared() { $('shareBar').classList.toggle('hidden', !shared); }
 function syncInputs() {
-  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv;
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('useEnch').checked = !!st.ench;
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -295,6 +311,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/18', '新增「設定附魔」：征伐隊～征服者轉生、毀葛紀念品、奧丁防具的專屬附魔（依官方附魔表，精煉 +9 限定選項會標示），附魔效果併入加總並可分享'],
   ['2026/11/18', '介面：電腦版能力加總固定在右側、手機版底部摘要列（換裝即時看到數字）、裝備搜尋框與武器類型篩選；新增神器：雷神之錘、雷神腰帶、史雷普尼爾之靴、女神頸鏈'],
   ['2026/11/18', '新增：靈幻、死靈全系列武器，地龍忍刀；Lv100 忍者鎧甲與圖騰護腕、古代菲力卡的頭箍、古代摩菲斯戒指／臂環、尾翎、獵鷹拳套、雙龍戒指；貓眼、烏鴉天狗面具、銀盾、鯊魚寶寶背包（新增「服飾」欄，可穿鯊魚寶寶面具算搭配）；地龍／陰陽殺刃更正為官方名稱「殺刀」'],
   ['2026/11/18', '新增：異世之靈頭盔 10 頂（+9 依職業加總）、城戰下級／中級公會員武器與防具（含 3 件精煉總和套裝）、無顱武士的手套、某個魔法師的手套；數值皆依官方查詢平台'],
@@ -372,6 +389,7 @@ function compute() {
     if (it.p11 && p11Times(r)) add(tot, mul(it.p11, p11Times(r)), nt);
     if (pfTimes(it, r)) add(tot, mul(it.pf[1], pfTimes(it, r)), nt);
     for (const [n, eff] of Object.entries(it.r || {})) if (r >= +n) add(tot, eff, nt);
+    for (const x of enchOn(slot, it, r)) add(tot, x.eff, nt);
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
@@ -400,6 +418,41 @@ function compute() {
   }
   return { tot, notes, setInfo, combos, per, over };
 }
+
+// ===== 附魔 =====
+// GEAR_ENCH（enchant-data.js）：[{ label, test(it), slots: [{ name, parts: { armor: [[最低精煉, [選項…]], …], … } }] }]
+const partOf = it => it.s === 'accR' || it.s === 'accL' ? 'acc' : it.s;
+function enchSlots(it) {
+  if (!it || typeof GEAR_ENCH === 'undefined') return [];
+  const c = GEAR_ENCH.find(c => c.test(it)); if (!c) return [];
+  return c.slots.map(s => ({ name: s.name, list: s.parts[partOf(it)] || s.parts.all })).filter(s => s.list);
+}
+const enchMin = (s, n) => { const x = s.list.find(([, names]) => names.includes(n)); return x ? x[0] : null; };
+// 目前生效的附魔：[{ slot 名稱, 選項, 效果 }]；精煉不夠的不算
+function enchOn(k, it, r) {
+  if (!st.ench) return [];
+  const e = st.slots[k].e || [];
+  return enchSlots(it).map((s, i) => ({ s, n: e[i] })).filter(x => x.n && enchMin(x.s, x.n) !== null && r >= enchMin(x.s, x.n)).map(x => {
+    // _pr：「鎧甲每精煉 +N」依這件裝備的精煉值換算
+    const raw = enchEff(x.n), { _pr, ...eff } = raw;
+    for (const [n, e] of _pr || []) { const t = Math.floor(r / n); if (t) add(eff, mul(e, t)); }
+    const txt = [fmtEff(Object.fromEntries(Object.entries(raw).filter(([k]) => k !== '_pr')))].concat((_pr || []).map(([n, e]) => `精煉每 +${n}：${fmtEff(e)}（目前 ×${Math.floor(r / n)}）`)).filter(Boolean).join('、');
+    return { ...x, eff, txt };
+  });
+}
+function enchHtml(k, it, r) {
+  if (!st.ench) return '';
+  const slots = enchSlots(it); if (!slots.length) return '';
+  const e = st.slots[k].e || [];
+  return `<div class="ench">` + slots.map((s, i) => {
+    const all = [...new Set(s.list.flatMap(([, names]) => names))];
+    const min = e[i] ? enchMin(s, e[i]) : null, bad = e[i] && min !== null && r < min;
+    const opts = `<option value="">（未附魔）</option>` + all.map(n => { const m = enchMin(s, n); return `<option value="${n}"${n === e[i] ? ' selected' : ''}>${n}${m ? `（精煉 +${m}）` : ''}</option>`; }).join('');
+    return `<div class="ench-row"><label for="ench-${k}-${i}">${s.name}</label><select id="ench-${k}-${i}" onchange="setEnch('${k}', ${i}, this.value)">${opts}</select></div>` +
+      (bad ? `<div class="ench-warn">⚠️ 這個附魔要精煉 +${min} 以上才有，目前不計入</div>` : '');
+  }).join('') + `</div>`;
+}
+function setEnch(k, i, v) { const e = st.slots[k].e = (st.slots[k].e || []).slice(); e[i] = v; save(); render(); }
 
 // ===== 畫面 =====
 function slotBody(k, res) {
@@ -443,6 +496,7 @@ function slotBody(k, res) {
     for (const [n, e] of c.sums) eff += li(ok && x.sum >= n ? 'on' : nx && n === nx[0] ? 'next' : '', '搭配',
       ok ? `精煉總和 ${x.sum}／${n}：${fmtEff(e)}` : `精煉總和 ${n}（需同時穿 ${need}）：${fmtEff(e)}`, nx && n === nx[0] ? `再 +${n - x.sum}` : '');
   }
+  for (const x of enchOn(k, it, r)) eff += li('on', `附魔・${x.s.name}`, `${x.n}：${x.txt}`);
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   // 只列有關的套裝：穿齊的 → 已穿 2 件以上的 → 目前職業能穿的；都沒有就只寫可搭幾組
   const mySets = GEAR_SETS.filter(s => s.items.includes(it.n));
@@ -478,7 +532,8 @@ function slotHtml([k, label, kinds], res) {
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   h += `<div class="meta">${b.meta}</div>`;
-  if (it.ref) h += `<div class="rf"><input type="range" min="0" max="20" value="${cur.r}" oninput="setRef('${k}', this.value)"><span class="rv">+${cur.r}</span></div>`;
+  if (it.ref) h += `<div class="rf"><input type="range" min="0" max="20" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
+  h += enchHtml(k, it, cur.r);
   return h + `<ul class="eff">${b.eff}</ul></div>`;
 }
 
@@ -568,7 +623,7 @@ function refreshSlots() {
 
 function pick(k, n) {
   const it = BY_NAME[n];
-  st.slots[k] = { n, r: it && it.ref ? st.all : 0 };
+  st.slots[k] = { n, r: it && it.ref ? st.all : 0, e: [] };
   for (const o of (it && it.occ) || []) st.slots[o] = { n: '', r: 0 };
   save(); render();
 }
@@ -581,6 +636,9 @@ $('allRef').addEventListener('input', e => {
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
 $('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
+if (!('switch' in HTMLInputElement.prototype)) $('useEnch').classList.add('sw-fb');
+$('useEnch').checked = !!st.ench;
+$('useEnch').addEventListener('change', e => { st.ench = e.target.checked; save(); render(); track('gear_ench', { on: st.ench }); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
 $('psGrid').innerHTML = PS.map(s => `<div class="field"><label>純 ${s}</label><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0"></div>`).join('');
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });

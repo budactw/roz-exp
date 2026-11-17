@@ -1,0 +1,228 @@
+{
+ "category": "毀葛紀念品專屬附魔",
+ "items": [
+  "艾爾帕蘭時鐘帽（紅）",
+  "卡利斯格騎士團長頭盔",
+  "愛麗絲的時髦假髮",
+  "骷髏披風",
+  "魔女南瓜帽",
+  "黑光圍巾",
+  "洛基面具"
+ ],
+ "tables": [
+  {
+   "image": "hg_a",
+   "title": "煙火設計師麗塔-附魔內容",
+   "part": "艾爾帕蘭時鐘帽（紅）、卡利斯格騎士團長頭盔、愛麗絲的時髦假髮、骷髏披風、魔女南瓜帽",
+   "stage": "四、三洞附魔",
+   "refine": "",
+   "options": [
+    {
+     "name": "STR+2",
+     "desc": "STR+2"
+    },
+    {
+     "name": "AGI+2",
+     "desc": "AGI+2"
+    },
+    {
+     "name": "DEX+2",
+     "desc": "DEX+2"
+    },
+    {
+     "name": "VIT+2",
+     "desc": "VIT+2"
+    },
+    {
+     "name": "LUK+2",
+     "desc": "LUK+2"
+    },
+    {
+     "name": "INT+2",
+     "desc": "INT+2"
+    },
+    {
+     "name": "HP+200",
+     "desc": "HP+200"
+    },
+    {
+     "name": "SP+50",
+     "desc": "SP+50"
+    },
+    {
+     "name": "MHP + 300",
+     "desc": "MHP + 300"
+    },
+    {
+     "name": "SP+75",
+     "desc": "SP+75"
+    },
+    {
+     "name": "MHP + 400",
+     "desc": "MHP + 400"
+    },
+    {
+     "name": "SP+100",
+     "desc": "SP+100"
+    },
+    {
+     "name": "HIT + 3",
+     "desc": "HIT + 3"
+    },
+    {
+     "name": "FLEE+3",
+     "desc": "FLEE+3"
+    },
+    {
+     "name": "STR+3",
+     "desc": "STR+3"
+    },
+    {
+     "name": "AGI+3",
+     "desc": "AGI+3"
+    },
+    {
+     "name": "DEX+3",
+     "desc": "DEX+3"
+    },
+    {
+     "name": "VIT+3",
+     "desc": "VIT+3"
+    },
+    {
+     "name": "LUK+3",
+     "desc": "LUK+3"
+    },
+    {
+     "name": "INT+3",
+     "desc": "INT+3"
+    },
+    {
+     "name": "HIT + 6",
+     "desc": "HIT + 6"
+    },
+    {
+     "name": "FLEE+6",
+     "desc": "FLEE+6"
+    },
+    {
+     "name": "HIT + 10",
+     "desc": "HIT + 10"
+    },
+    {
+     "name": "FLEE+10",
+     "desc": "FLEE+10"
+    },
+    {
+     "name": "鬥志4Lv",
+     "desc": "ATK+15，HIT+5"
+    },
+    {
+     "name": "魔力3Lv",
+     "desc": "MATK+12，變動詠唱-8%"
+    },
+    {
+     "name": "尖銳2Lv",
+     "desc": "CRI+9、HIT+3"
+    },
+    {
+     "name": "名弓3Lv",
+     "desc": "遠距離武器物理傷害+6%"
+    },
+    {
+     "name": "致命1Lv",
+     "desc": "暴擊傷害+4%，CRI+1"
+    }
+   ]
+  },
+  {
+   "image": "hg_b",
+   "title": "煙火設計師麗塔-附魔內容",
+   "part": "黑光圍巾、洛基面具",
+   "stage": "四洞附魔",
+   "refine": "",
+   "options": [
+    {
+     "name": "STR+1",
+     "desc": "STR+1"
+    },
+    {
+     "name": "AGI+1",
+     "desc": "AGI+1"
+    },
+    {
+     "name": "DEX+1",
+     "desc": "DEX+1"
+    },
+    {
+     "name": "VIT+1",
+     "desc": "VIT+1"
+    },
+    {
+     "name": "LUK+1",
+     "desc": "LUK+1"
+    },
+    {
+     "name": "INT+1",
+     "desc": "INT+1"
+    },
+    {
+     "name": "STR+2",
+     "desc": "STR+2"
+    },
+    {
+     "name": "AGI+2",
+     "desc": "AGI+2"
+    },
+    {
+     "name": "DEX+2",
+     "desc": "DEX+2"
+    },
+    {
+     "name": "VIT+2",
+     "desc": "VIT+2"
+    },
+    {
+     "name": "LUK+2",
+     "desc": "LUK+2"
+    },
+    {
+     "name": "INT+2",
+     "desc": "INT+2"
+    },
+    {
+     "name": "HIT + 3",
+     "desc": "HIT + 3"
+    },
+    {
+     "name": "FLEE+3",
+     "desc": "FLEE+3"
+    },
+    {
+     "name": "HP+200",
+     "desc": "HP+200"
+    },
+    {
+     "name": "SP+50",
+     "desc": "SP+50"
+    },
+    {
+     "name": "HIT + 6",
+     "desc": "HIT + 6"
+    },
+    {
+     "name": "FLEE+6",
+     "desc": "FLEE+6"
+    },
+    {
+     "name": "MHP + 300",
+     "desc": "MHP + 300"
+    },
+    {
+     "name": "SP+75",
+     "desc": "SP+75"
+    }
+   ]
+  }
+ ]
+}

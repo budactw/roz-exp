@@ -1,0 +1,16 @@
+{"category":"60MD 征伐隊","tables":[
+{"image":"md60_b","title":"精煉+0~8附魔內容","part":"全部","stage":"四洞附魔","options":[
+{"name":"AGI+1","desc":"AGI+1"},{"name":"DEX+1","desc":"DEX+1"},{"name":"STR+1","desc":"STR+1"},{"name":"INT+1","desc":"INT+1"},{"name":"VIT+1","desc":"VIT+1"},{"name":"LUK+1","desc":"LUK+1"},
+{"name":"AGI+2","desc":"AGI+2"},{"name":"DEX+2","desc":"DEX+2"},{"name":"STR+2","desc":"STR+2"},{"name":"INT+2","desc":"INT+2"},{"name":"VIT+2","desc":"VIT+2"},{"name":"LUK+2","desc":"LUK+2"},
+{"name":"FLEE+3","desc":"FLEE+3"},{"name":"暴擊1Lv","desc":"CRI+1"},{"name":"DEF+15","desc":"DEF+15"},{"name":"MDEF+2","desc":"MDEF+2"},{"name":"HP50","desc":"HP50"},{"name":"HP100","desc":"HP100"},{"name":"HP200","desc":"HP200"}]},
+{"image":"md60_c","title":"精煉≧+9附魔內容","part":"披肩部位","stage":"四洞附魔","options":"SAME_AS_BASE+HP300+HP400"},
+{"image":"md60_c","title":"精煉≧+9附魔內容","part":"鞋子部位","stage":"四洞附魔","options":"SAME_AS_BASE+HP300+HP400"},
+{"image":"md60_d","title":"精煉≧+9附魔內容","part":"盔甲(推測)","stage":"四洞附魔","options":"SAME_AS_BASE+HP300+HP400+ESSENCES",
+ "essences":[
+ {"name":"劍士精髓1Lv","desc":"怒爆SP消耗-10。 / 狂擊每+2級，攻擊速度增加（攻擊後延遲-1%）。"},
+ {"name":"商人精髓1Lv","desc":"低價買進每+1級，ATK+2。 / 高價賣出每+2級，攻擊速度增加（攻擊後延遲-1%）。"},
+ {"name":"盜賊精髓1Lv","desc":"當裝備職業為盜賊時，ATK+30。 / 偷竊每+2級，攻擊速度增加（攻擊後延遲-1%）。"},
+ {"name":"魔法師精髓1Lv","desc":"冰箭術、火箭術、雷擊術的傷害+20%。 / 火焰之壁每+2級，變動詠唱-1%。"},
+ {"name":"服事精髓1Lv","desc":"治癒術、加速術、天使之賜福SP消耗-15%。 / 治癒術每+2級，治癒量+1%。"},
+ {"name":"弓箭手精髓1Lv","desc":"二連矢SP消耗-5。 / 蒼鷹之眼每+1級，弓攻擊力+1%。"}]}
+]}
