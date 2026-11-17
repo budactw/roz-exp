@@ -464,15 +464,16 @@ function setEnch(k, i, v) { const e = st.slots[k].e = (st.slots[k].e || []).slic
 // GEAR_ADDON（addon-data.js）：每件裝備可能有幾種能力池（例如物理／魔法），每池分第一條、第二條…，每條選一種能力並填數值
 // 不是打怪掉落的分類（副本、星武器、城戰、活動…）沒有原生附加能力
 const NO_DROP_ADDON = ['征伐隊', '遠征隊', '殲滅隊', '征服者', '征服者轉生', '一星武器', '二星武器', '一星防具', '城戰', '鯊魚寶寶聯名', '神器', '異世之靈', '雷吉亞', '波利村'];
-const RANGED_TYPES = ['弓', '手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍', '樂器', '鞭子'], MAGIC_TYPES = ['單手杖', '雙手杖', '書'];
+const RANGED_TYPES = ['弓', '手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍', '樂器', '鞭子'];
 function addonPools(it) {
   if (!it || typeof GEAR_ADDON === 'undefined') return [];
   const own = GEAR_ADDON.filter(c => c.test(it)).flatMap(c => c.pools);
   if (own.length || NO_DROP_ADDON.includes(it.g) || typeof GEAR_ADDON_DROP === 'undefined') return own;
   // 一般掉落裝備：武器依類型把預設的近距離／遠距離／魔法排前面（池 4 最完整，排第一）
   if (it.s === 'weapon') {
-    const first = MAGIC_TYPES.includes(it.type) ? '魔法' : RANGED_TYPES.includes(it.type) ? '遠距離' : '近距離';
-    return [first, ...['近距離', '遠距離', '魔法'].filter(x => x !== first)].flatMap(x => (GEAR_ADDON_DROP.weapon[x] || []).slice().reverse());
+    // 法杖只有魔法詞條；書物理、魔法都可能；其他武器只有物理（近距離／遠距離）
+    const order = /杖$/.test(it.type) ? ['魔法'] : it.type === '書' ? ['魔法', '近距離'] : RANGED_TYPES.includes(it.type) ? ['遠距離', '近距離'] : ['近距離', '遠距離'];
+    return order.flatMap(x => (GEAR_ADDON_DROP.weapon[x] || []).slice().reverse());
   }
   return GEAR_ADDON_DROP[it.s] || [];
 }
