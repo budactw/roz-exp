@@ -79,13 +79,15 @@
   .beta { display: inline-block; vertical-align: middle; font-size: .62rem; font-weight: 800; letter-spacing: .5px; padding: 2px 8px; border-radius: 999px; background: #f59e0b; color: #fff; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   /* 搜尋 */
-  .gsearch { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .gsearch-wrap { display: block; margin-bottom: 12px; }
+  .gsearch { display: flex; gap: 8px; align-items: center; }
   .gsearch input { flex: 1; min-width: 0; padding: 0 12px; min-height: 42px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: .95rem; font-family: inherit; }
   .gsearch .cnt { font-size: .8rem; color: var(--dim); white-space: nowrap; }
   .slot-h select.wtype { flex: 0 0 auto; width: 6.6em; }
   /* 底部加總摘要列 */
-  body.has-dock { padding-bottom: 76px; }
-  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-top: 1px solid var(--card-border); box-shadow: 0 -6px 18px rgba(0,0,0,.12); transition: transform .2s; padding-bottom: env(safe-area-inset-bottom); }
+  body.has-dock { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  html:has(body.has-dock) { scroll-padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-top: 1px solid var(--card-border); box-shadow: 0 -6px 18px rgba(0,0,0,.12); transition: transform .2s; padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
   .dock.away, .dock.none { transform: translateY(110%); }
   .dock-in { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
   .dock-chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
@@ -94,18 +96,20 @@
   .chip b { color: var(--primary); font-variant-numeric: tabular-nums; margin-left: 3px; }
   .chip.flash { border-color: var(--green); }
   .chip.flash b { color: var(--green); }
-  .dock-btn { flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; cursor: pointer; }
+  .dock-btn { flex: 0 0 auto; min-height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; cursor: pointer; }
   .gear-main, .gear-layout { margin-bottom: 16px; }
+  @media (pointer: coarse) { .dock-btn { min-height: 44px; } }
   /* 電腦版：能力加總放右側並固定；不用底部摘要列 */
   @media (min-width: 1100px) {
     .gear-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
     .gear-layout > * > .card { margin-bottom: 0; }
     .gear-main { margin-bottom: 0; }
-    .gear-side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; border-radius: 16px; scrollbar-width: thin; }
+    .gear-side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; border-radius: 16px; scrollbar-width: thin; }
     .gear-side .tot-list { columns: 1; }
     .gear-side .sets { font-size: .95em; }
     .dock { display: none; }
     body.has-dock { padding-bottom: 0; }
+    html:has(body.has-dock) { scroll-padding-bottom: 0; }
   }
 </style>
 </head>
@@ -147,7 +151,8 @@
   <div class="gear-layout"><div class="gear-main">
   <div class="card">
     <h2>🛡️ 裝備</h2>
-    <div class="gsearch"><input type="search" id="gq" placeholder="🔍 搜尋裝備，例如：靈幻、奧丁、雙手劍" autocomplete="off"><span class="cnt" id="gqCnt"></span></div>
+    <search class="field gsearch-wrap"><label for="gq">搜尋裝備（名稱、分類、類型或職業）</label>
+      <div class="gsearch"><input type="search" id="gq" name="q" placeholder="例如：靈幻、奧丁、雙手劍" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"><span class="cnt" id="gqCnt" role="status"></span></div></search>
     <div class="slots" id="slots"></div>
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
   </div>
@@ -178,7 +183,7 @@
 </div>
 
 <div class="dock none" id="dock">
-  <div class="dock-in"><div class="dock-chips" id="dockChips"></div><button class="dock-btn" onclick="$('totCard').scrollIntoView({ behavior: 'smooth' })">看加總 ↓</button></div>
+  <div class="dock-in"><div class="dock-chips" id="dockChips" role="region" aria-label="能力加總摘要" tabindex="0"></div><button class="dock-btn" onclick="$('totCard').scrollIntoView({ behavior: 'smooth' })">看加總 ↓</button></div>
 </div>
 
 <div class="modal" id="dlg">
@@ -468,9 +473,9 @@ function slotHtml([k, label, kinds], res) {
     list.filter(x => x.g === g).map(opt).join('') + `</optgroup>`).join('');
   const occ = occupiedBy(k);
   if (occ) return `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
-  const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" title="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
+  const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" aria-label="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
   const none = gq && !list.some(x => x !== it) ? `<option disabled>（沒有符合「${gq}」的裝備）</option>` : '';
-  let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b>${tsel}<select onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
+  let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   h += `<div class="meta">${b.meta}</div>`;
