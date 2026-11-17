@@ -252,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '搭配對象沒穿上時，精煉總和不再顯示單件數字，改寫需同時穿哪件'],
   ['2026/11/17', '技能／條件加成拆成個別技能、個別條件再加總'],
   ['2026/11/17', '新增雷吉亞狩獵套裝（含面具、三件各 +9 效果）；本件合計標示精煉浮動值'],
   ['2026/11/17', '武器精煉加成併入 ATK、MATK 顯示，並註明含精煉多少'],
@@ -396,7 +397,8 @@ function slotBody(k, res) {
   for (const x of res.combos.filter(x => x.it === it)) {
     eff += li(x.ok ? 'on' : '', '搭配', `${x.c.with.join('＋')}：${fmtEff(x.c.b)}`);
     const nx = x.c.sums.find(([n]) => x.sum < n);
-    for (const [n, e] of x.c.sums) eff += li(x.ok && x.sum >= n ? 'on' : x.ok && nx && n === nx[0] ? 'next' : '', '搭配', `精煉總和 ${x.sum}／${n}：${fmtEff(e)}`, x.ok && nx && n === nx[0] ? `再 +${n - x.sum}` : '');
+    for (const [n, e] of x.c.sums) eff += li(x.ok && x.sum >= n ? 'on' : x.ok && nx && n === nx[0] ? 'next' : '', '搭配',
+      x.ok ? `精煉總和 ${x.sum}／${n}：${fmtEff(e)}` : `精煉總和 ${n}（需同時穿 ${x.c.with.join('＋')}）：${fmtEff(e)}`, x.ok && nx && n === nx[0] ? `再 +${n - x.sum}` : '');
   }
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   // 只列有關的套裝：穿齊的 → 已穿 2 件以上的 → 目前職業能穿的；都沒有就只寫可搭幾組
@@ -458,7 +460,7 @@ function renderResult(res) {
   // 一件裝備有好幾組搭配時，只列已成立的，避免一堆「缺」
   const comboHtml = combos.filter(({ it, ok }) => ok || (it.w2 || []).length === 1).map(({ it, c, ok, sum }) => `<div class="setc"><span class="nm">${it.n}</span>　＋ ${c.with.join('＋')}　${ok ? '<span class="ok">✓</span>' : `<span class="miss">缺：${c.with.filter(n => !equipped().some(x => x.it.n === n)).join('、')}</span>`}<br>` +
     (Object.keys(c.b).length ? `<span class="${ok ? 'ok' : 'no'}">${fmtEff(c.b)}</span>` : '') + c.sums.map(([n, e]) => { const on = ok && sum >= n;
-      return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${sum}／${n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
+      return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${ok ? `${sum}／${n}` : n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
   const all = setHtml.concat(comboHtml).map(h => h.replace(/(<br>)+/g, '<br>'));
   $('sets').innerHTML = all.length ? all.join('') : `<div class="empty">沒有穿到任何套裝或搭配的部件。</div>`;
   const cEnt = Object.entries(cAll).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
