@@ -759,5 +759,15 @@ GEAR_DB.push({ n: '鯊魚寶寶背包', g: '鯊魚寶寶聯名', s: 'garment', d
   t: ['插「鯊魚寶寶卡片」：ATK+30、攻擊後延遲-8%', '插「鯊魚家族卡片」：MATK+30、變動詠唱-8%', '可使用回歸普隆德拉'] });
 GEAR_DB.push({ n: '(服飾)鯊魚寶寶面具(歸屬)', g: '鯊魚寶寶聯名', s: 'costume', def: 0, lv: 1, ref: false, b: {}, t: ['服飾頭上；要歸屬版才有搭配效果'] });
 
+// ===== 神器（官方裝備道具查詢平台）=====
+(() => {
+  const G = '神器';
+  GEAR_DB.push({ n: '雷神之錘', g: G, s: 'weapon', type: '鈍器', w: 350, wl: 4, lv: 94, j: '劍士系列、商人系列、服事系列', ref: false, b: { STR: 20, DEX: 20, HIT: 100 },
+    t: ['近距離物理攻擊時，一定機率自動施放閃電風暴', '近距離物理攻擊時，一定機率 10 秒內擴散傷害', '無限攻擊速度加速', '無法破壞'] });
+  GEAR_DB.push({ n: '史雷普尼爾之靴', g: G, s: 'shoes', def: 40, lv: 94, ref: false,
+    b: { MHPp: 20, MSPp: 20, spRegen: 100, MDEF: 10, _lv: [10, { _c: { '對全屬性敵人的所有傷害': 1 } }], _ps: [['DEX', 15, { fct: 10 }, 8]] }, t: ['無限加速', '無法破壞'] });
+  GEAR_DB.push({ n: '雷神腰帶', g: G, s: 'accR', def: 2, lv: 94, ref: false, b: { STR: 40, MDEF: 7, _lv: [10, { STR: 2 }], _if: [['STR', 95, { _c: { '對 BOSS 階級敵人的物理傷害': 10 } }]] } });
+})();
+
 // 必須放在檔案最後：w2 搭配的精煉總和統一成 sums 陣列
 for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);

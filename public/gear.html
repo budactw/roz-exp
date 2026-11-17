@@ -78,6 +78,25 @@
   .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
   .beta { display: inline-block; vertical-align: middle; font-size: .62rem; font-weight: 800; letter-spacing: .5px; padding: 2px 8px; border-radius: 999px; background: #f59e0b; color: #fff; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  /* 搜尋 */
+  .gsearch { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .gsearch input { flex: 1; min-width: 0; padding: 0 12px; min-height: 42px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: .95rem; font-family: inherit; }
+  .gsearch .cnt { font-size: .8rem; color: var(--dim); white-space: nowrap; }
+  .slot-h select.wtype { flex: 0 0 auto; width: 6.6em; }
+  /* 底部加總摘要列 */
+  body.has-dock { padding-bottom: 76px; }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-top: 1px solid var(--card-border); box-shadow: 0 -6px 18px rgba(0,0,0,.12); transition: transform .2s; padding-bottom: env(safe-area-inset-bottom); }
+  .dock.away, .dock.none { transform: translateY(110%); }
+  .dock-in { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+  .dock-chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+  .dock-chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--soft); border: 1px solid var(--card-border); color: var(--dim); }
+  .chip b { color: var(--primary); font-variant-numeric: tabular-nums; margin-left: 3px; }
+  .chip.flash { border-color: var(--green); }
+  .chip.flash b { color: var(--green); }
+  .dock-btn { flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; cursor: pointer; }
+  .dock-panel { max-width: 1100px; margin: 0 auto; max-height: 55vh; overflow-y: auto; padding: 4px 12px 12px; }
+  .dock-panel .sec-title { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -110,18 +129,19 @@
       <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
     <div class="field" style="margin-top:12px;"><label>整套精煉（拉動會把所有可精煉的裝備改成同一個值，之後還能個別調）</label>
       <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
-    <details class="ps"><summary>純素質（選填，巨神蟒蛇皮「每 30 點純素質」用）</summary>
+    <details class="ps"><summary>純素質（選填，巨神蟒蛇皮、雷神腰帶、史雷普尼爾之靴等依純素質加成）</summary>
       <div class="ps-grid" id="psGrid"></div></details>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">🗑️ 全部卸下</button></div>
   </div>
 
   <div class="card">
     <h2>🛡️ 裝備</h2>
+    <div class="gsearch"><input type="search" id="gq" placeholder="🔍 搜尋裝備，例如：靈幻、奧丁、雙手劍" autocomplete="off"><span class="cnt" id="gqCnt"></span></div>
     <div class="slots" id="slots"></div>
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
   </div>
 
-  <div class="card">
+  <div class="card" id="totCard">
     <h2>📊 能力加總</h2>
     <div id="totals"></div>
     <div class="sec-title">技能／條件加成（只對特定技能或敵人生效）</div>
@@ -144,6 +164,11 @@
   </div>
 </div>
 
+<div class="dock none" id="dock">
+  <div class="dock-panel hidden" id="dockPanel"></div>
+  <div class="dock-in"><div class="dock-chips" id="dockChips"></div><button class="dock-btn" id="dockBtn" onclick="toggleDock()">展開 ▲</button></div>
+</div>
+
 <div class="modal" id="dlg">
   <div class="modal-card" style="max-width:380px;">
     <div class="modal-head"><b id="dlgTitle"></b></div>
@@ -156,7 +181,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=23"></script>
+<script src="gear-data.js?v=24"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -254,6 +279,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/18', '介面：底部加總摘要列（換裝即時看到數字，可展開完整加總）、裝備搜尋框與武器類型篩選；新增神器：雷神之錘、雷神腰帶、史雷普尼爾之靴'],
   ['2026/11/18', '新增：靈幻、死靈全系列武器，地龍忍刀；Lv100 忍者鎧甲與圖騰護腕、古代菲力卡的頭箍、古代摩菲斯戒指／臂環、尾翎、獵鷹拳套、雙龍戒指；貓眼、烏鴉天狗面具、銀盾、鯊魚寶寶背包（新增「服飾」欄，可穿鯊魚寶寶面具算搭配）；地龍／陰陽殺刃更正為官方名稱「殺刀」'],
   ['2026/11/18', '新增：異世之靈頭盔 10 頂（+9 依職業加總）、城戰下級／中級公會員武器與防具（含 3 件精煉總和套裝）、無顱武士的手套、某個魔法師的手套；數值皆依官方查詢平台'],
   ['2026/11/17', '配裝模擬器 Beta 上線：收錄副本、星級武防、特色（王頭）、驚駭森靈巢穴、雷吉亞、各地區與鐵匠裝備，數值以官方查詢平台核對'],
@@ -296,7 +322,7 @@ function add(to, eff, notes) {
     else if (k === '_job') { for (const [j, e] of v) { if (!st.job) notes && notes.push(`${j}：${fmtEff(e)}（選職業後才加總）`); else if (jobIn(j)) add(to, e, notes); } }
     else if (k === '_lv') add(to, mul(v[1], Math.floor(st.lv / v[0])), notes);
     else if (k === '_if') { for (const [s, n, e] of v) if ((st.ps[s] || 0) >= n) add(to, e, notes); }
-    else if (k === '_ps') for (const [s, n, e] of v) { const t = Math.floor((st.ps[s] || 0) / n); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
+    else if (k === '_ps') for (const [s, n, e, max] of v) { const t = Math.min(Math.floor((st.ps[s] || 0) / n), max || Infinity); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
     else to[k] = (to[k] || 0) + v;
   }
   return to;
@@ -307,7 +333,7 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_c' ? Object.entries(v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b)).join('、') :
   k === '_job' ? v.map(([j, e]) => `${j}：${fmtEff(e)}${st.job && jobIn(j) ? ' ✓' : ''}`).join('；') :
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
-  k === '_ps' ? v.map(([s, n, e]) => `每 ${n} 點純 ${s}：${fmtEff(e)}`).join('、') :
+  k === '_ps' ? v.map(([s, n, e, max]) => `每 ${n} 點純 ${s}：${fmtEff(e)}${max ? `（最多 ${max} 次）` : ''}（目前 ×${Math.min(Math.floor((st.ps[s] || 0) / n), max || Infinity)}）`).join('、') :
   k === '_if' ? v.map(([s, n, e]) => `純 ${s} ${n} 以上：${fmtEff(e)}${(st.ps[s] || 0) >= n ? ' ✓' : ''}`).join('、') :
   fmtVal(k, v)).join('、');
 // 精煉防禦：+1～+4 每級 10、+5～+8 每級 20 …
@@ -419,14 +445,20 @@ function slotBody(k, res) {
 }
 function slotHtml([k, label, kinds], res) {
   const cur = st.slots[k], it = BY_NAME[cur.n];
-  const list = GEAR_DB.filter(x => (kinds.includes(x.s) || (k === 'shield' && leftOk(x))) && (canWear(x) || x.n === cur.n));
+  const base = GEAR_DB.filter(x => (kinds.includes(x.s) || (k === 'shield' && leftOk(x))) && canWear(x));
+  const types = k === 'weapon' ? [...new Set(base.map(x => x.type).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant')) : [];
+  if (k === 'weapon' && wtype && !types.includes(wtype)) wtype = '';
+  const list = base.filter(x => qMatch(x) && (k !== 'weapon' || !wtype || x.type === wtype));
+  if (it && !list.includes(it)) list.unshift(it);
   const groups = [...new Set(list.map(x => x.g))];
   const opt = x => `<option value="${x.n}"${x.n === cur.n ? ' selected' : ''}>${x.n}${x.type ? `（${x.type}${x.j ? '・' + x.j.replace('系列', '') : ''}）` : ''}${x.lv > 1 ? `　Lv${x.lv}` : ''}</option>`;
   const opts = `<option value="">（未裝備）</option>` + groups.map(g => `<optgroup label="${g}">` +
     list.filter(x => x.g === g).map(opt).join('') + `</optgroup>`).join('');
   const occ = occupiedBy(k);
   if (occ) return `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
-  let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><select onchange="pick('${k}', this.value)">${opts}</select></div>`;
+  const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" title="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
+  const none = gq && !list.some(x => x !== it) ? `<option disabled>（沒有符合「${gq}」的裝備）</option>` : '';
+  let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b>${tsel}<select onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   h += `<div class="meta">${b.meta}</div>`;
@@ -444,6 +476,7 @@ function renderResult(res) {
   if (view.fwMagic) { for (const x of ['火屬性魔法傷害', '水屬性魔法傷害']) cAll[x] = (cAll[x] || 0) + view.fwMagic; delete view.fwMagic; }
   const refNote = ref ? `<small>（含武器精煉 +${ref}${over[1] ? `，浮動 +${over[0]}～+${over[1]}` : ''}）</small>` : '';
   const keys = GEAR_STAT.map(x => x[0]).filter(k => view[k]);
+  renderDock(keys, view, cAll);
   $('totals').innerHTML = keys.length ? `<ul class="tot-list">${keys.map(k => { const i = STAT_INFO[k], n = view[k] * i.sign;
     return `<li><span>${i.label}</span><b>${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}${(k === 'ATK' || k === 'MATK') ? refNote : ''}</b></li>`; }).join('')}</ul>` : `<div class="empty">還沒有裝備。</div>`;
   // 共用部件（例如時光斗篷、天龍披風）會讓很多套裝顯示「缺幾件」；只顯示穿齊的，或有穿到專屬部件的
@@ -467,7 +500,7 @@ function renderResult(res) {
   const cEnt = Object.entries(cAll).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
   // 備註類文字（不可破壞、資料待補、取得方式…）不算效果，不列在這裡
-  const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
+  const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
   const eff = notes.map(x => { const i = x.indexOf('：'); return [x.slice(0, i), x.slice(i + 1)]; }).filter(([, t]) => !NOTE_RE.test(t));
   $('notes').innerHTML = eff.length ? eff.map(([n, t]) => `<li><span>${t}</span><b class="src">${n}</b></li>`).join('') : `<li><span>無</span></li>`;
 }
@@ -477,6 +510,44 @@ function render() {
   $('slots').innerHTML = GEAR_SLOTS.map(s => slotHtml(s, res)).join('');
   renderResult(res);
 }
+// ===== 搜尋與武器類型 =====
+let gq = '', wtype = '';
+const qMatch = x => !gq || gq.split(/\s+/).every(w => (x.n + ' ' + x.g + ' ' + (x.type || '') + ' ' + (x.j || '')).toLowerCase().includes(w.toLowerCase()));
+function setWtype(v) { wtype = v; render(); }
+$('gq').addEventListener('input', e => {
+  gq = e.target.value.trim(); render();
+  const n = gq ? GEAR_DB.filter(x => canWear(x) && qMatch(x)).length : 0;
+  $('gqCnt').innerText = gq ? `符合 ${n} 件` : '';
+});
+
+// ===== 底部加總摘要列 =====
+let dockPrev = {}, dockOpen = false;
+function renderDock(keys, view, cAll) {
+  const show = keys.filter(k => k !== 'wATK' && k !== 'DEF');
+  const now = {};
+  const chips = show.map(k => { const i = STAT_INFO[k], n = view[k] * i.sign; const v = `${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}`; now[k] = v;
+    return `<span class="chip${dockPrev[k] !== undefined && dockPrev[k] !== v ? ' flash' : ''}">${i.label}<b>${v}</b></span>`; });
+  if (view.DEF) chips.push(`<span class="chip">防禦<b>+${view.DEF}</b></span>`);
+  const cN = Object.values(cAll).filter(Boolean).length;
+  if (cN) chips.push(`<span class="chip">技能／條件<b>${cN} 項</b></span>`);
+  dockPrev = now;
+  const has = keys.length > 0;
+  $('dock').classList.toggle('none', !has); document.body.classList.toggle('has-dock', has);
+  $('dockChips').innerHTML = chips.join('');
+  if (dockOpen) fillDockPanel();
+}
+function fillDockPanel() {
+  $('dockPanel').innerHTML = $('totals').innerHTML + `<div class="sec-title">技能／條件加成</div><ul class="tot-list">${$('cTotals').innerHTML}</ul>`;
+}
+function toggleDock() {
+  dockOpen = !dockOpen;
+  $('dockPanel').classList.toggle('hidden', !dockOpen);
+  $('dockBtn').innerText = dockOpen ? '收合 ▼' : '展開 ▲';
+  if (dockOpen) fillDockPanel();
+}
+// 捲到「能力加總」卡片時收起摘要列，避免重複
+new IntersectionObserver(([e]) => $('dock').classList.toggle('away', e.isIntersecting), { threshold: 0.15 }).observe($('totCard'));
+
 // 拖曳精煉拉霸時只更新文字，不重畫拉霸本身
 function refreshSlots() {
   const res = compute();
