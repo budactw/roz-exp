@@ -44,6 +44,10 @@
   .stat .v { font-size: 1.05rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
   .stat.chg .v { color: var(--green); }
   .sets { display: grid; gap: 8px; }
+  .tot-list { list-style: none; margin: 0; padding: 0; columns: 3 200px; column-gap: 28px; font-size: .9rem; }
+  .tot-list li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 2px; border-bottom: 1px dashed var(--card-border); break-inside: avoid; }
+  .tot-list li span { color: var(--dim); }
+  .tot-list li b { color: var(--primary); font-variant-numeric: tabular-nums; }
   .setc { border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 12px; background: var(--tile-bg); font-size: .84rem; line-height: 1.6; }
   .setc .nm { font-weight: 800; }
   .setc .ok { color: var(--green); font-weight: 700; }
@@ -98,7 +102,7 @@
       <div class="field"><label>Base 等級（部分飾品依等級加成）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
     </div>
     <div class="field" style="margin-top:12px;"><label>一鍵套用套裝</label>
-      <select id="quickSet"><option value="">選一組套裝，四個部位一次換上…</option></select></div>
+      <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
     <div class="field" style="margin-top:12px;"><label>整套精煉（拉動會把所有可精煉的裝備改成同一個值，之後還能個別調）</label>
       <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
     <details class="ps"><summary>純素質（選填，巨神蟒蛇皮「每 30 點純素質」用）</summary>
@@ -145,7 +149,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=4"></script>
+<script src="gear-data.js?v=5"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -154,10 +158,13 @@ const KEY = 'roz-gear-v1';
 const DEF_SLOTS = ['shield', 'headTop', 'headMid', 'headLow', 'armor', 'garment', 'shoes', 'accR', 'accL'];   // 有精煉防禦的部位
 const PS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK'];
 const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
-const JOB_LINE = { 武僧: ['武道家'], 劍士: ['騎士', '十字軍'], 魔法師: ['巫師', '賢者'], 弓箭手: ['獵人', '吟遊詩人', '舞孃'], 服事: ['祭司', '武道家'], 商人: ['鐵匠', '鍊金術師'], 盜賊: ['刺客', '流氓'], 初學者: [] };
+const JOB_LINE = { 武僧: ['武道家'], 煉金術師: ['鍊金術師'], 煉金術士: ['鍊金術師'], 劍士: ['騎士', '十字軍'], 魔法師: ['巫師', '賢者'], 弓箭手: ['獵人', '吟遊詩人', '舞孃'], 服事: ['祭司', '武道家'], 商人: ['鐵匠', '鍊金術師'], 盜賊: ['刺客', '流氓'], 初學者: [] };
 // 裝備的職業欄（例：「劍士／商人系列」）→ 可裝備的二轉職業；沒寫＝全職業
 const jobsOf = it => it.j ? it.j.split(/[／、]/).map(x => x.replace('系列', '')).flatMap(x => JOB_LINE[x] || [x]) : JOBS;
 const canWear = it => !st.job || jobsOf(it).includes(st.job);
+// 刺客左手可拿短劍、單手劍、單手斧
+const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
+const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
 const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {} });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
@@ -214,7 +221,7 @@ async function saveShared() {
 function closeShared() { shared = false; clearHash(); load(); syncInputs(); render(); }
 function syncShared() { $('shareBar').classList.toggle('hidden', !shared); }
 function syncInputs() {
-  $('job').value = st.job; $('baseLv').value = st.lv;
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv;
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -236,6 +243,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '驚駭森靈巢穴改成套裝（可一鍵套用）；一鍵套裝依職業篩選、選完會顯示套裝名稱；分類只寫地區名稱'],
+  ['2026/11/17', '新增古城、優配、鐵匠武器、毀葛、深淵湖水、奧丁神殿、艾音布羅克武器、里希塔樂、熔岩、朱諾、沙漠裝備；刺客左手可拿短劍／單手劍／單手斧；能力加總改為條列'],
   ['2026/11/17', '新增配裝分享：產生連結給別人看，對方可以存成自己的配裝'],
   ['2026/11/17', '新增盾牌（特殊合金鋼盾、上弦月圖騰護腕）、艾音布羅克庇佑墜子／肩飾（含精煉總和 14／18／20 效果）'],
   ['2026/11/17', '新增職業篩選、特色裝備（王頭與地龍／陰陽武器）、頭上／頭中部位；每精煉 N 列出總加成、每件裝備合計'],
@@ -254,6 +263,7 @@ function add(to, eff, notes) {
   for (const [k, v] of Object.entries(eff || {})) {
     if (k === '_t') { if (notes) notes.push(v); }
     else if (k === '_lv') add(to, mul(v[1], Math.floor(st.lv / v[0])), notes);
+    else if (k === '_if') { for (const [s, n, e] of v) if ((st.ps[s] || 0) >= n) add(to, e, notes); }
     else if (k === '_ps') for (const [s, n, e] of v) { const t = Math.floor((st.ps[s] || 0) / n); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
     else to[k] = (to[k] || 0) + v;
   }
@@ -264,6 +274,7 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_t' ? v :
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
   k === '_ps' ? v.map(([s, n, e]) => `每 ${n} 點純 ${s}：${fmtEff(e)}`).join('、') :
+  k === '_if' ? v.map(([s, n, e]) => `純 ${s} ${n} 以上：${fmtEff(e)}${(st.ps[s] || 0) >= n ? ' ✓' : ''}`).join('、') :
   fmtVal(k, v)).join('、');
 // 精煉防禦：+1～+4 每級 10、+5～+8 每級 20 …
 const refDef = r => { let d = 0; for (let k = 1; k <= r; k++) d += 10 * Math.ceil(k / 4); return d; };
@@ -283,7 +294,7 @@ function compute() {
     if (it.p11 && p11Times(r)) add(tot, mul(it.p11, p11Times(r)), nt);
     for (const [n, eff] of Object.entries(it.r || {})) if (r >= +n) add(tot, eff, nt);
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); }
-    tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.s !== 'weaponL' ? refDef(r) : 0);
+    tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
       const ok = c.with.every(n => names.includes(n));
       const sum = [it.n, ...c.with].reduce((a, n) => a + refOf(n), 0);
@@ -300,8 +311,8 @@ function compute() {
     const have = s.items.filter(n => names.includes(n));
     if (!have.length) continue;
     const full = have.length === s.items.length;
-    const sum = s.items.reduce((a, n) => a + refOf(n), 0);
-    const sumOn = full && sum >= s.sum[0];
+    const sum = (s.sumItems || s.items).reduce((a, n) => a + refOf(n), 0);
+    const sumOn = full && s.sum && sum >= s.sum[0];
     if (full) add(tot, s.b);
     if (sumOn) add(tot, s.sum[1]);
     setInfo.push({ s, have, full, sum, sumOn });
@@ -320,6 +331,7 @@ function slotBody(k, res) {
   bits.push(`需求 Lv ${it.lv}`);
   if (it.j) bits.push(it.j);
   if (!it.ref) bits.push('不可精煉');
+  if (k === 'shield' && it.s === 'weapon' && !leftOk(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ 只有刺客能左手拿武器</span>`);
   if (!canWear(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ ${st.job}不能裝備</span>`);
   const ths = Object.keys(it.r || {}).map(Number).sort((a, b) => a - b);
   const next = ths.find(n => r < n);
@@ -336,7 +348,7 @@ function slotBody(k, res) {
     for (const [n, e] of x.c.sums) eff += li(x.ok && x.sum >= n ? 'on' : x.ok && nx && n === nx[0] ? 'next' : '', '搭配', `精煉總和 ${x.sum}／${n}：${fmtEff(e)}`, x.ok && nx && n === nx[0] ? `再 +${n - x.sum}` : '');
   }
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
-  eff += GEAR_SETS.filter(s => s.items.includes(it.n)).map(s => li(full.includes(s) ? 'on' : '', '套裝', `${s.label} 4 件`)).join('');
+  eff += GEAR_SETS.filter(s => s.items.includes(it.n)).map(s => li(full.includes(s) ? 'on' : '', '套裝', `${s.label}（${s.items.length} 件）`)).join('');
   const mine = res.per[k] || {};
   const keys = GEAR_STAT.map(x => x[0]).filter(x => mine[x]);
   if (keys.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x])).join('、')}</li>`;
@@ -344,7 +356,7 @@ function slotBody(k, res) {
 }
 function slotHtml([k, label, kinds], res) {
   const cur = st.slots[k], it = BY_NAME[cur.n];
-  const list = GEAR_DB.filter(x => kinds.includes(x.s) && (canWear(x) || x.n === cur.n));
+  const list = GEAR_DB.filter(x => (kinds.includes(x.s) || (k === 'shield' && leftOk(x))) && (canWear(x) || x.n === cur.n));
   const groups = [...new Set(list.map(x => x.g))];
   const opt = x => `<option value="${x.n}"${x.n === cur.n ? ' selected' : ''}>${x.n}${x.type ? `（${x.type}${x.j ? '・' + x.j.replace('系列', '') : ''}）` : ''}</option>`;
   const opts = `<option value="">（未裝備）</option>` + groups.map(g => `<optgroup label="${g}">` +
@@ -362,13 +374,18 @@ function slotHtml([k, label, kinds], res) {
 function renderResult(res) {
   const { tot, setInfo, combos, notes } = res;
   const keys = GEAR_STAT.map(x => x[0]).filter(k => tot[k]);
-  $('totals').innerHTML = keys.length ? `<div class="stat-grid">${keys.map(k => { const i = STAT_INFO[k], n = tot[k] * i.sign;
-    return `<div class="stat"><div class="k">${i.label}</div><div class="v">${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}</div></div>`; }).join('')}</div>` : `<div class="empty">還沒有裝備。</div>`;
-  const setHtml = setInfo.map(({ s, have, full, sum, sumOn }) => {
+  $('totals').innerHTML = keys.length ? `<ul class="tot-list">${keys.map(k => { const i = STAT_INFO[k], n = tot[k] * i.sign;
+    return `<li><span>${i.label}</span><b>${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}</b></li>`; }).join('')}</ul>` : `<div class="empty">還沒有裝備。</div>`;
+  // 共用部件（例如時光斗篷、天龍披風）會讓很多套裝顯示「缺幾件」；只顯示穿齊的，或有穿到專屬部件的
+  const shareCnt = n => GEAR_SETS.filter(x => x.items.includes(n)).length;
+  const fullItems = new Set(setInfo.filter(x => x.full).flatMap(x => x.s.items));
+  const shown = setInfo.filter(x => x.full || (x.have.some(n => shareCnt(n) < 3) && !x.have.every(n => fullItems.has(n))));
+  const setHtml = shown.map(({ s, have, full, sum, sumOn }) => {
     const miss = s.items.filter(n => !have.includes(n));
-    return `<div class="setc"><span class="nm">${s.label}</span>　${full ? '<span class="ok">4／4 件 ✓</span>' : `<span class="no">${have.length}／4 件</span>　<span class="miss">缺：${miss.join('、')}</span>`}<br>` +
-      `<span class="${full ? 'ok' : 'no'}">4 件：${fmtEff(s.b)}</span><br>` +
-      `<span class="${sumOn ? 'ok' : 'no'}">精煉總和 ${sum}／${s.sum[0]}${sumOn ? ' ✓' : full ? `（再 +${s.sum[0] - sum}）` : ''}：${fmtEff(s.sum[1])}</span></div>`;
+    const N = s.items.length, sumN = s.sumItems ? `${s.sumItems.length} 件` : '';
+    return (`<div class="setc"><span class="nm">${s.label}</span>　${full ? `<span class="ok">${N}／${N} 件 ✓</span>` : `<span class="no">${have.length}／${N} 件</span>　<span class="miss">缺：${miss.join('、')}</span>`}<br>` +
+      (Object.keys(s.b).length ? `<span class="${full ? 'ok' : 'no'}">${N} 件：${fmtEff(s.b)}</span><br>` : '') +
+      (!s.sum ? '' : `<span class="${sumOn ? 'ok' : 'no'}">${sumN}精煉總和 ${sum}／${s.sum[0]}${sumOn ? ' ✓' : full ? `（再 +${s.sum[0] - sum}）` : ''}：${fmtEff(s.sum[1])}</span>`) + `</div>`).replace(/<br><\/div>$/, '</div>');
   });
   const comboHtml = combos.map(({ it, c, ok, sum }) => `<div class="setc"><span class="nm">${it.n}</span>　＋ ${c.with.join('＋')}　${ok ? '<span class="ok">✓</span>' : `<span class="miss">缺：${c.with.filter(n => !equipped().some(x => x.it.n === n)).join('、')}</span>`}<br>` +
     `<span class="${ok ? 'ok' : 'no'}">${fmtEff(c.b)}</span>` + c.sums.map(([n, e]) => { const on = ok && sum >= n;
@@ -408,20 +425,25 @@ $('allRef').addEventListener('input', e => {
   save(); render();
 });
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
-$('job').addEventListener('change', e => { st.job = e.target.value; save(); render(); track('gear_job', { job: st.job }); });
+$('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); refreshSlots(); });
 $('psGrid').innerHTML = PS.map(s => `<div class="field"><label>純 ${s}</label><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0"></div>`).join('');
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });
-$('quickSet').innerHTML += GEAR_SETS.map((s, i) => `<option value="${i}">${s.label}</option>`).join('');
+function buildQuickSet() {
+  const groups = [...new Set(GEAR_SETS.map(x => x.g))];
+  $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
+    GEAR_SETS.map((x, i) => [x, i]).filter(([x]) => x.g === g && x.items.every(n => canWear(BY_NAME[n]))).map(([x, i]) => `<option value="${i}">${x.label}</option>`).join('') + `</optgroup>`).join('');
+}
+buildQuickSet();
 $('quickSet').addEventListener('change', e => {
   const s = GEAR_SETS[+e.target.value]; if (!s) return;
   for (const n of s.items) {
     const it = BY_NAME[n];
-    const k = it.s === 'acc' || it.s === 'accL' ? 'accL' : it.s === 'accR' ? 'accR' : it.s;
+    const k = it.s === 'acc' || it.s === 'accL' ? 'accL' : it.s === 'accR' ? 'accR' : it.s === 'weaponL' ? 'shield' : it.s;
     st.slots[k] = { n, r: it.ref ? st.all : 0 };
   }
-  e.target.value = ''; track('gear_quick_set', { set: s.label }); save(); render();
+  track('gear_quick_set', { set: s.label }); save(); render();
 });
 function clearAll() { for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 }; save(); render(); }
 
