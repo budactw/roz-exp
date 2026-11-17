@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>RO樂園配裝模擬器｜凌雲閣－師爺</title>
+<title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=21">
 <!-- Google tag (gtag.js) -->
@@ -76,6 +76,7 @@
   .share-bar .acts { display: flex; gap: 8px; }
   .btn-sm { background: var(--seg-active); color: #fff; border: 0; }
   .btn-share { width: 100%; margin-top: 16px; min-height: 42px; background: var(--seg-active); color: #fff; font-weight: 700; }
+  .beta { display: inline-block; vertical-align: middle; font-size: .62rem; font-weight: 800; letter-spacing: .5px; padding: 2px 8px; border-radius: 999px; background: #f59e0b; color: #fff; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 </style>
 </head>
@@ -84,7 +85,7 @@
 
   <div class="header">
     <div class="brand">
-      <h1>RO樂園配裝模擬器 <small>by 凌雲閣－師爺</small></h1>
+      <h1>RO樂園配裝模擬器 <span class="beta">Beta</span> <small>by 凌雲閣－師爺</small></h1>
       <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
     </div>
     <div class="row">
@@ -155,7 +156,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=7"></script>
+<script src="gear-data.js?v=8"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -251,6 +252,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '新增銀月魔女鞋；標題加上 Beta'],
   ['2026/11/17', '技能傷害、對特定敵人傷害、受傷減免等敘述改為可加總，列在「技能／條件加成」；四大元素魔靴、神聖十字之杖 +6 起每級加成會計算'],
   ['2026/11/17', '依官網補資料：雷吉麗芙的翅膀／英格麗之翼（頭上中、防禦 7）、疾風之弓（攻擊 95、Lv55、風靈箭矢）、上弦月圖騰護腕改為飾品；其他效果改為條列並移到能力加總下面'],
   ['2026/11/17', '武器標示過度精煉浮動範圍；裝備的套裝清單只列相關的'],
@@ -428,7 +430,7 @@ function renderResult(res) {
   const cEnt = Object.entries(tot._c || {}).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
   // 備註類文字（不可破壞、資料待補、取得方式…）不算效果，不列在這裡
-  const NOTE_RE = /待補|查無|掉落$|不可破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
+  const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
   const eff = notes.map(x => { const i = x.indexOf('：'); return [x.slice(0, i), x.slice(i + 1)]; }).filter(([, t]) => !NOTE_RE.test(t));
   $('notes').innerHTML = eff.length ? eff.map(([n, t]) => `<li><span>${t}</span><b class="src">${n}</b></li>`).join('') : `<li><span>無</span></li>`;
 }

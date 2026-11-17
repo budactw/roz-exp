@@ -587,3 +587,7 @@ for (const it of GEAR_DB) {
 }
 for (const st of GEAR_SETS) { gearConvert(st.b); if (st.sum) gearConvert(st.sum[1]); }
 
+
+// ===== 其他魔物掉落 =====
+// 銀月魔女鞋：巴哈〈亡者之都、龜島與 80 等副本裝備相關翻譯〉，銀月魔女（尼芙菲姆）掉落
+GEAR_DB.push({ n: '銀月魔女鞋', g: '尼芙菲姆', s: 'shoes', def: 10, lv: 60, ref: true, b: { FLEE: 15, CRI: 3 }, r: { 7: { HIT: 15 }, 9: { aspd: 7 } }, t: ['1 洞', '銀月魔女掉落；數值取自巴哈改版前翻譯，以遊戲內為準'] });
