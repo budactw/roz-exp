@@ -1033,7 +1033,7 @@ function renderQuests() {
   const mult = currentTaskMult();
   updatePickBar();
   $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
-    [90, 100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
+    [90, 100, 105, 110, 115].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
   document.querySelectorAll('.questSeg button').forEach(b => b.classList.toggle('active', b.dataset.lv === questLv));
   document.querySelectorAll('.questTypeSeg button').forEach(b => b.classList.toggle('active', b.dataset.t === questType));
   document.querySelectorAll('.questBody').forEach(body => {
@@ -1060,7 +1060,7 @@ function refreshQuestTags() {
     el.querySelector('.tag').innerHTML = `${it.lv} 級・${fmtS(TASK_BASE[it.lv] * mult)}`;
   });
   if ($('questExpInfo')) $('questExpInfo').innerHTML = `目前加成 ×${mult.toFixed(2)}，每次經驗（基礎 → 加成後）：` +
-    [90, 100, 105, 110].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
+    [90, 100, 105, 110, 115].map(lv => `${lv} 級 ${fmtC(TASK_BASE[lv])} → <b style="color:var(--primary)">${fmtC(TASK_BASE[lv] * mult)}</b>`).join('・');
 }
 function setQuestLv(lv) { questLv = lv; renderQuests(); }
 function openQuests() { renderQuests(); $('questModal').classList.add('open'); track('open_quest_table'); }
