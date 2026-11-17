@@ -128,7 +128,7 @@ const GEAR_SETS = [];
 
 // ===== 星級武防（★／★★ 武器為二級武器）=====
 (() => {
-  const W = (n, type, w, lv, j, b, more) => GEAR_DB.push({ n, g: n.startsWith('★★') ? '★★ 武器' : '★ 武器', s: 'weapon', type, w, wl: 2, lv, j, ref: true, b, ...more });
+  const W = (n, type, w, lv, j, b, more) => GEAR_DB.push({ n, g: n.startsWith('★★') ? '二星武器' : '一星武器', s: 'weapon', type, w, wl: 2, lv, j, ref: true, b, ...more });
   // ★★ 武器
   W('★★格林機槍-意', '格林機槍', 140, 10, '神槍手系列', { ATK: 70, MATK: 70, spCost: 100 }, { p2: { ATK: 7, MATK: 7, spCost: -20 }, r: { 7: { ATKp: 7, MATKp: 7 }, 9: { ranged: 15, fwMagic: 20 }, 11: { spCost: -20 } },
     t: ['遠距離普通攻擊時機率施放火箭術 Lv10、冰箭術 Lv10，並對自己施放心神凝聚 Lv5', '習得格林狂熱、魔術彈 Lv 總和 11：CRI+20、暴擊傷害+10%'] });
@@ -170,10 +170,10 @@ const GEAR_SETS = [];
     t: ['習得學習修練、高階拳刃修練、致命塗毒 Lv 總和 20：可使用二刀連擊 Lv1'] });
   W('★★拳刃-死', '拳刃', 155, 18, '刺客系列', { ATK: 60, HIT: -100, ranged: -40 }, { p2: { ATK: 5, melee: 2 }, r: { 7: { CRI: 7, aspd: 14, FLEE: 5 }, 9: { CRI: 14, aspd: 28, FLEE: 10 } }, p11: { HIT: 20, ranged: 8 },
     t: ['習得學習修練、高階拳刃修練、致命塗毒 Lv 總和 20：可使用二刀連擊 Lv1'] });
-  GEAR_DB.push({ n: '★★改良型手臂護腕-月', g: '★★ 武器', s: 'shield', type: '盾牌', def: 45, lv: 50, j: '忍者', ref: true, b: { MDEF: 5, MATK: 10, INT: 5, FLEE: -120 },
+  GEAR_DB.push({ n: '★★改良型手臂護腕-月', g: '二星武器', s: 'shield', type: '盾牌', def: 45, lv: 50, j: '忍者', ref: true, b: { MDEF: 5, MATK: 10, INT: 5, FLEE: -120 },
     p2: { MATK: 5, _t: '對地／火／風／水屬性敵人魔法傷害+2%' }, r: { 7: { _t: '對地／火／風／水屬性敵人魔法傷害再+5%' }, 9: { MATKp: 5, magicAll: 7 } }, p11: { FLEE: 24 },
     t: ['習得忍術修練、金蟬脫殼 Lv 合計 15：忍術系列技能 SP 消耗-50%'] });
-  GEAR_DB.push({ n: '★★改良型手臂護腕-日', g: '★★ 武器', s: 'shield', type: '盾牌', def: 45, lv: 50, j: '忍者', ref: true, b: { MDEF: 5, ATK: 10, STR: 5, FLEE: -120 },
+  GEAR_DB.push({ n: '★★改良型手臂護腕-日', g: '二星武器', s: 'shield', type: '盾牌', def: 45, lv: 50, j: '忍者', ref: true, b: { MDEF: 5, ATK: 10, STR: 5, FLEE: -120 },
     p2: { ATK: 5, _t: '對地／火／風／水屬性敵人物理傷害+2%' }, r: { 7: { _t: '對地／火／風／水屬性敵人物理傷害再+5%' }, 9: { ATKp: 5, ranged: 7 } }, p11: { FLEE: 24 },
     t: ['習得忍術修練、飛刀修練、投擲飛鏢、投擲飛刀、投擲風魔飛鏢 Lv 合計 40：投擲系列技能 SP 消耗-50%'] });
   // ★ 武器
@@ -199,7 +199,7 @@ const GEAR_SETS = [];
   W('★破刃長戟', '單手矛', 150, 18, '十字軍系列', { ATK: 30, CRI: -40 }, S3({ vct: 2, MATK: 20 }, { vct: 4, MATK: 40 }, { vct: 9, MATK: 90 }));
   W('★拳刃', '拳刃', 155, 18, '刺客系列', { ATK: 30, HIT: -70 }, S3({ CRI: 2, aspdP: 5 }, { CRI: 3, aspdP: 10 }, { CRI: 5, aspdP: 15 }));
   // ★ 防具（說明裡的基本 DEF+ 視為已含在防禦欄位）
-  const A = (n, s, def, b, more) => GEAR_DB.push({ n, g: '★ 防具', s, def, lv: 1, ref: true, b, ...more });
+  const A = (n, s, def, b, more) => GEAR_DB.push({ n, g: '一星防具', s, def, lv: 1, ref: true, b, ...more });
   A('★輕便鞋', 'shoes', 15, { MHP: 100, spRegen: 5 }, S3({ MHP: 200, spRegen: 5 }, { MHP: 350, spRegen: 10 }, { MHPp: 8, healRecv: 10 }));
   A('★戰士長靴', 'shoes', 25, { MHP: 100, hpRegen: 5 }, S3({ MHP: 200, hpRegen: 5 }, { MHP: 350, hpRegen: 10 }, { MHPp: 8, healRecv: 10 }));
   A('★披肩', 'garment', 16, { MHP: 100, spRegen: 20 }, S3({ MHP: 200, MSPp: 1 }, { MHP: 250, MSPp: 2 }, { MHP: 450, MSPp: 4 }));
