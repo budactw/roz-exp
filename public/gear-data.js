@@ -254,12 +254,12 @@ const GEAR_SETS = [];
   for (const it of GEAR_DB) if (it.g === G && it.n !== '驚駭森靈皇后的殘肢(L)') delete it.w2;
   const JOBS15 = ['騎士', '十字軍', '鐵匠', '鍊金術師', '刺客', '流氓', '武道家', '巫師', '賢者', '祭司', '獵人', '吟遊詩人', '舞孃', '忍者', '神槍手'];
   for (const j of JOBS15) GEAR_SETS.push({ g: G, label: `驚駭森靈（${j}）`, items: [BREATH, `巨神蟒蛇皮（${j}）`], b: { MHPp: 10, MSPp: 5 } });
-  const WS = (label, weapons, job, t) => GEAR_SETS.push({ g: G, label, items: [...weapons, BREATH, `巨神蟒蛇皮（${job}）`], b: { _t: t } });
-  WS('驚駭森靈（刺客・左右殘肢）', ['驚駭森靈皇后的殘肢(R)', '驚駭森靈皇后的殘肢(L)'], '刺客', '每 Base Lv 20，黑暗瞬間傷害+5%');
+  const WS = (label, weapons, job, t) => GEAR_SETS.push({ g: G, label, items: [...weapons, BREATH, `巨神蟒蛇皮（${job}）`], b: Array.isArray(t) ? { _lv: [t[0], { _c: { [t[1]]: 5 } }] } : { _t: t } });
+  WS('驚駭森靈（刺客・左右殘肢）', ['驚駭森靈皇后的殘肢(R)', '驚駭森靈皇后的殘肢(L)'], '刺客', [20, '黑暗瞬間傷害']);
   WS('驚駭森靈（刺客・犬齒）', ['驚駭森靈皇后的犬齒'], '刺客', '觸發二刀連擊 Lv1（依習得最高等級）');
-  WS('驚駭森靈（騎士・角）', ['驚駭森靈皇后的角'], '騎士', '每 Base Lv 10，螺旋擊刺傷害+5%');
-  WS('驚駭森靈（騎士・尾骨）', ['驚駭森靈皇后的尾骨'], '騎士', '每 Base Lv 10，怪物互擊傷害+5%');
-  WS('驚駭森靈（十字軍・尖刺）', ['驚駭森靈皇后的尖刺'], '十字軍', '每 Base Lv 10，聖十字攻擊傷害+5%');
+  WS('驚駭森靈（騎士・角）', ['驚駭森靈皇后的角'], '騎士', [10, '螺旋擊刺傷害']);
+  WS('驚駭森靈（騎士・尾骨）', ['驚駭森靈皇后的尾骨'], '騎士', [10, '怪物互擊傷害']);
+  WS('驚駭森靈（十字軍・尖刺）', ['驚駭森靈皇后的尖刺'], '十字軍', [10, '聖十字攻擊傷害']);
 })();
 
 // ===== 特色裝備（王頭與各地製作裝備；RO補給站「特色裝備」）=====
@@ -446,13 +446,14 @@ const GEAR_SETS = [];
   P(OG, '巴基力的長靴', 'shoes', 13, 95, { _t: '魔法師、弓箭手、服事系列：MHP + BaseLv×7；劍士、商人、盜賊系列：MSP + JobLv×3' }, { j: NOVICE_NO, t: ['不可破壞'] });
   P(OG, '龍之風衣', 'armor', 30, 95, { MDEF: 5, _t: '對龍族魔物的抗性+5%' }, { p2: { MDEF: 1, _t: '對龍族魔物的抗性+1%' } });
   P(OG, '霧中暗影', 'armor', 60, 100, { MHP: 400, MSP: 60 }, { j: '忍者系列', r: { 7: { MATK: 50 }, 9: { MATK: 50 } }, w2: [{ with: ['上弦月圖騰護腕'], b: { vct: 10 } }] });
-  P(OG, '四大元素魔靴', 'shoes', 10, 95, { _t: '火箭術、冰箭術、雷擊術、地震術變動詠唱-3%、傷害+3%' }, { t: ['不可破壞', '+6 之後每 +1：上述技能變動詠唱再-1%、傷害再+1%'] });
+  const BOLT = '火箭術、冰箭術、雷擊術、地震術';
+  P(OG, '四大元素魔靴', 'shoes', 10, 95, { _c: { [BOLT + '變動詠唱']: -3, [BOLT + '傷害']: 3 } }, { pf: [6, { _c: { [BOLT + '變動詠唱']: -1, [BOLT + '傷害']: 1 } }], t: ['不可破壞'] });
   W(OG, '靈魂之鈴', '鞭子', 130, 3, 95, '舞孃系列', { _t: '纏箭投擲傷害+7%' }, { r: { 7: T('纏箭投擲傷害再+13%'), 9: { ranged: 15 } } });
   W(OG, '響螺', '樂器', 130, 3, 95, '吟遊詩人系列', { _t: '樂器攻擊傷害+7%' }, { r: { 7: T('樂器攻擊傷害+13%'), 9: { ranged: 15 } } });
   W(OG, '怨恨', '雙手斧', 190, 3, 95, '商人系列', { ATKp: 5, CRI: 5 }, { r: { 7: { aspd: 10 }, 9: { crit: 10 } } });
   W(OG, '疾風之弓', '弓', 95, 3, 55, '弓箭手系列、流氓系列', { _t: '裝備風靈箭矢時：遠距離物理傷害+25%、MATK+50；物理攻擊時機率自動念咒風刃 Lv5', _if: [['INT', 40, { MATK: 50 }]] }, { t: ['不可破壞', 'INT 40 以上時風刃觸發機率提高'] });
   W(OG, '血腥弓', '弓', 170, 3, 95, '弓箭手系列、流氓系列', { CRI: 5 }, { r: { 7: { crit: 7 }, 9: { ranged: 15 } } });
-  W(OG, '神聖十字之杖', '單手杖', 120, 4, 95, '服事系列', { MATK: 210, vct: 10 }, { t: ['聖屬性、不可破壞', '+6 之後每 +1：聖屬性魔法傷害+3%、十字驅魔攻擊傷害+3%'] });
+  W(OG, '神聖十字之杖', '單手杖', 120, 4, 95, '服事系列', { MATK: 210, vct: 10 }, { pf: [6, { _c: { 聖屬性魔法傷害: 3, 十字驅魔攻擊傷害: 3 } }], t: ['聖屬性、不可破壞'] });
   W(OG, '風魔飛鏢之暴雨', '風魔飛鏢', 180, 4, 95, '忍者系列', { MATK: 260, MATKp: 5 }, { r: { 7: T('風刃傷害+20%'), 9: T('朔風傷害+20%') }, t: ['不可破壞'] });
   W(OG, '彎月短劍', '短劍', 50, 4, 95, '忍者系列', { MATK: 120, _if: [['INT', 90, { MATKp: 3 }]] }, { r: { 7: T('火炎花、冰閃槍、風刃傷害+15%'), 9: T('火、水、風屬性魔法傷害+10%') } });
   W(OG, '斬影短劍', '短劍', 150, 4, 95, '忍者系列', { _t: '隱身攻擊傷害+7%' }, { r: { 7: T('隱身攻擊傷害+13%'), 9: { melee: 15 } } });
@@ -548,3 +549,41 @@ const GEAR_SETS = [];
 
 // 搭配效果的精煉總和統一成 sums: [[門檻, 能力], …]
 for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);
+
+// ===== 文字效果轉成可加總的「技能／條件加成」_c: { 名稱: 數值 }（名稱結尾 # 表示不是 %）=====
+// 只轉沒有條件的簡單敘述（例：「浸透勁傷害+7%」「對無形敵人、地屬性敵人的物理傷害再 +5%」）；
+// 有「習得、機率、搭配、時，、：」等條件的維持文字
+const GEAR_COND_RE = /習得|機率|同時裝備|一起裝備|搭配|每 ?Lv|攻擊時|時，|時:|：|×|持續|恢復|使用|施放|冷卻|消耗|觸發|忽視|移動速度|距離|可使用|上述|[（(]|依|裝備/;
+function gearParseText(t) {
+  if (typeof t !== 'string' || GEAR_COND_RE.test(t)) return null;
+  let rest = t.replace(/\s+/g, '').replace(/−/g, '-'), subj = '';
+  const out = {};
+  while (rest) {
+    const m = rest.match(/^[、，,；;]?(.+?)([+\-])(\d+(?:\.\d+)?)(%?)(?=$|[、，,；;])/);
+    if (!m) return null;
+    let label = m[1].replace(/(額外)?再$/, '').replace(/額外$/, '');
+    if (/^(傷害|變動詠唱|物理傷害|魔法傷害)$/.test(label) && subj) label = subj + label;
+    const sm = label.match(/^(.*?)(變動詠唱|傷害)$/); if (sm && sm[1]) subj = sm[1].replace(/的?(物理|魔法|物理／魔法)?$/, '');
+    const key = label + (m[4] ? '' : '#');
+    out[key] = (out[key] || 0) + (m[2] === '-' ? -1 : 1) * +m[3];
+    rest = rest.slice(m[0].length);
+  }
+  return Object.keys(out).length ? out : null;
+}
+function gearConvert(eff) {
+  if (!eff || typeof eff !== 'object') return;
+  if (eff._t) { const c = gearParseText(eff._t); if (c) { eff._c = { ...(eff._c || {}) }; for (const [k, v] of Object.entries(c)) eff._c[k] = (eff._c[k] || 0) + v; delete eff._t; } }
+  if (eff._lv) gearConvert(eff._lv[1]);
+  for (const k of ['_ps', '_if']) for (const x of eff[k] || []) gearConvert(x[2]);
+}
+for (const it of GEAR_DB) {
+  gearConvert(it.b);
+  for (const k of Object.keys(it)) if (/^p\d+$/.test(k)) gearConvert(it[k]);
+  if (it.pf) gearConvert(it.pf[1]);
+  for (const e of Object.values(it.r || {})) gearConvert(e);
+  for (const c of it.w2 || []) { gearConvert(c.b); for (const x of c.sums || []) gearConvert(x[1]); }
+  // 永遠生效的文字（t）能解析的也併進基本能力
+  if (it.t) it.t = it.t.filter(x => { const c = gearParseText(x); if (!c) return true; it.b = it.b || {}; it.b._c = { ...(it.b._c || {}) }; for (const [k, v] of Object.entries(c)) it.b._c[k] = (it.b._c[k] || 0) + v; return false; });
+}
+for (const st of GEAR_SETS) { gearConvert(st.b); if (st.sum) gearConvert(st.sum[1]); }
+

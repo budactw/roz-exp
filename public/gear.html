@@ -123,7 +123,9 @@
   <div class="card">
     <h2>📊 能力加總</h2>
     <div id="totals"></div>
-    <div class="sec-title">其他效果（技能、條件類，未列入上面的數字）</div>
+    <div class="sec-title">技能／條件加成（只對特定技能或敵人生效）</div>
+    <ul class="tot-list" id="cTotals"></ul>
+    <div class="sec-title">其他效果（需要條件、無法加總）</div>
     <ul class="tot-list notes-list" id="notes"></ul>
     <div class="sec-title">套裝／搭配</div>
     <div class="sets" id="sets"></div>
@@ -153,7 +155,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=6"></script>
+<script src="gear-data.js?v=7"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -249,6 +251,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '技能傷害、對特定敵人傷害、受傷減免等敘述改為可加總，列在「技能／條件加成」；四大元素魔靴、神聖十字之杖 +6 起每級加成會計算'],
   ['2026/11/17', '依官網補資料：雷吉麗芙的翅膀／英格麗之翼（頭上中、防禦 7）、疾風之弓（攻擊 95、Lv55、風靈箭矢）、上弦月圖騰護腕改為飾品；其他效果改為條列並移到能力加總下面'],
   ['2026/11/17', '武器標示過度精煉浮動範圍；裝備的套裝清單只列相關的'],
   ['2026/11/17', '裝備與一鍵套裝選項依 Base 等級篩選，等級不足的會標示'],
@@ -267,10 +270,15 @@ document.getElementById('logList').innerHTML = GEAR_LOG.map(([d, t]) => `<li><b>
 // 每 N 精煉給一次的欄位（p2、p3…），p11＝+11 起每 +2 一次
 const perKeys = it => Object.keys(it).filter(k => /^p\d+$/.test(k) && k !== 'p11').map(k => +k.slice(1));
 const p11Times = r => r >= 11 ? 1 + Math.floor((r - 11) / 2) : 0;
-const mul = (eff, n) => Object.fromEntries(Object.entries(eff).filter(([k]) => k[0] !== '_').map(([k, v]) => [k, v * n]));
+const mul = (eff, n) => { const o = Object.fromEntries(Object.entries(eff).filter(([k]) => k[0] !== '_').map(([k, v]) => [k, v * n]));
+  if (eff._c) o._c = Object.fromEntries(Object.entries(eff._c).map(([k, v]) => [k, v * n])); return o; };
+const cLabel = k => k.replace(/#$/, '');
+const cVal = (k, v) => `${v >= 0 ? '+' : '−'}${Math.abs(+v.toFixed(2))}${k.endsWith('#') ? '' : '%'}`;
+const pfTimes = (it, r) => it.pf ? Math.max(0, r - it.pf[0] + 1) : 0;
 function add(to, eff, notes) {
   for (const [k, v] of Object.entries(eff || {})) {
     if (k === '_t') { if (notes) notes.push(v); }
+    else if (k === '_c') { to._c = to._c || {}; for (const [a, b] of Object.entries(v)) to._c[a] = (to._c[a] || 0) + b; }
     else if (k === '_lv') add(to, mul(v[1], Math.floor(st.lv / v[0])), notes);
     else if (k === '_if') { for (const [s, n, e] of v) if ((st.ps[s] || 0) >= n) add(to, e, notes); }
     else if (k === '_ps') for (const [s, n, e] of v) { const t = Math.floor((st.ps[s] || 0) / n); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
@@ -281,6 +289,7 @@ function add(to, eff, notes) {
 const fmtVal = (k, v) => { const i = STAT_INFO[k]; const n = v * i.sign; return `${i.label} ${n >= 0 ? '+' : '−'}${Math.abs(n)}${i.unit}`; };
 const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_t' ? v :
+  k === '_c' ? Object.entries(v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b)).join('、') :
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
   k === '_ps' ? v.map(([s, n, e]) => `每 ${n} 點純 ${s}：${fmtEff(e)}`).join('、') :
   k === '_if' ? v.map(([s, n, e]) => `純 ${s} ${n} 以上：${fmtEff(e)}${(st.ps[s] || 0) >= n ? ' ✓' : ''}`).join('、') :
@@ -303,6 +312,7 @@ function compute() {
     (it.t || []).forEach(x => nt.push(x));
     for (const n of perKeys(it)) if (Math.floor(r / n)) { add(tot, mul(it['p' + n], Math.floor(r / n)), null); if (it['p' + n]._t) nt.push(`${it['p' + n]._t}（×${Math.floor(r / n)}）`); }
     if (it.p11 && p11Times(r)) add(tot, mul(it.p11, p11Times(r)), nt);
+    if (pfTimes(it, r)) add(tot, mul(it.pf[1], pfTimes(it, r)), nt);
     for (const [n, eff] of Object.entries(it.r || {})) if (r >= +n) add(tot, eff, nt);
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
@@ -354,6 +364,7 @@ function slotBody(k, res) {
   for (const x of it.t || []) eff += li('txt', '效果', x);
   for (const n of perKeys(it)) { const t = Math.floor(r / n), e = it['p' + n]; eff += li(t ? 'on' : '', `每精煉 ${n}`, fmtEff(e) + (t > 1 && Object.keys(mul(e, 1)).length ? `<span class="tot">＝${fmtEff(mul(e, t))}</span>` : ''), `目前 ×${t}`); }
   eff += ths.map(n => li(r >= n ? 'on' : n === next ? 'next' : '', '+' + n, fmtEff(it.r[n]), n === next ? `再 +${n - r}` : '')).join('');
+  if (it.pf) { const t = pfTimes(it, r); eff += li(t ? 'on' : '', `+${it.pf[0]} 起每 +1`, fmtEff(it.pf[1]) + (t > 1 ? `<span class="tot">＝${fmtEff(mul(it.pf[1], t))}</span>` : ''), t ? `目前 ×${t}` : `再 +${it.pf[0] - r}`); }
   if (it.p11) { const t = p11Times(r); eff += li(t ? 'on' : '', '+11 起每 +2', fmtEff(it.p11) + (t > 1 ? `<span class="tot">＝${fmtEff(mul(it.p11, t))}</span>` : ''), t ? `目前 ×${t}` : `再 +${11 - r}`); }
   for (const x of res.combos.filter(x => x.it === it)) {
     eff += li(x.ok ? 'on' : '', '搭配', `${x.c.with.join('＋')}：${fmtEff(x.c.b)}`);
@@ -371,7 +382,8 @@ function slotBody(k, res) {
   else if (mySets.length) eff += li('', '套裝', `可搭配 ${mySets.length} 組套裝（選職業或穿上其他部件後顯示）`);
   const mine = res.per[k] || {};
   const keys = GEAR_STAT.map(x => x[0]).filter(x => mine[x]);
-  if (keys.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x])).join('、')}</li>`;
+  const cs = Object.entries(mine._c || {}).filter(([, v]) => v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b));
+  if (keys.length || cs.length) eff += `<li class="sum"><span class="t">本件合計</span>${keys.map(x => fmtVal(x, mine[x])).concat(cs).join('、')}</li>`;
   return { meta: bits.join('　·　'), eff };
 }
 function slotHtml([k, label, kinds], res) {
@@ -413,6 +425,8 @@ function renderResult(res) {
       return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${sum}／${n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
   const all = setHtml.concat(comboHtml);
   $('sets').innerHTML = all.length ? all.join('') : `<div class="empty">沒有穿到任何套裝或搭配的部件。</div>`;
+  const cEnt = Object.entries(tot._c || {}).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
+  $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
   // 備註類文字（不可破壞、資料待補、取得方式…）不算效果，不列在這裡
   const NOTE_RE = /待補|查無|掉落$|不可破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
   const eff = notes.map(x => { const i = x.indexOf('：'); return [x.slice(0, i), x.slice(i + 1)]; }).filter(([, t]) => !NOTE_RE.test(t));
