@@ -108,6 +108,13 @@ out.push({ label: '征服者轉生', test: `it => it.g === '征服者轉生' && 
 const veg = ['STR+1', 'INT+1', 'DEX+1', 'AGI+1', 'VIT+1', 'LUK+1', 'HP+100', 'HP+200', 'SP+50', 'SP+25', 'SP+10'].map(n => add({ name: n, desc: n }));
 out.push({ label: '波利村', test: `it => ['波利村紅蘿蔔', '波利村大蔥'].includes(it.n)`, slots: [{ name: '四洞', parts: { all: [[0, veg]] } }] });
 
+// 中級公會員（城戰）：台服道具「增幅／抗性：技能 1Lv」；效果與可附魔裝備參考韓服 2018/05/09「[던전] 길드던전」(seq=22)
+// 武器：增幅＝該技能傷害 +7%；鎧甲（外袍、外套、鎧甲）：抗性＝受該技能傷害 -15%；四洞、三洞，可重複
+const GUILD_SK = ['暴風雪', '隕石術', '怒雷強擊', '十字驅魔攻擊', '黑暗瞬間', '螺旋擊刺', '強酸火煙瓶投擲', '連刺攻擊', '怪物互擊', '水球術', '音速投擲', '連續盾擊', '迴旋盾擊', '聖十字攻擊', '獵鷹突擊', '閃電衝擊', '阿修羅霸凰拳', '浸透勁', '奧義箭亂舞', '二連矢', '銳利射擊', '念力連擊', '重力原野'];
+const gAmp = GUILD_SK.map(k => { const n = `增幅：${k}1Lv`; OPT[n] = { _c: { [`${k}傷害`]: 7 } }; return n; });
+const gRes = GUILD_SK.map(k => { const n = `抗性：${k}1Lv`; OPT[n] = { _c: { [`受${k}的傷害`]: -15 } }; return n; });
+out.push({ label: '中級公會員', test: `it => it.g === '城戰' && it.n.startsWith('中級公會員') && (it.s === 'weapon' || it.s === 'armor')`, slots: ['四洞', '三洞'].map(name => ({ name, parts: { weapon: [[0, gAmp]], armor: [[0, gRes]] } })) });
+
 const js = `// 由 tools/enchant/build-ench.js 產生：官方「遊戲指南 → 附魔系統」各專屬附魔公告的表格逐項抄錄
 // GEAR_ENCH：[{ label, test(it), slots: [{ name, parts: { armor|garment|shoes|acc|all: [[最低精煉, [選項…]], …] } }] }]
 // ENCH_OPT：選項 → 效果；_pr: [[N, 效果], …] 表示「鎧甲每精煉 +N」，依該件精煉值計算
