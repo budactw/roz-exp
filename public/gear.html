@@ -156,7 +156,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=8"></script>
+<script src="gear-data.js?v=10"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -252,6 +252,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '新增里希塔樂鎮（企業都市）精裝之書、魔法經典，以及雷擊經典；搭配清單只列已成立的'],
+  ['2026/11/17', '依官方裝備道具查詢平台補齊：朱諾武器（攻擊、職業）、熔岩皮革與貝思波防禦、愛的記憶搭配貝思波核心、銀月魔女的皮鞋、暴風雪法杖；新增業火魔杖、寒冰魔杖'],
   ['2026/11/17', '新增銀月魔女鞋；標題加上 Beta'],
   ['2026/11/17', '技能傷害、對特定敵人傷害、受傷減免等敘述改為可加總，列在「技能／條件加成」；四大元素魔靴、神聖十字之杖 +6 起每級加成會計算'],
   ['2026/11/17', '依官網補資料：雷吉麗芙的翅膀／英格麗之翼（頭上中、防禦 7）、疾風之弓（攻擊 95、Lv55、風靈箭矢）、上弦月圖騰護腕改為飾品；其他效果改為條列並移到能力加總下面'],
@@ -422,10 +424,11 @@ function renderResult(res) {
       (Object.keys(s.b).length ? `<span class="${full ? 'ok' : 'no'}">${N} 件：${fmtEff(s.b)}</span><br>` : '') +
       (!s.sum ? '' : `<span class="${sumOn ? 'ok' : 'no'}">${sumN}精煉總和 ${sum}／${s.sum[0]}${sumOn ? ' ✓' : full ? `（再 +${s.sum[0] - sum}）` : ''}：${fmtEff(s.sum[1])}</span>`) + `</div>`).replace(/<br><\/div>$/, '</div>');
   });
-  const comboHtml = combos.map(({ it, c, ok, sum }) => `<div class="setc"><span class="nm">${it.n}</span>　＋ ${c.with.join('＋')}　${ok ? '<span class="ok">✓</span>' : `<span class="miss">缺：${c.with.filter(n => !equipped().some(x => x.it.n === n)).join('、')}</span>`}<br>` +
-    `<span class="${ok ? 'ok' : 'no'}">${fmtEff(c.b)}</span>` + c.sums.map(([n, e]) => { const on = ok && sum >= n;
+  // 一件裝備有好幾組搭配時，只列已成立的，避免一堆「缺」
+  const comboHtml = combos.filter(({ it, ok }) => ok || (it.w2 || []).length === 1).map(({ it, c, ok, sum }) => `<div class="setc"><span class="nm">${it.n}</span>　＋ ${c.with.join('＋')}　${ok ? '<span class="ok">✓</span>' : `<span class="miss">缺：${c.with.filter(n => !equipped().some(x => x.it.n === n)).join('、')}</span>`}<br>` +
+    (Object.keys(c.b).length ? `<span class="${ok ? 'ok' : 'no'}">${fmtEff(c.b)}</span>` : '') + c.sums.map(([n, e]) => { const on = ok && sum >= n;
       return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${sum}／${n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
-  const all = setHtml.concat(comboHtml);
+  const all = setHtml.concat(comboHtml).map(h => h.replace(/(<br>)+/g, '<br>'));
   $('sets').innerHTML = all.length ? all.join('') : `<div class="empty">沒有穿到任何套裝或搭配的部件。</div>`;
   const cEnt = Object.entries(tot._c || {}).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
