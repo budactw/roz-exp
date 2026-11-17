@@ -710,6 +710,7 @@ const KR_DATA = [
     "kr": "페이스웜의 둥지",
     "type": "記憶副本",
     "date": "2019-09-25",
+    "tw": { "date": "2026-11-17", "url": "https://roz.gnjoy.com.tw/Notice/Notice_Info?id=219612" },
     "url": "https://roz.gnjoy.com/news/update/View.asp?BBSMode=10014&seq=95",
     "info": [
       [

@@ -28,6 +28,7 @@
   .kr-head .type { font-size: .7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: var(--primary); border: 1px solid currentColor; }
   .kr-head .date { font-size: .8rem; color: var(--dim); }
   .kr-head a { margin-left: auto; font-size: .8rem; color: var(--primary); }
+  .kr-head a.tw { margin-left: 0; font-size: .72rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: var(--green); border: 1px solid currentColor; text-decoration: none; }
   .kr-info { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 4px; font-size: .84rem; }
   .kr-info .k { color: var(--dim); margin-right: 4px; font-size: .78rem; }
   .kr-intro { font-size: .84rem; margin: 8px 0 0; }
@@ -98,7 +99,7 @@
   </div>
 </div>
 
-<script src="kr-data.js?v=10"></script>
+<script src="kr-data.js?v=11"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -135,7 +136,7 @@ function entryHtml(e) {
 
   let h = `<div class="kr ${isOpen ? '' : 'collapsed'}" id="kr-${e.id}">
     <div class="kr-head"><h3 onclick="toggle('${e.id}')"><span class="arrow">▾</span>${hl(e.name)} <span class="ko">${hl(e.kr)}</span></h3>
-      <span class="type">${esc(e.type)}</span><span class="date">韓服 ${esc(e.date)}</span>
+      <span class="type">${esc(e.type)}</span><span class="date">韓服 ${esc(e.date)}</span>${e.tw ? `<a class="tw" href="${e.tw.url}" target="_blank" rel="noopener">✅ 台服 ${esc(e.tw.date.replace(/-/g, '/'))} 已開放 ↗</a>` : ''}
       <a href="${e.url}" target="_blank" rel="noopener">韓服原文 ↗</a></div>`;
   if (e.info) h += `<div class="kr-info">${e.info.map(([k, v]) => `<span><span class="k">${esc(k)}</span>${esc(v)}</span>`).join('')}</div>`;
   if (e.intro) h += `<p class="kr-intro">${esc(e.intro)}</p>`;
