@@ -311,3 +311,21 @@ const GEAR_SETS = [];
     ['陰陽忍刀', '短劍', 130, 90, '忍者系列', '物理／魔法', { MATK: 70 }], ['陰陽弦', '樂器', 130, 90, '吟遊詩人系列'], ['陰陽左輪手槍', '手槍', 130, 70, '神槍手系列'],
   ]);
 })();
+
+// ===== 盾牌、艾音布羅克庇佑飾品（RO補給站「優配地區／奧丁神殿／艾音布羅克」）=====
+(() => {
+  GEAR_DB.push({ n: '特殊合金鋼盾', g: '盾牌', s: 'shield', type: '盾牌', def: 75, lv: 90, ref: true, b: { _t: '受中型敵人的物理／魔法傷害-5%' },
+    r: { 7: { aspd: 5 }, 9: { _t: '受中型敵人的物理／魔法傷害再-2%' } }, t: ['取得：優配地區掉落'] });
+  GEAR_DB.push({ n: '上弦月圖騰護腕', g: '盾牌', s: 'shield', type: '盾牌', def: 0, lv: 100, j: '忍者系列', ref: true, b: { MATK: 3, vct: 3 },
+    r: { 9: { MATK: 2, vct: 2 } }, t: ['奧丁神殿魔物掉落；防禦值資料待補（先以 0 計）'] });
+  const ALL3 = { STR: 3, AGI: 3, VIT: 3, INT: 3, DEX: 3, LUK: 3 };
+  GEAR_DB.push({ n: '庇佑墜子R', g: '艾音布羅克', s: 'accR', def: 10, lv: 100, ref: true, b: { ATK: 5 } });
+  GEAR_DB.push({ n: '庇佑墜子B', g: '艾音布羅克', s: 'accR', def: 10, lv: 100, ref: true, b: { MATK: 5 } });
+  GEAR_DB.push({ n: '庇佑肩飾R', g: '艾音布羅克', s: 'accL', def: 10, lv: 100, ref: true, b: { MSP: 50 },
+    w2: [{ with: ['庇佑墜子R'], b: { MHPp: 3, MSPp: 3 }, sums: [[14, { ATK: 30, MDEF: 10 }], [18, { aspd: 10 }], [20, { MHPp: 7, MSPp: 7, ...ALL3, _t: '受全體型敵人的物理傷害-3%' }]] }] });
+  GEAR_DB.push({ n: '庇佑肩飾B', g: '艾音布羅克', s: 'accL', def: 10, lv: 100, ref: true, b: { MSP: 50 },
+    t: ['原文精煉總和寫「庇佑墜子BR」，推測為庇佑墜子B 誤植'],
+    w2: [{ with: ['庇佑墜子B'], b: { MHPp: 3, MSPp: 3 }, sums: [[14, { MATK: 30, MDEF: 10 }], [18, { vct: 10 }], [20, { MHPp: 7, MSPp: 7, ...ALL3, _t: '受全體型敵人的魔法傷害-3%' }]] }] });
+})();
+// 搭配效果的精煉總和統一成 sums: [[門檻, 能力], …]
+for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);
