@@ -26,6 +26,7 @@ const GEAR_SLOTS = [
   ['headTop', '頭飾（上）', ['headTop']], ['headMid', '頭飾（中）', ['headMid']], ['headLow', '頭飾（下）', ['headLow']],
   ['armor', '鎧甲', ['armor']], ['garment', '披肩', ['garment']], ['shoes', '鞋子', ['shoes']],
   ['accR', '飾品（右）', ['accR', 'acc']], ['accL', '飾品（左）', ['accL', 'acc']],
+  ['costume', '服飾', ['costume']],
 ];
 // 武器精煉 ATK：每 +1 / +16 以上每 +1 再加（依武器等級，官方精煉系統；過度精煉的浮動值不計）
 const WEAPON_REFINE = { 1: [2, 16], 2: [3, 32], 3: [5, 54], 4: [8, 87] };
@@ -753,7 +754,9 @@ GEAR_DB.push({ n: '銀月魔女的皮鞋', g: '尼芙菲姆', s: 'shoes', def: 1
 
 // ===== 鯊魚寶寶聯名（官方裝備道具查詢平台）=====
 GEAR_DB.push({ n: '鯊魚寶寶背包', g: '鯊魚寶寶聯名', s: 'garment', def: 0, lv: 1, ref: false, b: {},
-  t: ['搭配「(服飾)鯊魚寶寶面具(歸屬)」：FLEE+15、CRI+8', '插「鯊魚寶寶卡片」：ATK+30、攻擊後延遲-8%', '插「鯊魚家族卡片」：MATK+30、變動詠唱-8%', '可使用回歸普隆德拉'] });
+  w2: [{ with: ['(服飾)鯊魚寶寶面具(歸屬)'], b: { FLEE: 15, CRI: 8 } }],
+  t: ['插「鯊魚寶寶卡片」：ATK+30、攻擊後延遲-8%', '插「鯊魚家族卡片」：MATK+30、變動詠唱-8%', '可使用回歸普隆德拉'] });
+GEAR_DB.push({ n: '(服飾)鯊魚寶寶面具(歸屬)', g: '鯊魚寶寶聯名', s: 'costume', def: 0, lv: 1, ref: false, b: {}, t: ['服飾頭上；要歸屬版才有搭配效果'] });
 
 // 必須放在檔案最後：w2 搭配的精煉總和統一成 sums 陣列
 for (const it of GEAR_DB) for (const c of it.w2 || []) c.sums = c.sums || (c.sum ? [c.sum] : []);
