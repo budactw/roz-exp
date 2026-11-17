@@ -99,7 +99,7 @@
     <h2>⚙️ 設定</h2>
     <div class="set-row">
       <div class="field"><label>職業（只列出能裝備的）</label><select id="job"></select></div>
-      <div class="field"><label>Base 等級（部分飾品依等級加成）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
+      <div class="field"><label>Base 等級（只列出等級夠的裝備）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
     </div>
     <div class="field" style="margin-top:12px;"><label>一鍵套用套裝</label>
       <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
@@ -161,7 +161,9 @@ const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人
 const JOB_LINE = { 武僧: ['武道家'], 煉金術師: ['鍊金術師'], 煉金術士: ['鍊金術師'], 劍士: ['騎士', '十字軍'], 魔法師: ['巫師', '賢者'], 弓箭手: ['獵人', '吟遊詩人', '舞孃'], 服事: ['祭司', '武道家'], 商人: ['鐵匠', '鍊金術師'], 盜賊: ['刺客', '流氓'], 初學者: [] };
 // 裝備的職業欄（例：「劍士／商人系列」）→ 可裝備的二轉職業；沒寫＝全職業
 const jobsOf = it => it.j ? it.j.split(/[／、]/).map(x => x.replace('系列', '')).flatMap(x => JOB_LINE[x] || [x]) : JOBS;
-const canWear = it => !st.job || jobsOf(it).includes(st.job);
+const canWear = it => (!st.job || jobsOf(it).includes(st.job)) && lvOk(it);
+const lvOk = it => !it.lv || it.lv <= st.lv;
+const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 // 刺客左手可拿短劍、單手劍、單手斧
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
@@ -243,6 +245,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/17', '裝備與一鍵套裝選項依 Base 等級篩選，等級不足的會標示'],
   ['2026/11/17', '驚駭森靈巢穴改成套裝（可一鍵套用）；一鍵套裝依職業篩選、選完會顯示套裝名稱；分類只寫地區名稱'],
   ['2026/11/17', '新增古城、優配、鐵匠武器、毀葛、深淵湖水、奧丁神殿、艾音布羅克武器、里希塔樂、熔岩、朱諾、沙漠裝備；刺客左手可拿短劍／單手劍／單手斧；能力加總改為條列'],
   ['2026/11/17', '新增配裝分享：產生連結給別人看，對方可以存成自己的配裝'],
@@ -332,7 +335,8 @@ function slotBody(k, res) {
   if (it.j) bits.push(it.j);
   if (!it.ref) bits.push('不可精煉');
   if (k === 'shield' && it.s === 'weapon' && !leftOk(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ 只有刺客能左手拿武器</span>`);
-  if (!canWear(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ ${st.job}不能裝備</span>`);
+  if (!jobOk(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ ${st.job}不能裝備</span>`);
+  if (!lvOk(it)) bits.push(`<span style="color:var(--danger); font-weight:700;">⚠️ 等級不足（需要 Lv ${it.lv}）</span>`);
   const ths = Object.keys(it.r || {}).map(Number).sort((a, b) => a - b);
   const next = ths.find(n => r < n);
   const li = (cls, t, body, tag) => `<li class="${cls}"><span class="t">${t}</span>${body}${tag ? `<span class="tag">${tag}</span>` : ''}</li>`;
@@ -358,7 +362,7 @@ function slotHtml([k, label, kinds], res) {
   const cur = st.slots[k], it = BY_NAME[cur.n];
   const list = GEAR_DB.filter(x => (kinds.includes(x.s) || (k === 'shield' && leftOk(x))) && (canWear(x) || x.n === cur.n));
   const groups = [...new Set(list.map(x => x.g))];
-  const opt = x => `<option value="${x.n}"${x.n === cur.n ? ' selected' : ''}>${x.n}${x.type ? `（${x.type}${x.j ? '・' + x.j.replace('系列', '') : ''}）` : ''}</option>`;
+  const opt = x => `<option value="${x.n}"${x.n === cur.n ? ' selected' : ''}>${x.n}${x.type ? `（${x.type}${x.j ? '・' + x.j.replace('系列', '') : ''}）` : ''}${x.lv > 1 ? `　Lv${x.lv}` : ''}</option>`;
   const opts = `<option value="">（未裝備）</option>` + groups.map(g => `<optgroup label="${g}">` +
     list.filter(x => x.g === g).map(opt).join('') + `</optgroup>`).join('');
   const occ = occupiedBy(k);
@@ -427,7 +431,7 @@ $('allRef').addEventListener('input', e => {
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
 $('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
-$('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); refreshSlots(); });
+$('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
 $('psGrid').innerHTML = PS.map(s => `<div class="field"><label>純 ${s}</label><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0"></div>`).join('');
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });
 function buildQuickSet() {
