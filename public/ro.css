@@ -23,13 +23,16 @@ html[data-ui="ro"] {
 html[data-ui="ro"] body { font-size: 14.5px; background: linear-gradient(#a9b6ca, #7f8fa9) fixed; }
 html[data-ui="ro"] #themeBtn { display: none; }
 
-/* 標題與分頁 */
-html[data-ui="ro"] h1 { font-size: 1.15rem; color: #fff; text-shadow: 1px 1px 0 #3b4763; }
-html[data-ui="ro"] h1 small { color: #e3e8f2; }
-html[data-ui="ro"] .tabs { background: #fff; padding: 4px 6px; gap: 4px; border: 1px solid var(--card-border); border-radius: 12px; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); }
-html[data-ui="ro"] .tabs a { border: 1px solid #a5a8b6; border-radius: 9px; background: linear-gradient(#fff, #f0f0f5); color: #15171c; font-size: 13.5px; font-weight: 400; padding: 3px 12px; }
+/* 頁首：做成一個視窗，標題列是站名，裡面是等寬的頁面按鈕 */
+html[data-ui="ro"] .header { align-items: flex-start; }
+html[data-ui="ro"] .brand { flex: 1 1 420px; max-width: 780px; min-width: 0; gap: 0; background: #fff; border: 1px solid var(--card-border); border-radius: 6px 6px 2px 2px; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); overflow: hidden; }
+html[data-ui="ro"] h1 { flex-wrap: nowrap; gap: 8px; min-height: 26px; padding: 0 10px; font-size: 14px; font-weight: 700; letter-spacing: 0; color: #000; text-shadow: none; white-space: nowrap; background: var(--ro-stripe); border-bottom: 1px solid #000; }
+html[data-ui="ro"] h1 small { flex-basis: auto; margin-left: auto; padding: 0; align-self: center; font-size: 12px; font-weight: 400; color: #2c3a78; overflow: hidden; text-overflow: ellipsis; }
+html[data-ui="ro"] .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(98px, 1fr)); gap: 4px; width: 100%; padding: 8px; background: transparent; border: 0; border-radius: 0; box-shadow: none; align-self: stretch; }
+html[data-ui="ro"] .tabs a { border: 1px solid #a5a8b6; border-radius: 9px; background: linear-gradient(#fff, #f0f0f5); color: #15171c; font-size: 13.5px; font-weight: 400; padding: 4px 6px; text-align: center; }
 html[data-ui="ro"] .tabs a:hover { background: linear-gradient(#f3f6fd, #dbe5fa); }
 html[data-ui="ro"] .tabs a.active, html[data-ui="ro"] .tabs a[aria-current="page"] { border-color: #7f93c8; background: linear-gradient(#cbd5e9, #9db0d4 35%, #a8c0ef 60%, #dae4f7); color: #14204a; font-weight: 700; }
+@media (max-width: 520px) { html[data-ui="ro"] .tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); } html[data-ui="ro"] .tabs a { font-size: 12.5px; padding: 5px 2px; } }
 
 /* 視窗：白底、灰框、條紋標題列、圓形關閉鈕 */
 html[data-ui="ro"] .card { border-radius: 6px 6px 2px 2px; padding: 0 10px 10px; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); }
