@@ -70,22 +70,22 @@ html[data-ui="ro"] .equip-win {
 html[data-ui="ro"] .eq-tabs { grid-area: tabs; display: flex; gap: 1px; padding: 3px 4px 0; background: #eef1f8; border-bottom: 1px solid var(--card-border); }
 html[data-ui="ro"] .eq-tabs button { border-bottom: 0; border-radius: 5px 5px 0 0; background: var(--ro-tab); color: #2d3550; min-height: 26px; padding: 0 14px; font-size: 13.5px; box-shadow: none; }
 html[data-ui="ro"] .eq-tabs button[aria-selected="true"] { background: #fff; color: var(--ro-navy); font-weight: 700; }
-html[data-ui="ro"] .eq {
+html[data-ui="ro"] .equip-win .eq {
   display: flex; align-items: center; gap: 7px; min-height: 40px; margin: 0 6px; padding: 2px 2px; text-align: right; flex-direction: row-reverse;
   background: transparent; border: 0; border-bottom: 1px solid #b4b4bc; border-radius: 0; box-shadow: none; min-width: 0;
 }
-html[data-ui="ro"] .eq.l { flex-direction: row; text-align: left; }
-html[data-ui="ro"] .eq:hover { background: #eef3fd; }
-html[data-ui="ro"] .eq.sel { background: #d9e4fb; }
-html[data-ui="ro"] .eq .ico { flex: 0 0 26px; height: 26px; display: grid; place-items: center; font-size: 0; color: transparent; border: 0; background: radial-gradient(ellipse 13px 8px at center, #a9b6da 0 45%, rgba(169, 182, 218, .35) 75%, transparent 100%); }
-html[data-ui="ro"] .eq.has .ico { background: none; }
-html[data-ui="ro"] .eq .ico img { display: block; image-rendering: pixelated; }
-html[data-ui="ro"] .eq .tx { min-width: 0; display: grid; line-height: 1.2; }
-html[data-ui="ro"] .eq .tx small { font-size: 11.5px; color: #a3a6b4; }
-html[data-ui="ro"] .eq .tx b { font-size: 13.5px; font-weight: 400; color: #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html[data-ui="ro"] .eq:not(.has):not(.occ) .tx b { display: none; }
-html[data-ui="ro"] .eq:not(.has):not(.occ) .tx small { font-size: 14px; font-weight: 700; color: #d0d2dc; }
-html[data-ui="ro"] .eq.occ .tx b { color: #9a9dac; }
+html[data-ui="ro"] .equip-win .eq.l { flex-direction: row; text-align: left; }
+html[data-ui="ro"] .equip-win .eq:hover { background: #eef3fd; }
+html[data-ui="ro"] .equip-win .eq.sel { background: #d9e4fb; }
+html[data-ui="ro"] .equip-win .eq .ico { flex: 0 0 26px; height: 26px; display: grid; place-items: center; font-size: 0; color: transparent; border: 0; background: radial-gradient(ellipse 13px 8px at center, #a9b6da 0 45%, rgba(169, 182, 218, .35) 75%, transparent 100%); }
+html[data-ui="ro"] .equip-win .eq.has .ico { background: none; }
+html[data-ui="ro"] .equip-win .eq .ico img { display: block; image-rendering: pixelated; }
+html[data-ui="ro"] .equip-win .eq .tx { min-width: 0; display: grid; line-height: 1.2; }
+html[data-ui="ro"] .equip-win .eq .tx small { font-size: 11.5px; color: #a3a6b4; }
+html[data-ui="ro"] .equip-win .eq .tx b { font-size: 13.5px; font-weight: 400; color: #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-ui="ro"] .equip-win .eq:not(.has):not(.occ) .tx b { display: none; }
+html[data-ui="ro"] .equip-win .eq:not(.has):not(.occ) .tx small { font-size: 14px; font-weight: 700; color: #d0d2dc; }
+html[data-ui="ro"] .equip-win .eq.occ .tx b { color: #9a9dac; }
 html[data-ui="ro"] .eq-ch {
   grid-area: ch; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 6px 22px; text-align: center;
   border-left: 1px solid #b4b4bc; border-right: 1px solid #b4b4bc; background: var(--ro-lines);
@@ -179,7 +179,7 @@ html[data-ui="ro"] .info-btn:hover { background: radial-gradient(circle at 35% 3
 html[data-ui="ro"] .eq-none { pointer-events: none; }
 html[data-ui="ro"] .eq-none:hover { background: transparent; }
 /* 只有附魔石、沒有服飾圖示時，用一顆藍色小石頭表示 */
-html[data-ui="ro"] .eq.has .ico:not(:has(img)) { background: radial-gradient(circle at 40% 35%, #cfe0ff 0 12%, #6f93e6 30%, #3c5fc0 42%, transparent 46%); }
+html[data-ui="ro"] .equip-win .eq.has .ico:not(:has(img)) { background: radial-gradient(circle at 40% 35%, #cfe0ff 0 12%, #6f93e6 30%, #3c5fc0 42%, transparent 46%); }
 .ro-sum { clear: both; margin-top: 8px; padding: 6px 8px; border: 1px solid #b9c3e2; background: #eef2fb; font-size: 13px; }
 .ro-sum .t { display: block; font-weight: 700; color: #2c3a78; margin-bottom: 2px; }
 html[data-ui="ro"] #slots > .sp-title { display: none; }
@@ -187,3 +187,55 @@ html[data-ui="ro"] #slots > .sp-title { display: none; }
 .ro-ench > b { display: block; color: #2c3a78; margin-bottom: 2px; }
 .ro-ench .t { display: inline-block; min-width: 4.5em; margin-right: 6px; color: #6a7186; }
 .ro-ench + .ro-ench, .ro-ench + .ro-sum { margin-top: 6px; }
+
+/* ===== 配裝以外的頁面共用 ===== */
+/* 結果面板也是一個視窗 */
+html[data-ui="ro"] .result { border-radius: 6px 6px 2px 2px; padding: 0 10px 10px; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); }
+html[data-ui="ro"] .result > h2 { margin: 0 -10px 10px; padding: 0 8px 0 10px; min-height: 26px; line-height: 26px; font-size: 14px; font-weight: 400; letter-spacing: 0; color: #000; background: var(--ro-stripe); border-bottom: 1px solid #000; border-radius: 5px 5px 0 0; }
+html[data-ui="ro"] h2 .n { width: 18px; height: 18px; font-size: 11px; background: radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f); box-shadow: 0 0 0 1px #9fb2e2; }
+/* 輸入框、下拉選單 */
+html[data-ui="ro"] input[type=number], html[data-ui="ro"] input[type=text], html[data-ui="ro"] input[type=date], html[data-ui="ro"] input[type=search], html[data-ui="ro"] select, html[data-ui="ro"] textarea {
+  border-radius: 0; min-height: 28px; padding: 2px 6px; font-size: 14px; background-color: #fff; border: 1px solid var(--input-border); color: #15171c;
+}
+html[data-ui="ro"] input:focus, html[data-ui="ro"] select:focus, html[data-ui="ro"] textarea:focus { border-color: #4a6fc8; box-shadow: 0 0 0 2px #dbe5fa; }
+html[data-ui="ro"] label { font-size: 13px; }
+/* 小方塊、提示框、清單項目：方角 */
+html[data-ui="ro"] .tile, html[data-ui="ro"] .status, html[data-ui="ro"] .note, html[data-ui="ro"] .table-wrap, html[data-ui="ro"] .q-map, html[data-ui="ro"] .q-inline, html[data-ui="ro"] .q-pickbar,
+html[data-ui="ro"] .record, html[data-ui="ro"] .task, html[data-ui="ro"] .mq, html[data-ui="ro"] .ask { border-radius: 2px; }
+html[data-ui="ro"] .tile { background: #f6f7fa; }
+html[data-ui="ro"] .tile .k { font-size: 12.5px; }
+/* 分段按鈕：一整條膠囊，選中的是藍色 */
+html[data-ui="ro"] .seg { background: #eef1f8; border: 1px solid #a5a8b6; border-radius: 10px; padding: 2px; }
+html[data-ui="ro"] .seg button { min-height: 24px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: #4a5068; font-size: 13px; }
+html[data-ui="ro"] .seg button.active { background: linear-gradient(#cbd5e9, #9db0d4 35%, #a8c0ef 60%, #dae4f7); color: #14204a; font-weight: 700; box-shadow: 0 0 0 1px #7f93c8; }
+/* 表格 */
+html[data-ui="ro"] table { font-size: 13.5px; }
+html[data-ui="ro"] th { background: #e6ecf8; color: var(--ro-navy); font-weight: 700; border-bottom: 1px solid #9a9fb2; }
+html[data-ui="ro"] th, html[data-ui="ro"] td { border-bottom-color: #e3e4ea; }
+/* 進度條 */
+html[data-ui="ro"] .bar { border-radius: 0; border: 1px solid #9a9fb2; background: #fff; height: 12px; }
+html[data-ui="ro"] .bar > * { border-radius: 0; }
+/* 對話框 */
+html[data-ui="ro"] .modal-card { border-radius: 6px 6px 2px 2px; background: #fff; box-shadow: 2px 3px 0 rgba(20, 30, 60, .3); backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* 特殊按鈕不要被膠囊樣式蓋掉語意色 */
+html[data-ui="ro"] .btn-add { color: var(--green); border-style: dashed; border-color: var(--green); }
+html[data-ui="ro"] .btn-del { color: var(--danger); }
+html[data-ui="ro"] .btn-now { color: var(--ro-navy); font-weight: 700; }
+/* 視窗裡的區塊一律方角（各頁自己的清單、提示框、標籤等），按鈕、開關、分段按鈕維持圓角 */
+html[data-ui="ro"] :is(.card, .result, .modal-card, .kr) :not(button, input, select, .n, .seg, .seg *, .beta, img) { border-radius: 2px; }
+html[data-ui="ro"] .result > h2::after {
+  content: ""; margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 0 0 1px #9fb2e2;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.6 1.6l4.8 4.8M6.4 1.6l-4.8 4.8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 8px 8px no-repeat, radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f);
+}
+html[data-ui="ro"] .card > h2, html[data-ui="ro"] .result > h2 { border-radius: 5px 5px 0 0; }
+html[data-ui="ro"] .potion-row select.p-cur { border-radius: 0; min-height: 28px; font-size: 14px; }
+/* 韓服資料頁的每一筆 */
+html[data-ui="ro"] .kr { border-radius: 2px; background: #fff; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); padding: 10px 12px; margin-bottom: 8px; }
+/* 對話框：標題做成標題列 */
+html[data-ui="ro"] .modal { background: rgba(40, 50, 80, .45); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-ui="ro"] .modal-card { padding: 0 12px 12px; overflow: hidden; }
+html[data-ui="ro"] .modal-head { margin: 0 -12px 10px; padding: 0 8px 0 10px; min-height: 26px; font-size: 14px; color: #000; background: var(--ro-stripe); border-bottom: 1px solid #000; border-radius: 5px 5px 0 0; }
+html[data-ui="ro"] .modal-head b { font-weight: 400; }
+/* 標題列裡有按鈕的（每日任務、期間活動）：不放裝飾用的 ×，換行時留一點上下間距 */
+html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input)::after { display: none; }
+html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input) { padding-block: 3px; row-gap: 4px; }
