@@ -35,3 +35,11 @@ node tools/grf/build-slots.js /tmp/items.json public/gear-data.js public/slot-da
 node -e "eval(require('fs').readFileSync('public/gear-data.js','utf8')+';global.G=GEAR_DB');console.log(JSON.stringify(G.map(x=>x.n)))" > /tmp/gear-names.json
 python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js
 ```
+
+## 職業站立圖
+
+`public/chars/<職業>.png`：身體＋頭的正面站立圖（`data.grf` 的 .spr／.act 合成）：
+
+```bash
+python3 -I tools/grf/build-chars.py <data.grf> public/chars
+```

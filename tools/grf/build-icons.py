@@ -30,11 +30,6 @@ def bmp_rgba(b):
     if h > 0: rows.reverse()
     return w, abs(h), rows
 
-def png(w, h, rows):
-    def chunk(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d))
-    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6, 0, 0, 0)) + \
-        chunk(b'IDAT', zlib.compress(b''.join(b'\0' + r for r in rows), 9)) + chunk(b'IEND', b'')
-
 def main():
     grf_path, lub, names_path, out_dir, out_js = sys.argv[1:6]
     lua = L.LuaRuntime(encoding=None); lua.execute(open(lub, 'rb').read())
@@ -63,7 +58,7 @@ def main():
                 if fl & 6: data = grf.decode(data, fl, cs)
                 try: w, h, rows = bmp_rgba(zlib.decompress(data[:cs]))
                 except Exception as e: print('略過', name, e, file=sys.stderr); continue
-                open(os.path.join(out_dir, f'{iid}.png'), 'wb').write(png(w, h, rows))
+                open(os.path.join(out_dir, f'{iid}.png'), 'wb').write(grf.png(w, h, rows))
                 out[name] = iid; break
             else: miss.append(name)
     open(out_js, 'w', encoding='utf-8').write('// 由 tools/grf/build-icons.py 產生：裝備名稱 → 圖示編號（icons/<編號>.png，取自樂園客戶端）\n'

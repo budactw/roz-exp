@@ -82,6 +82,19 @@ def table(path):
         out.append((name, cs, ca, rs, fl, o + 46))
     return hex(ver), out
 
+def png(w, h, rows):
+    """rows：每列 RGBA 位元組 → PNG"""
+    def chunk(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d))
+    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6, 0, 0, 0)) + \
+        chunk(b'IDAT', zlib.compress(b''.join(b'\0' + bytes(r) for r in rows), 9)) + chunk(b'IEND', b'')
+
+def read(f, ent):
+    """ent：table() 的一筆 → 解開後的檔案內容"""
+    n, cs, ca, rs, fl, o = ent
+    f.seek(o); data = f.read(ca)
+    if fl & 6: data = decode(data, fl, cs)
+    return zlib.decompress(data[:cs])
+
 def dec(b):
     for enc in ('cp949', 'big5', 'utf-8'):
         try: return b.decode(enc)

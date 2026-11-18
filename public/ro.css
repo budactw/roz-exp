@@ -85,7 +85,7 @@ html[data-ui="ro"] .eq-ch {
   grid-area: ch; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   border: 1px solid #b5c2d3; border-radius: 3px; background: radial-gradient(ellipse at 50% 40%, #ffffff, #dce5f0); padding: 8px; text-align: center;
 }
-html[data-ui="ro"] .eq-ch .fig { font-size: 44px; line-height: 1; filter: grayscale(.2); }
+html[data-ui="ro"] .eq-ch .fig { zoom: 2; image-rendering: pixelated; }
 html[data-ui="ro"] .eq-ch b { font-size: 13px; color: #22324d; }
 html[data-ui="ro"] .eq-ch small { font-size: 11px; color: var(--dim); }
 html[data-ui="ro"] .eq-ch dl { display: grid; grid-template-columns: auto auto; gap: 0 8px; margin: 4px 0 0; font-size: 11px; }
@@ -117,7 +117,7 @@ html[data-ui="ro"] .empty { border-radius: 2px; }
     grid-template-areas: "ch ch" "headTop headMid" "armor headLow" "weapon shield" "garment shoes" "accR accL" "costume costume";
   }
   html[data-ui="ro"] .eq-ch { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; }
-  html[data-ui="ro"] .eq-ch .fig { font-size: 28px; }
+  html[data-ui="ro"] .eq-ch .fig { zoom: 1; }
   html[data-ui="ro"] .eq-ch dl { margin: 0; grid-template-columns: repeat(3, auto auto); }
 }
 
@@ -129,3 +129,9 @@ html[data-ui="ro"] .beta { border-radius: 2px; }
 html[data-ui="ro"] .chip { border-radius: 2px; }
 html[data-ui="ro"] .eq .ico img { display: block; image-rendering: pixelated; }
 html[data-ui="ro"] .eq.has .ico:has(img) { background: linear-gradient(#ffffff, #e6ecf4); border-color: #a9b7ca; }
+
+/* 精煉拉霸：加上標籤、縮短 */
+html[data-ui="ro"] .rf { max-width: 340px; gap: 8px; }
+html[data-ui="ro"] .rf .rl { display: inline; font-size: 12px; font-weight: 700; color: #22324d; white-space: nowrap; }
+html[data-ui="ro"] .rf .rv { min-width: 2.6em; font-size: 14px; background: #fff; border: 1px solid #a9b7ca; border-radius: 2px; padding: 0 6px; text-align: center; box-shadow: 1px 1px 2px rgba(0, 0, 0, .12) inset; }
+html[data-ui="ro"] .slot .rf { margin: 8px 0; }
