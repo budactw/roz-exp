@@ -747,8 +747,9 @@ const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', h
 // 特殊裝備（遊戲裝備視窗的第二頁）：四個服飾位置
 let eqTab = 'main';
 const EQ_SP_ICO = { costume: '上', cMid: '中', cLow: '下', cGar: '披' };
-// 特殊裝備和一般裝備同一個 10 格版型：服飾放在對應的位置，其餘 6 格是空的
-const EQ_SP_AREA = { costume: 'headTop', cLow: 'headLow', cMid: 'headMid', cGar: 'garment', spBoard: 'shield', spPet: 'accL', spLucky: 'accR' }, EQ_SP_NONE = ['weapon', 'armor', 'shoes'];
+// 特殊裝備和一般裝備同一個 10 格版型。遊戲視窗的左欄放「右邊」的部位（右手武器、飾品右），右欄放「左邊」的：
+// 寵物戒指是飾品(右邊) → 左欄；幸運髮飾是飾品(左) → 右欄；典藏板是左手 → 右欄
+const EQ_SP_AREA = { costume: 'headTop', cLow: 'headLow', cMid: 'headMid', cGar: 'garment', spBoard: 'shield', spPet: 'accR', spLucky: 'accL' }, EQ_SP_NONE = ['weapon', 'armor', 'shoes'];
 const EQ_SP_KEYS = ['costume', 'spBoard', 'spPet', 'spLucky'];   // 放在特殊裝備頁的部位
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
