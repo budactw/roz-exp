@@ -239,3 +239,5 @@ html[data-ui="ro"] .modal-head b { font-weight: 400; }
 /* 標題列裡有按鈕的（每日任務、期間活動）：不放裝飾用的 ×，換行時留一點上下間距 */
 html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input)::after { display: none; }
 html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input) { padding-block: 3px; row-gap: 4px; }
+/* 沒有標題列的視窗（例如韓服資料的搜尋列）：上方補回內距 */
+html[data-ui="ro"] .card:not(:has(> h2)) { padding-top: 10px; }

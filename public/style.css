@@ -263,10 +263,10 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 
 /* 頁首按鈕：手機版自動換列、不在按鈕內折字、加大觸控面積 */
 .header .row { flex-wrap: wrap; gap: 8px; }
-/* 頁首下方的工具列（頁面自己的功能按鈕）；.end 靠右 */
-.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -8px 0 16px; }
-.toolbar .end { margin-left: auto; }
-.toolbar .btn-ghost { white-space: nowrap; }
+/* 頁首下方的工具列（頁面自己的功能按鈕）；.end 靠右。不叫 .toolbar，韓服資料頁已經有同名的搜尋列 */
+.page-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: -8px 0 16px; }
+.page-tools .end { margin-left: auto; }
+.page-tools .btn-ghost { white-space: nowrap; }
 .header .btn-ghost { white-space: nowrap; }
 @media (max-width: 600px) {
   .header .row { width: 100%; }
