@@ -7,7 +7,9 @@
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
 <link rel="stylesheet" href="ro.css?v=17">
-<script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
+<script>{ // 版面：預設遊戲風格；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
+  const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
+  if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -823,7 +825,7 @@ function selSlot(k) {
 function toggleUi() {
   const ro = document.documentElement.dataset.ui !== 'ro';
   if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui;
-  localStorage.setItem('gear-ui', ro ? 'ro' : ''); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; render();
+  localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; render();
 }
 $('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲風格';
 // ===== 搜尋與武器類型 =====
