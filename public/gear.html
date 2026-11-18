@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=13">
+<link rel="stylesheet" href="ro.css?v=15">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -140,7 +140,7 @@
   <div class="header">
     <div class="brand">
       <h1>RO樂園配裝模擬器 <span class="beta">Beta</span> <small>by 凌雲閣－師爺</small></h1>
-      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" aria-current="page" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
     </div>
     <div class="row">
       <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
@@ -223,10 +223,10 @@
   </div>
 </div>
 
-<div class="ro-info" id="roInfo" popover>
+<dialog class="ro-info" id="roInfo" popover aria-labelledby="roInfoName">
   <div class="ro-info-h" id="roInfoH"><span id="roInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo()">×</button></div>
   <div class="ro-info-b" id="roInfoBody"></div>
-</div>
+</dialog>
 
 <script src="gear-data.js?v=32"></script>
 <script src="enchant-data.js?v=4"></script>
@@ -782,7 +782,8 @@ function descHtml(lines) {
   }).join('');
 }
 const infoPop = 'popover' in HTMLElement.prototype;
-function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else el.classList.remove('open'); }
+// 不支援 popover 的舊瀏覽器：退回一般的非強制回應 dialog，另外自己處理點外面／Esc 關閉
+function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else if (el.open) el.close(); }
 async function showInfo(k, x, y) {
   const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) return;
   if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=2')).json(); } catch (e) { DESC = {}; } }
@@ -791,7 +792,7 @@ async function showInfo(k, x, y) {
   $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` +
     // 這件裝備目前實際給的能力（含精煉、附魔、附加能力）
     ((slotBody(k, compute()).eff.match(/<li class="sum">.*?<\/li>/) || [''])[0].replace(/^<li class="sum">/, '<div class="ro-sum">').replace(/<\/li>$/, '</div>'));
-  if (infoPop) { hideInfo(); el.showPopover(); } else el.classList.add('open');
+  if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
   const r = el.getBoundingClientRect();
   el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
   el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
