@@ -236,8 +236,13 @@ html[data-ui="ro"] .modal { background: rgba(40, 50, 80, .45); backdrop-filter: 
 html[data-ui="ro"] .modal-card { padding: 0 12px 12px; overflow: hidden; }
 html[data-ui="ro"] .modal-head { margin: 0 -12px 10px; padding: 0 8px 0 10px; min-height: 26px; font-size: 14px; color: #000; background: var(--ro-stripe); border-bottom: 1px solid #000; border-radius: 5px 5px 0 0; }
 html[data-ui="ro"] .modal-head b { font-weight: 400; }
-/* 標題列裡有按鈕的（每日任務、期間活動）：不放裝飾用的 ×，換行時留一點上下間距 */
-html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input)::after { display: none; }
-html[data-ui="ro"] :is(.card, .result) > h2:has(button, .seg, input) { padding-block: 3px; row-gap: 4px; }
+/* 標題裡帶按鈕的（每日任務、期間活動）：標題列只放標題，按鈕換到下面自成一排工具列 */
+html[data-ui="ro"] :is(.card, .result) > h2:has(> .row, > button) {
+  flex-wrap: wrap; align-content: flex-start; row-gap: 0; padding-block: 0; border-bottom: 1px solid #c9c9d1;
+  background: var(--ro-stripe) top / 100% 26px no-repeat, linear-gradient(#000, #000) 0 26px / 100% 1px no-repeat, #f1f4fb;
+}
+/* ::after 當作換行用（寬度 100%、高度 0），排在標題和按鈕之間 */
+html[data-ui="ro"] :is(.card, .result) > h2:has(> .row, > button)::after { content: ""; display: block; order: 1; flex: 0 0 100%; width: auto; height: 1px; margin: 0; border-radius: 0; background: none; box-shadow: none; }
+html[data-ui="ro"] :is(.card, .result) > h2 > .row, html[data-ui="ro"] :is(.card, .result) > h2 > button { order: 2; margin: 6px 0 !important; flex-wrap: wrap; row-gap: 6px; font-weight: 400; }
 /* 沒有標題列的視窗（例如韓服資料的搜尋列）：上方補回內距 */
 html[data-ui="ro"] .card:not(:has(> h2)) { padding-top: 10px; }
