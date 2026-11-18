@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>配裝模擬器使用說明｜RO樂園｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=25">
+<link rel="stylesheet" href="ro.css?v=24">
+<script src="ro-ui.js?v=2"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+</script>
+<style>
+  .guide { max-width: 860px; margin: 0 auto; }
+  .guide .card { line-height: 1.75; }
+  .guide h2 { scroll-margin-top: 12px; }
+  .guide p { margin: 0 0 10px; }
+  .guide ul, .guide ol { margin: 0 0 10px; padding-left: 22px; }
+  .guide li { margin: 2px 0; }
+  .guide figure { margin: 12px 0 14px; text-align: center; }
+  .guide figure img { max-width: 100%; height: auto; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 2px 10px rgba(15,23,42,.08); }
+  .guide figcaption { font-size: .8rem; color: var(--dim); margin-top: 4px; }
+  .guide .toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; padding: 0; list-style: none; }
+  .guide .toc a { display: block; padding: 6px 10px; border: 1px solid var(--card-border); border-radius: 8px; text-decoration: none; color: var(--text); background: var(--tile-bg); }
+  .guide .toc a:hover { border-color: var(--primary); }
+  .guide kbd { font-family: inherit; font-size: .85em; padding: 0 6px; border: 1px solid var(--input-border); border-bottom-width: 2px; border-radius: 4px; background: var(--input-bg); }
+  .guide .tip { padding: 8px 12px; border-left: 3px solid var(--primary); background: var(--soft); border-radius: 0 8px 8px 0; margin: 10px 0; }
+  .guide .go { display: inline-block; margin-top: 4px; padding: 8px 18px; border-radius: 10px; background: var(--seg-active); color: #fff; font-weight: 700; text-decoration: none; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+  @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+  html[data-ui="ro"] .guide figure img { border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="container guide">
+
+  <div class="header">
+    <div class="brand">
+      <h1>配裝模擬器使用說明 <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" aria-current="page" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📖 目錄</h2>
+    <ul class="toc">
+      <li><a href="#start">1. 三步驟上手</a></li>
+      <li><a href="#settings">2. 設定</a></li>
+      <li><a href="#equip">3. 裝備視窗</a></li>
+      <li><a href="#slot">4. 精煉、附魔、附加能力</a></li>
+      <li><a href="#info">5. 物品資訊視窗</a></li>
+      <li><a href="#special">6. 特殊裝備</a></li>
+      <li><a href="#totals">7. 能力加總</a></li>
+      <li><a href="#share">8. 存檔與分享</a></li>
+      <li><a href="#misc">9. 其他</a></li>
+    </ul>
+    <a class="go" href="gear.html">🧩 開始配裝</a>
+  </div>
+
+  <div class="card" id="start">
+    <h2>1. 三步驟上手</h2>
+    <ol>
+      <li><b>選職業、填等級</b>：裝備清單只會列出這個職業、這個等級穿得上的裝備。</li>
+      <li><b>點裝備視窗的格子</b>，在下方選裝備、拉精煉。也可以用「一鍵套用套裝」一次換上整套。</li>
+      <li><b>看右邊的能力加總</b>：所有裝備、精煉、套裝、附魔的能力都已經加好。</li>
+    </ol>
+    <div class="tip">配裝會自動存在你的瀏覽器裡，下次打開還在；按「分享這組配裝」可以把整組傳給別人。</div>
+  </div>
+
+  <div class="card" id="settings">
+    <h2>2. 設定</h2>
+    <figure><img src="guide/g-settings.webp" width="1192" height="508" alt="設定區：職業、等級、套裝、整套精煉、附魔與技能開關" loading="lazy"><figcaption>設定區</figcaption></figure>
+    <ul>
+      <li><b>職業／Base 等級</b>：決定清單裡出現哪些裝備；依職業生效的效果（例如巴基力防具、異世之靈 +9）也會跟著換。</li>
+      <li><b>一鍵套用套裝</b>：選一組就把整套換上。</li>
+      <li><b>整套精煉</b>：把所有可精煉的裝備一次改成同一個精煉值，之後還能在各部位個別調整。</li>
+      <li><b>設定附魔</b>：開啟後，各部位會出現附魔與附加能力的選單。</li>
+      <li><b>技能已習得</b>：有些效果寫著「習得某技能時」（例如艾音布羅克武器 +9），開啟後才算進加總。</li>
+      <li><b>技能等級</b>：穿上「某技能每 Lv…」的裝備或附魔時，這裡會自動出現該技能的欄位，填入等級就照等級計算。</li>
+      <li><b>純素質</b>：巨神蟒蛇皮、神器等「依純素質加成」的裝備才需要填。</li>
+    </ul>
+  </div>
+
+  <div class="card" id="equip">
+    <h2>3. 裝備視窗</h2>
+    <figure><img src="guide/g-equip.webp" width="794" height="244" alt="裝備視窗：左右兩欄共十格，中間是職業與 ATK、MATK、DEF" loading="lazy"><figcaption>一般裝備（10 格）</figcaption></figure>
+    <ul>
+      <li>格子的位置和遊戲的裝備視窗一樣：左欄是頭上、頭下、武器、披肩、飾品（右）；右欄是頭中、鎧甲、左手、鞋子、飾品（左）。</li>
+      <li><b>點一下格子</b>：下方會顯示這個部位的詳細設定。</li>
+      <li>灰色、括號裡的名稱代表這格被別的裝備佔用（例如頭上、頭中一體的頭飾、雙手武器）。</li>
+      <li>中間顯示目前的職業、等級和 ATK／MATK／DEF 小計。</li>
+      <li>上方切換「一般裝備／特殊裝備」，特殊裝備見 <a href="#special">第 6 節</a>。</li>
+    </ul>
+  </div>
+
+  <div class="card" id="slot">
+    <h2>4. 精煉、附魔、附加能力</h2>
+    <figure><img src="guide/g-slot.webp" width="794" height="533" alt="部位詳細：選裝備、精煉拉霸、附加能力與效果清單" loading="lazy"><figcaption>選中的部位</figcaption></figure>
+    <ul>
+      <li><b>最上面的選單</b>選裝備；武器可以先用「全部類型」篩選武器種類。上方的搜尋框可以用名稱、分類、類型或職業找裝備。</li>
+      <li><b>精煉</b>：拉動拉霸，效果清單即時更新。</li>
+      <li><b>附魔／附加能力</b>：開啟「設定附魔」後出現。附加能力選完項目後，右邊的框可以填數值（預設最大值）。</li>
+      <li>效果清單的顏色：<b style="color:var(--green)">綠色</b>＝已生效，<b style="color:#f59e0b">橘色</b>＝下一個精煉門檻，灰色＝還沒達到。</li>
+      <li>最下面的<b>本件合計</b>是這件裝備目前實際給的全部能力。</li>
+    </ul>
+  </div>
+
+  <div class="card" id="info">
+    <h2>5. 物品資訊視窗</h2>
+    <div class="two">
+      <figure><img src="guide/g-info.webp" width="470" height="681" alt="物品資訊視窗：物品圖、遊戲內說明、附魔與本件合計" loading="lazy"><figcaption>物品資訊視窗</figcaption></figure>
+      <div>
+        <p>像遊戲裡一樣查看裝備說明：</p>
+        <ul>
+          <li>電腦：在裝備視窗的格子上<b>按右鍵</b>。</li>
+          <li>手機：按部位選單右邊的藍色 <b>i</b> 按鈕。</li>
+        </ul>
+        <p>視窗內容：</p>
+        <ul>
+          <li>物品大圖和<b>遊戲內說明原文</b>（標題的 [數字] 是洞數）。</li>
+          <li>這件裝備目前的<b>附魔、附加能力</b>。</li>
+          <li><b>本件合計</b>：精煉、附魔都算進去的實際能力。</li>
+        </ul>
+        <p>拖曳標題列可以移動視窗；點視窗外面、按 <kbd>Esc</kbd> 或右上角的圓鈕關閉。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="special">
+    <h2>6. 特殊裝備</h2>
+    <figure><img src="guide/g-special.webp" width="794" height="244" alt="特殊裝備頁：服飾附魔石、典藏板、寵物戒指、幸運髮飾" loading="lazy"><figcaption>裝備視窗切到「特殊裝備」</figcaption></figure>
+    <ul>
+      <li><b>服飾頭飾（上／中／下）、服飾披肩</b>：選服飾附魔石（照官方服飾附魔指南）。職業石只會列出目前職業的；同系列湊齊會自動算搭配效果（例如三顆攻擊石 ATK 再 +2%）。</li>
+      <li><b>典藏板</b>：可精煉到 +10，每 +1 給對應能力（要插滿同系列 4 張卡片才生效）。</li>
+      <li><b>寵物戒指</b>（飼養戒指）：一般魔物、MVP 魔物各選一隻，Lv1 或 Lv2。</li>
+      <li><b>幸運髮飾</b>：四洞附魔與附加能力（只在隱世地圖、MVP-PK 棲息地、公會密穴生效）。</li>
+    </ul>
+    <div class="two">
+      <figure><img src="guide/g-stone.webp" width="794" height="166" alt="服飾附魔石選單與合計" loading="lazy"><figcaption>服飾附魔石：下方會顯示石頭合計</figcaption></figure>
+      <figure><img src="guide/g-pet.webp" width="794" height="275" alt="寵物戒指：一般魔物與 MVP 魔物附魔" loading="lazy"><figcaption>寵物戒指</figcaption></figure>
+    </div>
+    <div class="tip">穿上寵物戒指或幸運髮飾時，會自動開啟「設定附魔」。</div>
+  </div>
+
+  <div class="card" id="totals">
+    <h2>7. 能力加總</h2>
+    <div class="two">
+      <figure><img src="guide/g-totals.webp" width="372" height="1259" alt="能力加總：基本能力、技能條件加成、其他效果、套裝" loading="lazy"><figcaption>電腦版固定在右側；手機版在最下面，底部有摘要列</figcaption></figure>
+      <div>
+        <ul>
+          <li><b>上半部</b>：STR、ATK、MHP、CRI、攻擊後延遲等可以直接加總的能力。武器精煉加的 ATK／MATK 會註明在後面。</li>
+          <li><b>技能／條件加成</b>：只對特定技能、屬性、種族、體型的敵人生效的加成（例如音速投擲傷害、對人類型怪物傷害）。</li>
+          <li><b>其他效果</b>：機率觸發、需要條件、沒辦法加總的效果，右邊是來源裝備。</li>
+          <li><b>套裝／搭配</b>：已穿齊的打勾；沒穿齊的會列出還缺哪幾件、精煉總和還差多少。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="share">
+    <h2>8. 存檔與分享</h2>
+    <ul>
+      <li>配裝<b>自動存在這台裝置的瀏覽器</b>，不會上傳；換裝置或清除瀏覽器資料就會消失。</li>
+      <li>按能力加總最下面的<b>「分享這組配裝」</b>，會複製一個連結（手機會叫出分享選單）。連結裡包含裝備、精煉、附魔、技能等級等全部設定。</li>
+      <li>別人打開你的連結時，畫面上方會提示「正在檢視分享的配裝」，修改不會蓋掉他自己的配裝；想留下來就按「存成我的配裝」。</li>
+    </ul>
+  </div>
+
+  <div class="card" id="misc">
+    <h2>9. 其他</h2>
+    <figure><img src="guide/g-mobile.webp" width="352" height="278" alt="手機版裝備視窗" loading="lazy"><figcaption>手機版：中間的職業資訊移到上方，裝備排成兩欄</figcaption></figure>
+    <ul>
+      <li><b>版面切換</b>：右上角「🖥️ 一般版面／🎮 遊戲風格」。配裝預設遊戲風格，其他頁面預設一般版面，兩邊分開記。</li>
+      <li><b>資料來源</b>：裝備數值、洞數、圖示與說明取自樂園客戶端與官方遊戲指南，已逐件核對；實際數值仍以遊戲內為準。</li>
+      <li>發現數值不對或有缺的裝備，請按頁面下方的「🐞 回報問題」，或 DC 私訊 <b>zhuge0520</b>。</li>
+    </ul>
+    <a class="go" href="gear.html">🧩 開始配裝</a>
+  </div>
+
+  <div class="foot">
+    <div style="margin-top:8px;">作者：凌雲閣－師爺</div>
+    <div class="privacy">本站是玩家自製的非官方工具，與官方無關。遊戲圖片與文字 © GRAVITY CO., Ltd. &amp; Lee MyoungJin (studio DTDS)，台灣由格雷維蒂互動營運。</div>
+  </div>
+</div>
+<script>
+// 夜間模式：沿用其他頁面存的設定
+if ((localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+</script>
+</body>
+</html>

@@ -122,6 +122,7 @@
   .chip.flash b { color: var(--green); }
   .dock-btn { flex: 0 0 auto; min-height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; cursor: pointer; }
   .gear-main, .gear-layout { margin-bottom: 16px; }
+  .guide-link { display: inline-flex; align-items: center; text-decoration: none; }
   @media (pointer: coarse) { .dock-btn { min-height: 44px; } }
   /* 電腦版：能力加總放右側並固定；不用底部摘要列 */
   @media (min-width: 1100px) {
@@ -146,6 +147,7 @@
       <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" aria-current="page" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
     </div>
     <div class="row">
+      <a class="btn-ghost guide-link" href="gear-guide.html">📖 使用說明</a>
       <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
     </div>
@@ -351,6 +353,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/19', '附魔「精髓」的技能等級、盔甲精煉加成改為自動計算；新增使用說明'],
   ['2026/11/19', '新版面：遊戲風格（右上角可切回一般版面）；新增特殊裝備：服飾附魔石、典藏板、寵物戒指、幸運髮飾'],
   ['2026/11/19', '新增「技能已習得」開關與技能等級；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力（設定裡開啟）'],
