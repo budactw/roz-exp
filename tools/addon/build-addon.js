@@ -46,6 +46,7 @@ if (ph && mg) push('勇者的改造箱', `it => ${JSON.stringify(LHZ)}.includes(
 const lava = J('out_lava.json'); if (lava) push('熔岩精華', `it => ${JSON.stringify(lava.targets)}.includes(it.n)`, [pool(lava.pools[0], '熔岩精華')]);
 const dr = J('out_dragon.json'); if (dr) push('漩渦的天龍神力', `it => ${JSON.stringify(dr.targets)}.includes(it.n)`, [pool(dr.pools[0], '漩渦的天龍神力')]);
 const fw = J('out_fw.json'); if (fw) push('巨神蟒的卷軸', `it => /^巨神蟒蛇皮（/.test(it.n)`, fw.pools.map(p => pool(p, /魔法/.test(p.title) ? '巨神蟒的卷軸（魔法）' : '巨神蟒的卷軸（物理）')));
+const qs = J('out_queen.json'); if (qs) push('驚駭森靈皇后的卷軸', `it => ${JSON.stringify(qs.targets)}.includes(it.n)`, [pool(qs.pools[0], '驚駭森靈皇后的卷軸')]);
 // 魔物掉落裝備（原生附加能力）：池 1～4 武器分近距離／遠距離／魔法，池 5 鎧甲／披肩／鞋子，克雷斯特漢姆只有披肩
 const drop = J('out_drop.json'), DROP = { weapon: {}, armor: [], garment: [], shoes: [] };
 if (drop) for (const p of drop.pools) {
