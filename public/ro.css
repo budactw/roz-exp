@@ -127,3 +127,5 @@ html[data-ui="ro"] .page-note summary, html[data-ui="ro"] details.ps summary { f
 html[data-ui="ro"] .foot .recruit, html[data-ui="ro"] .foot .boba { border-radius: 3px; }
 html[data-ui="ro"] .beta { border-radius: 2px; }
 html[data-ui="ro"] .chip { border-radius: 2px; }
+html[data-ui="ro"] .eq .ico img { display: block; image-rendering: pixelated; }
+html[data-ui="ro"] .eq.has .ico:has(img) { background: linear-gradient(#ffffff, #e6ecf4); border-color: #a9b7ca; }

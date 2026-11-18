@@ -223,6 +223,7 @@
 <script src="enchant-data.js?v=4"></script>
 <script src="addon-data.js?v=4"></script>
 <script src="slot-data.js?v=2"></script>
+<script src="icon-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -660,7 +661,7 @@ function renderEquipWin(res) {
     const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
     const nm = occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備';
     return `<button type="button" class="eq${EQ_L.includes(k) ? ' l' : ''}${it ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" style="grid-area:${k}" onclick="selSlot('${k}')" aria-pressed="${k === roSel}">
-      <span class="ico" aria-hidden="true">${EQ_ICO[k]}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
+      <span class="ico" aria-hidden="true">${it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_ICO[k]}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
   }).join('');
 }
 function selSlot(k) {

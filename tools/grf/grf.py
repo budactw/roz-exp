@@ -108,4 +108,5 @@ def main():
                 print('ok', rs); return
         sys.exit('找不到')
 
-main()
+if __name__ == '__main__':
+    main()

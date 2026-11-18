@@ -26,3 +26,12 @@ node tools/grf/build-slots.js /tmp/items.json public/gear-data.js public/slot-da
 ```
 
 `grf.py`：列出／解出 `data.grf`（含 Event Horizon 0x300 版、傳統混淆）。
+
+## 裝備圖示
+
+`public/icons/<物品編號>.png` 和 `public/icon-data.js`（名稱 → 編號）取自 `data.grf` 的物品圖示（洋紅底轉透明）：
+
+```bash
+node -e "eval(require('fs').readFileSync('public/gear-data.js','utf8')+';global.G=GEAR_DB');console.log(JSON.stringify(G.map(x=>x.n)))" > /tmp/gear-names.json
+python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js
+```
