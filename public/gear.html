@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=16">
+<link rel="stylesheet" href="ro.css?v=17">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -29,6 +29,7 @@
   .rf .rv { min-width: 3.2em; text-align: right; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
   .slots { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); }
   .slot { border: 1px solid var(--card-border); border-radius: 12px; background: var(--tile-bg); padding: 12px; }
+  .sp-title { grid-column: 1 / -1; margin: 6px 0 0; }
   .slot-h { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .slot-h b { font-size: .9rem; white-space: nowrap; }
   .slot-h select { flex: 1; min-width: 0; padding: 0 8px; min-height: 38px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .9rem; font-family: inherit; }
@@ -204,6 +205,7 @@
     </div>
     <div style="margin-top:8px;">作者：凌雲閣－師爺　·　<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">🐞 回報問題</a></div>
     <div class="privacy">🔒 本站不會記錄你輸入的資料，所有資料只儲存在你這台裝置的瀏覽器中（換裝置或清除瀏覽器資料就會消失）。僅使用 Google Analytics 統計瀏覽次數；主動回報問題時才會附上你填的資料。</div>
+    <div class="privacy">本站是玩家自製的非官方工具，與官方無關。遊戲圖片與文字 © GRAVITY CO., Ltd. &amp; Lee MyoungJin (studio DTDS)，台灣由格雷維蒂互動營運。如有侵權疑慮，請用「<a href="#" onclick="openBug(); return false;" style="color:var(--primary)">回報問題</a>」告知，會立即移除。</div>
   </div>
 </div>
 
@@ -729,7 +731,10 @@ function render() {
   renderSkillBox();
   const res = compute();
   $('allRef').value = st.all; $('allRefV').innerText = '+' + st.all;
-  $('slots').innerHTML = GEAR_SLOTS.map(s => s[0] === 'costume' ? slotHtml(s, res).replace(/<\/div>$/, stoneHtml('costume') + '</div>') : slotHtml(s, res)).join('') + COSTUME_POS.slice(1).map(stoneCard).join('');
+  const spSlots = GEAR_SLOTS.filter(([k]) => EQ_SP_KEYS.includes(k));
+  $('slots').innerHTML = GEAR_SLOTS.filter(([k]) => !EQ_SP_KEYS.includes(k)).map(s => slotHtml(s, res)).join('') + `<div class="sec-title sp-title">特殊裝備</div>` +
+    slotHtml(spSlots.find(s => s[0] === 'costume'), res).replace(/<\/div>$/, stoneHtml('costume') + '</div>') + COSTUME_POS.slice(1).map(stoneCard).join('') +
+    spSlots.filter(s => s[0] !== 'costume').map(s => slotHtml(s, res)).join('');
   renderResult(res); renderEquipWin(res);
 }
 // ===== 遊戲風格（試作）：裝備視窗 =====

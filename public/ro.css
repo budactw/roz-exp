@@ -182,3 +182,4 @@ html[data-ui="ro"] .eq-none:hover { background: transparent; }
 html[data-ui="ro"] .eq.has .ico:not(:has(img)) { background: radial-gradient(circle at 40% 35%, #cfe0ff 0 12%, #6f93e6 30%, #3c5fc0 42%, transparent 46%); }
 .ro-sum { clear: both; margin-top: 8px; padding: 6px 8px; border: 1px solid #b9c3e2; background: #eef2fb; font-size: 13px; }
 .ro-sum .t { display: block; font-weight: 700; color: #2c3a78; margin-bottom: 2px; }
+html[data-ui="ro"] #slots > .sp-title { display: none; }
