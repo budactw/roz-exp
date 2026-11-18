@@ -26,7 +26,7 @@ const GEAR_SLOTS = [
   ['headTop', '頭飾（上）', ['headTop']], ['headMid', '頭飾（中）', ['headMid']], ['headLow', '頭飾（下）', ['headLow']],
   ['armor', '鎧甲', ['armor']], ['garment', '披肩', ['garment']], ['shoes', '鞋子', ['shoes']],
   ['accR', '飾品（右）', ['accR', 'acc']], ['accL', '飾品（左）', ['accL', 'acc']],
-  ['costume', '服飾', ['costume']],
+  ['costume', '服飾頭飾（上）', ['costume']],
 ];
 // 武器精煉 ATK：每 +1 / +16 以上每 +1 再加（依武器等級，官方精煉系統；過度精煉的浮動值不計）
 const WEAPON_REFINE = { 1: [2, 16], 2: [3, 32], 3: [5, 54], 4: [8, 87] };

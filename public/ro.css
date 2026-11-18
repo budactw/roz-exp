@@ -62,8 +62,12 @@ html[data-ui="ro"] .slot-h select, html[data-ui="ro"] .ench-row select, html[dat
 html[data-ui="ro"] .equip-win {
   display: grid; gap: 4px 8px; margin-bottom: 10px;
   grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
-  grid-template-areas: "headTop ch headMid" "armor ch headLow" "weapon ch shield" "garment ch shoes" "accR ch accL" ". costume .";
+  grid-template-areas: "tabs tabs tabs" "headTop ch headMid" "armor ch headLow" "weapon ch shield" "garment ch shoes" "accR ch accL";
 }
+html[data-ui="ro"] .equip-win.sp { grid-template-areas: "tabs tabs tabs" "costume ch cMid" "cGar ch cLow"; }
+html[data-ui="ro"] .eq-tabs { grid-area: tabs; display: flex; gap: 2px; border-bottom: 1px solid var(--card-border); margin-bottom: 4px; }
+html[data-ui="ro"] .eq-tabs button { border-bottom: 0; border-radius: 4px 4px 0 0; background: linear-gradient(#e6edf6, #c7d4e4); color: #3b4a60; min-height: 26px; padding: 0 12px; box-shadow: none; }
+html[data-ui="ro"] .eq-tabs button[aria-selected="true"] { background: #fdfdfe; color: #1f2633; position: relative; top: 1px; }
 html[data-ui="ro"] .eq {
   display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 3px 6px; text-align: left; font-weight: 400;
   background: #fff; border: 1px solid #b5c2d3; border-radius: 3px; box-shadow: none; min-width: 0;
@@ -113,8 +117,9 @@ html[data-ui="ro"] .empty { border-radius: 2px; }
 @media (max-width: 640px) {
   html[data-ui="ro"] .equip-win {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: "ch ch" "headTop headMid" "armor headLow" "weapon shield" "garment shoes" "accR accL" "costume costume";
+    grid-template-areas: "tabs tabs" "ch ch" "headTop headMid" "armor headLow" "weapon shield" "garment shoes" "accR accL";
   }
+  html[data-ui="ro"] .equip-win.sp { grid-template-areas: "tabs tabs" "ch ch" "costume cMid" "cGar cLow"; }
   html[data-ui="ro"] .eq-ch { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; }
   html[data-ui="ro"] .eq-ch dl { margin: 0; grid-template-columns: repeat(3, auto auto); }
 }

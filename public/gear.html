@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=3">
+<link rel="stylesheet" href="ro.css?v=5">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -220,11 +220,12 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=28"></script>
+<script src="gear-data.js?v=29"></script>
 <script src="enchant-data.js?v=4"></script>
 <script src="addon-data.js?v=4"></script>
 <script src="slot-data.js?v=2"></script>
 <script src="icon-data.js?v=1"></script>
+<script src="costume-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -245,10 +246,14 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {}, ench: false });
+const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {}, ench: false, cs: {} });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
+// 服飾附魔石：st.cs[部位] = 石頭名稱
+const stoneOf = k => { const p = COSTUME_POS.find(x => x[0] === k); return p && COSTUME_STONE[p[2]].find(x => x.n === st.cs[k]); };
+const stoneJobOk = x => !x.j || !st.job || x.j.includes(st.job);
 function fixState() {
-  st.ps = st.ps || {};
+  st.ps = st.ps || {}; st.cs = st.cs && typeof st.cs === 'object' ? st.cs : {};
+  for (const [k] of COSTUME_POS) if (!stoneOf(k)) st.cs[k] = '';
   for (const [k] of GEAR_SLOTS) {
     if (st.slots[k] && GEAR_RENAMED[st.slots[k].n]) st.slots[k].n = GEAR_RENAMED[st.slots[k].n];
     if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
@@ -269,6 +274,7 @@ function packState() {
   const o = { l: st.lv, j: st.job, a: st.all, s: {} }; if (st.ench) o.e = 1;
   const ps = Object.fromEntries(PS.filter(k => st.ps[k]).map(k => [k, st.ps[k]])); if (Object.keys(ps).length) o.p = ps;
   for (const [k] of GEAR_SLOTS) if (st.slots[k].n) { o.s[k] = [st.slots[k].n, st.slots[k].r]; const e = (st.slots[k].e || []).filter(Boolean), a = st.slots[k].a; if (st.ench && (e.length || a)) o.s[k].push(st.slots[k].e || [], a || 0); }
+  if (COSTUME_POS.some(([k]) => st.cs[k])) o.c = COSTUME_POS.map(([k]) => st.cs[k] || '');
   return b64e(JSON.stringify(o));
 }
 function unpackState(code) {
@@ -277,6 +283,7 @@ function unpackState(code) {
   s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20); s.ench = !!o.e;
   for (const k of PS) if (o.p && o.p[k]) s.ps[k] = n(o.p[k], 0, 0, 300);
   for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && GEAR_RENAMED[v[0]]) v[0] = GEAR_RENAMED[v[0]]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [], a: v[3] && typeof v[3] === 'object' && Array.isArray(v[3].v) ? { p: n(v[3].p, 0, 0, 9), v: v[3].v.slice(0, 5).map(x => Array.isArray(x) ? [n(x[0], -1, -1, 99), n(x[1], 0, 0, 9999)] : [-1, 0]) } : null }; }
+  if (Array.isArray(o.c)) COSTUME_POS.forEach(([k], i) => { if (typeof o.c[i] === 'string') s.cs[k] = o.c[i]; });
   return s;
 }
 function readHash() {
@@ -287,7 +294,8 @@ function readHash() {
 function clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
 async function share(btn) {
   const url = `${location.origin}${location.pathname}#s=${packState()}`;
-  const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''));
+  const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''))
+    .concat(COSTUME_POS.filter(([k]) => stoneOf(k)).map(([k, , pos]) => `${st.cs[k]}(${pos})`));
   if (!names.length) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
   const text = `RO樂園配裝${st.job ? `（${st.job}）` : ''}：${names.join('、')}`;
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
@@ -415,6 +423,10 @@ function compute() {
     nt.forEach(x => notes.push(`${it.n}：${x}`));
     add(all, tot);
   }
+  // 服飾附魔石與搭配
+  const cs = costumeOn();
+  for (const x of cs.stones) { const nt = []; add(all, x.e, nt); nt.forEach(t => notes.push(`${x.n}(${x.pos})：${t}`)); }
+  for (const c of cs.combos) if (c.ok) add(all, c.e, null);
   const tot = all;
   const setInfo = [];
   for (const s of GEAR_SETS) {
@@ -431,6 +443,30 @@ function compute() {
   }
   return { tot, notes, setInfo, combos, per, over };
 }
+
+// ===== 服飾附魔石（特殊裝備）=====
+function costumeOn() {
+  const stones = COSTUME_POS.map(([k, , pos]) => ({ k, pos, x: stoneOf(k) })).filter(o => o.x && stoneJobOk(o.x)).map(o => ({ ...o.x, k: o.k, pos: o.pos }));
+  const has = (pos, n) => stones.some(x => x.pos === pos && x.n === n);
+  const combos = COSTUME_COMBO.map(c => ({ ...c, ok: Object.entries(c.need).every(([pos, n]) => has(pos, n)) }));
+  return { stones, combos };
+}
+function setStone(k, n) { st.cs[k] = n; save(); render(); }
+function stoneHtml(k) {
+  const [, , pos] = COSTUME_POS.find(x => x[0] === k), cur = stoneOf(k);
+  const list = COSTUME_STONE[pos].filter(x => stoneJobOk(x) || x === cur);
+  const opt = x => `<option value="${x.n}"${x === cur ? ' selected' : ''}>${x.n}(${pos})　${x.t}</option>`;
+  let h = `<div class="ench"><div class="ench-row"><label for="st-${k}">附魔石</label><select id="st-${k}" onchange="setStone('${k}', this.value)"><option value="">（無）</option>` +
+    `<optgroup label="一般">${list.filter(x => !x.j).map(opt).join('')}</optgroup>` + (list.some(x => x.j) ? `<optgroup label="職業">${list.filter(x => x.j).map(opt).join('')}</optgroup>` : '') + `</select></div></div>`;
+  const on = cur && stoneJobOk(cur);
+  let eff = cur ? `<li class="${on ? 'on' : ''}"><span class="t">附魔</span>${cur.t}${on ? '' : `　<span class="ench-warn">${st.job}不適用</span>`}</li>` : '';
+  // 搭配：只列和目前這顆石頭有關的
+  for (const c of costumeOn().combos) if (c.at === pos && cur && c.need[pos] === cur.n)
+    eff += `<li class="${c.ok ? 'on' : ''}"><span class="t">搭配</span>${Object.entries(c.need).filter(([p]) => p !== pos).map(([p, n]) => `${n}(${p})`).join('＋')}：${c.t}</li>`;
+  return h + (eff ? `<ul class="eff">${eff}</ul>` : '');
+}
+// 只有附魔石的部位（頭中、頭下、披肩）
+const stoneCard = ([k, label]) => `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b></div>${stoneHtml(k)}</div>`;
 
 // ===== 附魔 =====
 // GEAR_ENCH（enchant-data.js）：[{ label, test(it), slots: [{ name, parts: { armor: [[最低精煉, [選項…]], …], … } }] }]
@@ -646,29 +682,41 @@ function renderResult(res) {
 function render() {
   const res = compute();
   $('allRef').value = st.all; $('allRefV').innerText = '+' + st.all;
-  $('slots').innerHTML = GEAR_SLOTS.map(s => slotHtml(s, res)).join('');
+  $('slots').innerHTML = GEAR_SLOTS.map(s => s[0] === 'costume' ? slotHtml(s, res).replace(/<\/div>$/, stoneHtml('costume') + '</div>') : slotHtml(s, res)).join('') + COSTUME_POS.slice(1).map(stoneCard).join('');
   renderResult(res); renderEquipWin(res);
 }
 // ===== 遊戲風格（試作）：裝備視窗 =====
 let roSel = 'weapon';
 const EQ_L = ['headTop', 'armor', 'weapon', 'garment', 'accR'];
 const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', headLow: '下', armor: '甲', garment: '披', shoes: '鞋', accR: '飾', accL: '飾', costume: '服' };
+// 特殊裝備（遊戲裝備視窗的第二頁）：四個服飾位置
+let eqTab = 'main';
+const EQ_SP_ICO = { costume: '上', cMid: '中', cLow: '下', cGar: '披' };
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
   const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
+  const tabs = `<div class="eq-tabs" role="tablist">` + [['main', '一般裝備'], ['sp', '特殊裝備']].map(([t, l]) =>
+    `<button type="button" role="tab" aria-selected="${eqTab === t}" onclick="setEqTab('${t}')">${l}</button>`).join('') + `</div>`;
   const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
-  $('equipWin').innerHTML = ch + GEAR_SLOTS.map(([k, label]) => {
+  const sp = eqTab === 'sp';
+  const cell = (k, label, left, has, nm, ico, occ) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${k}" onclick="selSlot('${k}')" aria-pressed="${k === roSel}">
+      <span class="ico" aria-hidden="true">${ico}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
+  $('equipWin').classList.toggle('sp', sp);
+  $('equipWin').innerHTML = tabs + ch + (sp ? COSTUME_POS.map(([k, label, pos]) => {
+    const x = stoneOf(k), it = k === 'costume' && BY_NAME[st.slots.costume.n];
+    return cell(k, label, k === 'costume' || k === 'cGar', x || it, [it && it.n, x && `${x.n}(${pos})`].filter(Boolean).join('／') || '未裝備', EQ_SP_ICO[k]);
+  }) : GEAR_SLOTS.filter(([k]) => k !== 'costume').map(([k, label]) => {
     const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
-    const nm = occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備';
-    return `<button type="button" class="eq${EQ_L.includes(k) ? ' l' : ''}${it ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" style="grid-area:${k}" onclick="selSlot('${k}')" aria-pressed="${k === roSel}">
-      <span class="ico" aria-hidden="true">${it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_ICO[k]}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
-  }).join('');
+    return cell(k, label, EQ_L.includes(k), it, occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備',
+      it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_ICO[k], occ);
+  })).join('');
 }
+function setEqTab(t) { eqTab = t; roSel = t === 'sp' ? 'costume' : 'weapon'; render(); }
 function selSlot(k) {
   roSel = k;
-  for (const el of document.querySelectorAll('#equipWin .eq')) { const on = el.style.gridArea.startsWith(k); el.classList.toggle('sel', on); el.setAttribute('aria-pressed', on); }
-  for (const [o] of GEAR_SLOTS) $('slot-' + o)?.classList.toggle('sel', o === k);
+  for (const el of document.querySelectorAll('#equipWin .eq')) { const on = el.dataset.k === k; el.classList.toggle('sel', on); el.setAttribute('aria-pressed', on); }
+  for (const el of document.querySelectorAll('#slots > .slot')) el.classList.toggle('sel', el.id === 'slot-' + k);
   if (matchMedia('(max-width: 640px)').matches) $('slot-' + k)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function toggleUi() {
@@ -753,7 +801,7 @@ $('quickSet').addEventListener('change', e => {
   }
   track('gear_quick_set', { set: s.label }); save(); render();
 });
-function clearAll() { for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 }; save(); render(); }
+function clearAll() { for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 }; st.cs = {}; save(); render(); }
 
 // ===== 共用：複製、主題 =====
 function copyText(text, btn) {
