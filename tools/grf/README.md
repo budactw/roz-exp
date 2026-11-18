@@ -11,7 +11,9 @@ python3 -I tools/grf/lub64.py <System>/iteminfo_new.lub /tmp/ii64.lub
 python - <<'PY'
 import lupa.lua51 as L, json, re
 lua = L.LuaRuntime(encoding=None); lua.execute(open('/tmp/ii64.lub','rb').read())
-dec = lambda b: b.decode('utf-8') if b else ''
+def dec(b):
+    try: return b.decode('utf-8') if b else ''
+    except UnicodeDecodeError: return b.decode('cp950', 'replace')
 out = {}
 for k, v in lua.globals().tbl.items():
     d = v[b'identifiedDescriptionName']
