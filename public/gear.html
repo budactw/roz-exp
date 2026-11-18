@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=2">
+<link rel="stylesheet" href="ro.css?v=3">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -652,12 +652,11 @@ function render() {
 // ===== 遊戲風格（試作）：裝備視窗 =====
 let roSel = 'weapon';
 const EQ_L = ['headTop', 'armor', 'weapon', 'garment', 'accR'];
-const EQ_CHAR = { 騎士: 'knight', 十字軍: 'crusader', 巫師: 'wizard', 賢者: 'sage', 獵人: 'hunter', 吟遊詩人: 'bard', 舞孃: 'dancer', 祭司: 'priest', 武道家: 'monk', 鐵匠: 'blacksmith', 鍊金術師: 'alchemist', 刺客: 'assassin', 流氓: 'rogue', 忍者: 'ninja', 神槍手: 'gunslinger' };
 const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', headLow: '下', armor: '甲', garment: '披', shoes: '鞋', accR: '飾', accL: '飾', costume: '服' };
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
   const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
-  const ch = `<div class="eq-ch"><img class="fig" src="chars/${EQ_CHAR[st.job] || 'novice'}.png" alt=""><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
+  const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
   $('equipWin').innerHTML = ch + GEAR_SLOTS.map(([k, label]) => {
     const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
