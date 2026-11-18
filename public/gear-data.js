@@ -115,7 +115,7 @@ const GEAR_DB = [
 const GEAR_SETS = [];
 (() => {
   const S = (g, label, names, b, sumN, sumB) => GEAR_SETS.push({ g, label, items: names.map(x => g + x), b, sum: [sumN, sumB] });
-  S('征伐隊', '征伐隊', ['盔甲', '肩飾', '軍靴', '戒指'], { ATK: 15, MATK: 15 }, 17, { aspd: 3, vct: 5 });
+  S('征伐隊', '征伐隊', ['鎧甲', '肩飾', '軍靴', '戒指'], { ATK: 15, MATK: 15 }, 17, { aspd: 3, vct: 5 });
   S('遠征隊', '遠征隊（物理）', ['鎧甲', '斗篷', '長靴', '戒指'], { ATK: 20 }, 21, { aspd: 5, fct: 5 });
   S('遠征隊', '遠征隊（魔法）', ['外袍', '圍巾', '鞋子', '魔法戒指'], { MATK: 20 }, 21, { vct: 5, fct: 5 });
   for (const [g, atk, n, s] of [['殲滅隊', 25, 25, 2], ['征服者', 30, 27, 4], ['征服者轉生', 30, 27, 4]]) {

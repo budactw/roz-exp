@@ -215,7 +215,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=27"></script>
+<script src="gear-data.js?v=28"></script>
 <script src="enchant-data.js?v=4"></script>
 <script src="addon-data.js?v=4"></script>
 <script src="slot-data.js?v=2"></script>
@@ -707,7 +707,7 @@ $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (
 function buildQuickSet() {
   const groups = [...new Set(GEAR_SETS.map(x => x.g))];
   $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
-    GEAR_SETS.map((x, i) => [x, i]).filter(([x]) => x.g === g && x.items.every(n => canWear(BY_NAME[n]))).map(([x, i]) => `<option value="${i}">${x.label}</option>`).join('') + `</optgroup>`).join('');
+    GEAR_SETS.map((x, i) => [x, i]).filter(([x]) => x.g === g && x.items.every(n => BY_NAME[n] && canWear(BY_NAME[n]))).map(([x, i]) => `<option value="${i}">${x.label}</option>`).join('') + `</optgroup>`).join('');
 }
 buildQuickSet();
 $('quickSet').addEventListener('change', e => {
