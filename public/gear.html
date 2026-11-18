@@ -6,6 +6,8 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
+<link rel="stylesheet" href="ro.css?v=1">
+<script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
 <script>
@@ -139,6 +141,7 @@
       <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
     </div>
     <div class="row">
+      <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
       <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 夜間模式</button>
     </div>
   </div>
@@ -171,6 +174,7 @@
     <h2>🛡️ 裝備</h2>
     <search class="field gsearch-wrap"><label for="gq">搜尋裝備（名稱、分類、類型或職業）</label>
       <div class="gsearch"><input type="search" id="gq" name="q" placeholder="例如：靈幻、奧丁、雙手劍" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"><span class="cnt" id="gqCnt" role="status"></span></div></search>
+    <div class="equip-win" id="equipWin"></div>
     <div class="slots" id="slots"></div>
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
   </div>
@@ -587,10 +591,10 @@ function slotHtml([k, label, kinds], res) {
   const opts = `<option value="">（未裝備）</option>` + groups.map(g => `<optgroup label="${g}">` +
     list.filter(x => x.g === g).map(opt).join('') + `</optgroup>`).join('');
   const occ = occupiedBy(k);
-  if (occ) return `<div class="slot" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
+  if (occ) return `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
   const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" aria-label="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
   const none = gq && !list.some(x => x !== it) ? `<option disabled>（沒有符合「${gq}」的裝備）</option>` : '';
-  let h = `<div class="slot" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
+  let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   h += `<div class="meta">${b.meta}</div>`;
@@ -641,8 +645,36 @@ function render() {
   const res = compute();
   $('allRef').value = st.all; $('allRefV').innerText = '+' + st.all;
   $('slots').innerHTML = GEAR_SLOTS.map(s => slotHtml(s, res)).join('');
-  renderResult(res);
+  renderResult(res); renderEquipWin(res);
 }
+// ===== 遊戲風格（試作）：裝備視窗 =====
+let roSel = 'weapon';
+const EQ_L = ['headTop', 'armor', 'weapon', 'garment', 'accR'];
+const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', headLow: '下', armor: '甲', garment: '披', shoes: '鞋', accR: '飾', accL: '飾', costume: '服' };
+function renderEquipWin(res) {
+  if (document.documentElement.dataset.ui !== 'ro') return;
+  const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
+  const ch = `<div class="eq-ch"><span class="fig" aria-hidden="true">🧝</span><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
+    <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
+  $('equipWin').innerHTML = ch + GEAR_SLOTS.map(([k, label]) => {
+    const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
+    const nm = occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備';
+    return `<button type="button" class="eq${EQ_L.includes(k) ? ' l' : ''}${it ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" style="grid-area:${k}" onclick="selSlot('${k}')" aria-pressed="${k === roSel}">
+      <span class="ico" aria-hidden="true">${EQ_ICO[k]}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
+  }).join('');
+}
+function selSlot(k) {
+  roSel = k;
+  for (const el of document.querySelectorAll('#equipWin .eq')) { const on = el.style.gridArea.startsWith(k); el.classList.toggle('sel', on); el.setAttribute('aria-pressed', on); }
+  for (const [o] of GEAR_SLOTS) $('slot-' + o)?.classList.toggle('sel', o === k);
+  if (matchMedia('(max-width: 640px)').matches) $('slot-' + k)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function toggleUi() {
+  const ro = document.documentElement.dataset.ui !== 'ro';
+  if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui;
+  localStorage.setItem('gear-ui', ro ? 'ro' : ''); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; render();
+}
+$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲風格';
 // ===== 搜尋與武器類型 =====
 let gq = '', wtype = '';
 const qMatch = x => !gq || gq.split(/\s+/).every(w => (x.n + ' ' + x.g + ' ' + (x.type || '') + ' ' + (x.j || '')).toLowerCase().includes(w.toLowerCase()));
@@ -680,7 +712,7 @@ function refreshSlots() {
     el.querySelector('.meta').innerHTML = b.meta; el.querySelector('.eff').innerHTML = b.eff;
     const rv = el.querySelector('.rv'); if (rv) rv.innerText = '+' + st.slots[k].r;
   }
-  renderResult(res);
+  renderResult(res); renderEquipWin(res);
 }
 
 function pick(k, n) {
