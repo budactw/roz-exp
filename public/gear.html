@@ -227,7 +227,7 @@
   </div>
 </div>
 
-<dialog class="ro-info" id="roInfo" popover aria-labelledby="roInfoName">
+<dialog class="ro-info" id="roInfo" popover="manual" aria-labelledby="roInfoName">
   <div class="ro-info-h" id="roInfoH"><span id="roInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo()">×</button></div>
   <div class="ro-info-b" id="roInfoBody"></div>
 </dialog>
@@ -815,7 +815,9 @@ $('roInfoH').addEventListener('pointerdown', e => {
   const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
   addEventListener('pointermove', move); addEventListener('pointerup', up); e.preventDefault();
 });
-if (!infoPop) { document.addEventListener('pointerdown', e => { if (!e.target.closest('#roInfo')) hideInfo(); }); document.addEventListener('keydown', e => { if (e.key === 'Escape') hideInfo(); }); }
+// 用 manual popover 自己管關閉：瀏覽器內建的「點外面關閉」會把放開右鍵也算進去，視窗一開就被關掉
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#roInfo')) hideInfo(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideInfo(); });
 function setEqTab(t) { eqTab = t; roSel = t === 'sp' ? 'costume' : 'weapon'; render(); }
 function selSlot(k) {
   roSel = k;
