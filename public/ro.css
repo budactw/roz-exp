@@ -183,3 +183,7 @@ html[data-ui="ro"] .eq.has .ico:not(:has(img)) { background: radial-gradient(cir
 .ro-sum { clear: both; margin-top: 8px; padding: 6px 8px; border: 1px solid #b9c3e2; background: #eef2fb; font-size: 13px; }
 .ro-sum .t { display: block; font-weight: 700; color: #2c3a78; margin-bottom: 2px; }
 html[data-ui="ro"] #slots > .sp-title { display: none; }
+.ro-ench { clear: both; margin-top: 8px; padding: 6px 8px; border: 1px solid #c9c9d1; background: #fff; font-size: 13px; }
+.ro-ench > b { display: block; color: #2c3a78; margin-bottom: 2px; }
+.ro-ench .t { display: inline-block; min-width: 4.5em; margin-right: 6px; color: #6a7186; }
+.ro-ench + .ro-ench, .ro-ench + .ro-sum { margin-top: 6px; }

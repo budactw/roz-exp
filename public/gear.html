@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=17">
+<link rel="stylesheet" href="ro.css?v=18">
 <script>{ // 版面：預設遊戲風格；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -798,13 +798,22 @@ async function showInfo(k, x, y) {
   if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=2')).json(); } catch (e) { DESC = {}; } }
   const el = $('roInfo'), id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
   $('roInfoName').textContent = `${it.ref && cur.r ? `+${cur.r} ` : ''}${it.n}${holes ? ` [${holes}]` : ''}`;
-  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` +
+  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` + infoExtra(k, it, cur.r) +
     // 這件裝備目前實際給的能力（含精煉、附魔、附加能力）
     ((slotBody(k, compute()).eff.match(/<li class="sum">.*?<\/li>/) || [''])[0].replace(/^<li class="sum">/, '<div class="ro-sum">').replace(/<\/li>$/, '</div>'));
   if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
   const r = el.getBoundingClientRect();
   el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
   el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+}
+// 這件裝備上的附魔、附加能力、服飾附魔石（遊戲裡是顯示在物品資訊下方的插槽）
+function infoExtra(k, it, r) {
+  const row = (t, body) => `<div><span class="t">${t}</span>${body}</div>`;
+  const en = enchOn(k, it, r).map(x => row(x.s.name, `${x.n}${x.txt && x.txt !== x.n ? `：${x.txt}` : ''}`));
+  const ad = addonOn(k, it).map(x => row(x.line, fmtEff(x.eff)));
+  const stone = k === 'costume' && stoneOf(k) && stoneJobOk(stoneOf(k)) ? [row('附魔石', `${stoneOf(k).n}：${stoneOf(k).t}`)] : [];
+  const box = (title, rows) => rows.length ? `<div class="ro-ench"><b>${title}</b>${rows.join('')}</div>` : '';
+  return box('附魔', en.concat(stone)) + box('附加能力', ad);
 }
 function infoBtn(e, k) { const r = e.currentTarget.getBoundingClientRect(); showInfo(k, r.right - 440, r.bottom - 4); }
 function roCtx(e, k) { const cur = st.slots[k]; if (!cur || !BY_NAME[cur.n]) return true; e.preventDefault(); showInfo(k, e.clientX, e.clientY); return false; }
