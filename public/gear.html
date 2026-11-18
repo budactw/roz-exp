@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=6">
+<link rel="stylesheet" href="ro.css?v=8">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -221,6 +221,11 @@
       <button class="btn-sm" id="dlgOk">確定</button>
     </div>
   </div>
+</div>
+
+<div class="ro-info" id="roInfo" popover>
+  <div class="ro-info-h" id="roInfoH"><span id="roInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo()">×</button></div>
+  <div class="ro-info-b" id="roInfoBody"></div>
 </div>
 
 <script src="gear-data.js?v=31"></script>
@@ -481,7 +486,10 @@ function stoneHtml(k) {
   // 搭配：只列和目前這顆石頭有關的
   for (const c of costumeOn().combos) if (c.at === pos && cur && c.need[pos] === cur.n)
     eff += `<li class="${c.ok ? 'on' : ''}"><span class="t">搭配</span>${Object.entries(c.need).filter(([p]) => p !== pos).map(([p, n]) => `${n}(${p})`).join('＋')}：${c.t}</li>`;
-  return h + (eff ? `<ul class="eff">${eff}</ul>` : '');
+  // 照目前的技能等級、搭配算出這顆石頭實際給的能力
+  if (on) { const tot = {}; add(tot, cur.e, []); for (const c of costumeOn().combos) if (c.ok && c.at === pos && c.need[pos] === cur.n) add(tot, c.e, null);
+    if (Object.keys(tot).length) eff += `<li class="sum"><span class="t">附魔石合計</span>${fmtEff(tot)}</li>`; }
+  return `<div class="stone" id="stone-${k}">` + h + (eff ? `<ul class="eff">${eff}</ul>` : '') + `</div>`;
 }
 // 只有附魔石的部位（頭中、頭下、披肩）
 const stoneCard = ([k, label]) => `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b></div>${stoneHtml(k)}</div>`;
@@ -653,6 +661,7 @@ function slotHtml([k, label, kinds], res) {
   let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select></div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
+  if (typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n]) h += `<img class="coll" src="collection/${GEAR_ICON[it.n]}.png" alt="" width="75" height="100" loading="lazy">`;
   h += `<div class="meta">${b.meta}</div>`;
   if (it.ref) h += `<div class="rf"><span class="rl" aria-hidden="true">精煉</span><input type="range" min="0" max="20" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
   h += enchHtml(k, it, cur.r) + addonHtml(k, it);
@@ -723,7 +732,7 @@ function render() {
 }
 // ===== 遊戲風格（試作）：裝備視窗 =====
 let roSel = 'weapon';
-const EQ_L = ['headTop', 'armor', 'weapon', 'garment', 'accR'];
+const EQ_L = ['headTop', 'headLow', 'weapon', 'garment', 'accR'];
 const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', headLow: '下', armor: '甲', garment: '披', shoes: '鞋', accR: '飾', accL: '飾', costume: '服' };
 // 特殊裝備（遊戲裝備視窗的第二頁）：四個服飾位置
 let eqTab = 'main';
@@ -736,7 +745,7 @@ function renderEquipWin(res) {
   const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
   const sp = eqTab === 'sp';
-  const cell = (k, label, left, has, nm, ico, occ) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${k}" onclick="selSlot('${k}')" aria-pressed="${k === roSel}">
+  const cell = (k, label, left, has, nm, ico, occ) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${k}" onclick="selSlot('${k}')" oncontextmenu="return roCtx(event, '${k}')" aria-pressed="${k === roSel}">
       <span class="ico" aria-hidden="true">${ico}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
   $('equipWin').classList.toggle('sp', sp);
   $('equipWin').innerHTML = tabs + ch + (sp ? COSTUME_POS.map(([k, label, pos]) => {
@@ -748,6 +757,45 @@ function renderEquipWin(res) {
       it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_ICO[k], occ);
   })).join('');
 }
+// ===== 物品資訊視窗（對裝備按右鍵）：物品大圖＋遊戲內說明原文 =====
+let DESC = null;
+const escHtml = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 遊戲色碼 ^RRGGBB 轉成顏色；<NAVI>名稱<INFO>座標</INFO></NAVI> 只留名稱；單獨一個 _ 是空行
+function descHtml(lines) {
+  return lines.map(l => {
+    l = l.replace(/<INFO>.*?<\/INFO>/g, '').replace(/<\/?(NAVI|ITEM)>/g, '');
+    if (l.trim() === '_' || !l.trim()) return '<div>&nbsp;</div>';
+    let out = '', open = false;
+    for (const part of l.split(/(\^[0-9a-fA-F]{6})/)) {
+      if (/^\^[0-9a-fA-F]{6}$/.test(part)) { if (open) out += '</span>'; open = part !== '^000000'; if (open) out += `<span style="color:#${part.slice(1)}">`; }
+      else out += escHtml(part);
+    }
+    return `<div>${out}${open ? '</span>' : ''}</div>`;
+  }).join('');
+}
+const infoPop = 'popover' in HTMLElement.prototype;
+function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else el.classList.remove('open'); }
+async function showInfo(k, x, y) {
+  const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) return;
+  if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=1')).json(); } catch (e) { DESC = {}; } }
+  const el = $('roInfo'), id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
+  $('roInfoName').textContent = `${it.ref && cur.r ? `+${cur.r} ` : ''}${it.n}${holes ? ` [${holes}]` : ''}`;
+  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>`;
+  if (infoPop) { hideInfo(); el.showPopover(); } else el.classList.add('open');
+  const r = el.getBoundingClientRect();
+  el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
+  el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+}
+function roCtx(e, k) { const cur = st.slots[k]; if (!cur || !BY_NAME[cur.n]) return true; e.preventDefault(); showInfo(k, e.clientX, e.clientY); return false; }
+// 拖曳標題列移動視窗
+$('roInfoH').addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  const el = $('roInfo'), r = el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+  const move = ev => { el.style.left = Math.max(0, Math.min(ev.clientX - dx, innerWidth - 40)) + 'px'; el.style.top = Math.max(0, Math.min(ev.clientY - dy, innerHeight - 24)) + 'px'; };
+  const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+  addEventListener('pointermove', move); addEventListener('pointerup', up); e.preventDefault();
+});
+if (!infoPop) { document.addEventListener('pointerdown', e => { if (!e.target.closest('#roInfo')) hideInfo(); }); document.addEventListener('keydown', e => { if (e.key === 'Escape') hideInfo(); }); }
 function setEqTab(t) { eqTab = t; roSel = t === 'sp' ? 'costume' : 'weapon'; render(); }
 function selSlot(k) {
   roSel = k;
@@ -798,6 +846,7 @@ function refreshSlots() {
     el.querySelector('.meta').innerHTML = b.meta; el.querySelector('.eff').innerHTML = b.eff;
     const rv = el.querySelector('.rv'); if (rv) rv.innerText = '+' + st.slots[k].r;
   }
+  for (const [k] of COSTUME_POS) { const el = $('stone-' + k); if (el) el.outerHTML = stoneHtml(k); }
   renderResult(res); renderEquipWin(res);
 }
 

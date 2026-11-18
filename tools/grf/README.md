@@ -29,9 +29,9 @@ node tools/grf/build-slots.js /tmp/items.json public/gear-data.js public/slot-da
 
 ## 裝備圖示
 
-`public/icons/<物品編號>.png` 和 `public/icon-data.js`（名稱 → 編號）取自 `data.grf` 的物品圖示（洋紅底轉透明）：
+`public/icons/<物品編號>.png`（圖示）、`public/collection/<物品編號>.png`（物品資訊視窗的大圖）、`public/icon-data.js`（名稱 → 編號）、`public/desc-data.json`（名稱 → 遊戲內說明，保留色碼）都取自客戶端：
 
 ```bash
 node -e "eval(require('fs').readFileSync('public/gear-data.js','utf8')+';global.G=GEAR_DB');console.log(JSON.stringify(G.map(x=>x.n)))" > /tmp/gear-names.json
-python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js
+python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js public/collection public/desc-data.json
 ```

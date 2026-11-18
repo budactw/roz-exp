@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """把配裝用到的裝備圖示從客戶端解出來，轉成 PNG（洋紅底轉透明）。
-用法：<有 lupa 的 python> -I build-icons.py <data.grf> <ii64.lub> <裝備名稱.json> <輸出資料夾> <輸出 icon-data.js>
+用法：<有 lupa 的 python> -I build-icons.py <data.grf> <ii64.lub> <裝備名稱.json> <輸出資料夾> <輸出 icon-data.js> [物品大圖輸出資料夾] [說明輸出 desc-data.json]
   ii64.lub：lub64.py 轉過的 iteminfo_new.lub；裝備名稱.json：GEAR_DB 的名稱陣列
 """
 import json, os, struct, sys, zlib
@@ -32,22 +32,28 @@ def bmp_rgba(b):
 
 def main():
     grf_path, lub, names_path, out_dir, out_js = sys.argv[1:6]
+    coll_dir = sys.argv[6] if len(sys.argv) > 6 else None
+    desc_path = sys.argv[7] if len(sys.argv) > 7 else None
     lua = L.LuaRuntime(encoding=None); lua.execute(open(lub, 'rb').read())
     by_name = {}
     for k, v in lua.globals().tbl.items():
-        by_name.setdefault(dec(v[b'identifiedDisplayName']), []).append((int(k), v[b'identifiedResourceName'] or b''))
+        d = v[b'identifiedDescriptionName']
+        by_name.setdefault(dec(v[b'identifiedDisplayName']), []).append((int(k), v[b'identifiedResourceName'] or b'', [dec(d[j]) for j in range(1, len(d) + 1)] if d else []))
     _, ents = grf.table(grf_path)
-    files = {}
+    files, colls = {}, {}
     for n, cs, ca, rs, fl, o in ents:
         low = n.lower()
         if low.endswith(b'.bmp') and b'\\item\\' in low and low.startswith(b'data\\texture\\'):
             files[low.rsplit(b'\\', 1)[1][:-4]] = (cs, ca, fl, o)
+        elif low.endswith(b'.bmp') and b'\\collection\\' in low and low.startswith(b'data\\texture\\'):
+            colls[low.rsplit(b'\\', 1)[1][:-4]] = (cs, ca, fl, o)
     os.makedirs(out_dir, exist_ok=True)
-    out, miss = {}, []
+    if coll_dir: os.makedirs(coll_dir, exist_ok=True)
+    out, miss, nc, descs = {}, [], 0, {}
     with open(grf_path, 'rb') as f:
         for name in json.load(open(names_path, encoding='utf-8')):
             cand = by_name.get(ALIAS.get(name, name)) or by_name.get(name.replace('（', '(').replace('）', ')')) or []
-            for iid, res in sorted(cand):
+            for iid, res, desc in sorted(cand, key=lambda x: x[0]):
                 ent = files.get(res.lower())
                 if not ent:  # 資源名稱在物品表是 UTF-8，GRF 內的檔名是 cp949
                     try: ent = files.get(res.decode('utf-8').encode('cp949').lower())
@@ -59,10 +65,22 @@ def main():
                 try: w, h, rows = bmp_rgba(zlib.decompress(data[:cs]))
                 except Exception as e: print('略過', name, e, file=sys.stderr); continue
                 open(os.path.join(out_dir, f'{iid}.png'), 'wb').write(grf.png(w, h, rows))
-                out[name] = iid; break
+                out[name] = iid; descs[name] = desc   # 說明保留遊戲色碼 ^RRGGBB
+                # 物品大圖（物品資訊視窗用）
+                try: key = res.decode('utf-8').encode('cp949').lower()
+                except (UnicodeDecodeError, UnicodeEncodeError): key = res.lower()
+                ce = colls.get(key) or colls.get(res.lower())
+                if coll_dir and ce:
+                    cs, ca, fl, o = ce
+                    f.seek(o); data = f.read(ca)
+                    if fl & 6: data = grf.decode(data, fl, cs)
+                    try: w, h, rows = bmp_rgba(zlib.decompress(data[:cs])); open(os.path.join(coll_dir, f'{iid}.png'), 'wb').write(grf.png(w, h, rows)); nc += 1
+                    except Exception as e: print('大圖略過', name, e, file=sys.stderr)
+                break
             else: miss.append(name)
     open(out_js, 'w', encoding='utf-8').write('// 由 tools/grf/build-icons.py 產生：裝備名稱 → 圖示編號（icons/<編號>.png，取自樂園客戶端）\n'
         f'const GEAR_ICON = {json.dumps(out, ensure_ascii=False, separators=(",", ":"))};\n')
-    print('icons', len(out), 'miss', len(miss), '、'.join(miss))
+    if desc_path: json.dump(descs, open(desc_path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    print('icons', len(out), 'miss', len(miss), '、'.join(miss), 'collection', nc)
 
 main()

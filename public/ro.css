@@ -1,147 +1,173 @@
-/* 遊戲風格（試作）：html[data-ui="ro"] 時套用；只用 CSS 仿遊戲視窗，不使用遊戲圖檔 */
+/* 遊戲風格（試作）：html[data-ui="ro"] 時套用。視窗外觀對照客戶端介面圖用 CSS 重畫（條紋標題列、圓形關閉鈕、膠囊按鈕、裝備視窗底圖配置） */
 html[data-ui="ro"] {
-  --bg: #aebfd0;
-  --card: #fdfdfe;
-  --card-border: #7d8fa6;
-  --text: #1f2633;
-  --dim: #5d6b80;
-  --primary: #2b5aa8;
-  --green: #1d8a3a;
+  --bg: #8e9db5;
+  --card: #fff;
+  --card-border: #9a9fb2;
+  --text: #15171c;
+  --dim: #6a7186;
+  --primary: #2c3a78;
+  --green: #18803a;
   --input-bg: #fff;
-  --input-border: #8b9bb1;
-  --soft: #e8eef6;
-  --seg-bg: #c9d5e3;
-  --seg-active: #4f7fc4;
-  --tile-bg: #f4f7fb;
-  --bar-bg: #c9d5e3;
-  --ro-title: linear-gradient(#f3f8fe, #c4d6ec 55%, #b3c9e4);
-  --ro-btn: linear-gradient(#ffffff, #dde5ef);
-  --ro-btn-hover: linear-gradient(#ffffff, #cbd9ea);
+  --input-border: #9a9fb2;
+  --soft: #eef1f8;
+  --seg-bg: #d5dbea;
+  --seg-active: #4a6fc8;
+  --tile-bg: #f6f7fa;
+  --bar-bg: #d5dbea;
+  --ro-stripe: repeating-linear-gradient(to bottom, #e6edfb 0 1px, #c9d6f3 1px 2px, #b6c7ee 2px 3px);
+  --ro-lines: repeating-linear-gradient(to bottom, #fff 0 2px, #e4e4e8 2px 3px);
+  --ro-navy: #2c3a78;
   color-scheme: light;
 }
-html[data-ui="ro"] body {
-  font-size: 13px;
-  background: radial-gradient(ellipse at top, #d3dfeb, #9fb2c7 70%) fixed;
-}
+html[data-ui="ro"] body { font-size: 13px; background: linear-gradient(#a9b6ca, #7f8fa9) fixed; }
 html[data-ui="ro"] #themeBtn { display: none; }
 
 /* 標題與分頁 */
-html[data-ui="ro"] h1 { font-size: 1.15rem; color: #22324d; text-shadow: 1px 1px 0 #fff; }
-html[data-ui="ro"] .tabs { background: transparent; padding: 0; gap: 2px; border-bottom: 1px solid var(--card-border); border-radius: 0; }
-html[data-ui="ro"] .tabs a { border: 1px solid var(--card-border); border-bottom: 0; border-radius: 4px 4px 0 0; background: linear-gradient(#e6edf6, #c7d4e4); color: #3b4a60; font-size: 12px; padding: 4px 10px; }
-html[data-ui="ro"] .tabs a.active { background: #fdfdfe; color: #1f2633; position: relative; top: 1px; }
+html[data-ui="ro"] h1 { font-size: 1.15rem; color: #fff; text-shadow: 1px 1px 0 #3b4763; }
+html[data-ui="ro"] h1 small { color: #e3e8f2; }
+html[data-ui="ro"] .tabs { background: transparent; padding: 0; gap: 1px; border-radius: 0; }
+html[data-ui="ro"] .tabs a { border: 1px solid var(--card-border); border-bottom: 0; border-radius: 5px 5px 0 0; background: var(--ro-lines); color: #5a6072; font-size: 12px; font-weight: 400; padding: 3px 10px; }
+html[data-ui="ro"] .tabs a.active { background: #fff; color: var(--ro-navy); font-weight: 700; }
 
-/* 視窗 */
-html[data-ui="ro"] .card {
-  border-radius: 4px; padding: 10px 12px 12px; backdrop-filter: none; -webkit-backdrop-filter: none;
-  box-shadow: 0 0 0 1px #fff inset, 2px 3px 0 rgba(30, 45, 70, .22);
-}
+/* 視窗：白底、灰框、條紋標題列、圓形關閉鈕 */
+html[data-ui="ro"] .card { border-radius: 6px 6px 2px 2px; padding: 0 10px 10px; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: 1px 2px 0 rgba(20, 30, 60, .25); }
 html[data-ui="ro"] .card > h2 {
-  margin: -10px -12px 10px; padding: 3px 10px; min-height: 22px; font-size: 12px; font-weight: 700; letter-spacing: 0;
-  background: var(--ro-title); border-bottom: 1px solid var(--card-border); border-radius: 3px 3px 0 0; color: #22324d;
+  margin: 0 -10px 10px; padding: 0 6px 0 8px; min-height: 19px; font-size: 12px; font-weight: 400; letter-spacing: 0; color: #000;
+  background: var(--ro-stripe); border-bottom: 1px solid #1d2238; border-radius: 5px 5px 0 0;
 }
 html[data-ui="ro"] .card > h2::after {
-  content: "×"; margin-left: auto; width: 14px; height: 14px; line-height: 12px; text-align: center; font-size: 11px;
-  border: 1px solid #8597b0; border-radius: 2px; background: var(--ro-btn); color: #4a5a72;
+  content: "×"; margin-left: auto; width: 13px; height: 13px; line-height: 11px; text-align: center; font-size: 11px; font-weight: 700; color: #fff;
+  border-radius: 50%; background: radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f); box-shadow: 0 0 0 1px #9fb2e2;
 }
-html[data-ui="ro"] .sec-title { font-size: 12px; color: #22324d; background: var(--soft); border-left: 3px solid var(--seg-active); padding: 2px 6px; }
+html[data-ui="ro"] .sec-title { font-size: 12px; font-weight: 700; color: var(--ro-navy); margin: 12px 0 4px; padding: 0 0 2px; border-bottom: 1px solid #b9bccb; letter-spacing: 0; }
 html[data-ui="ro"] .hint, html[data-ui="ro"] .field label { font-size: 12px; }
 
-/* 按鈕、輸入框 */
+/* 按鈕：白色膠囊；輸入框：細灰框 */
 html[data-ui="ro"] button, html[data-ui="ro"] .btn-ghost, html[data-ui="ro"] .btn-sm, html[data-ui="ro"] .btn-share, html[data-ui="ro"] .dock-btn {
-  background: var(--ro-btn); color: #1f2633; border: 1px solid #8496ab; border-radius: 3px; min-height: 28px; font-size: 12px; font-weight: 700; box-shadow: 0 1px 0 #fff inset;
+  background: linear-gradient(#fff, #f0f0f5); color: #15171c; border: 1px solid #a5a8b6; border-radius: 8px; min-height: 24px; padding: 0 10px; font-size: 12px; font-weight: 400;
+  box-shadow: 0 0 0 1px #fff inset, 0 1px 1px rgba(0, 0, 0, .12);
 }
-html[data-ui="ro"] button:hover { background: var(--ro-btn-hover); }
+html[data-ui="ro"] button:hover { background: linear-gradient(#e6eefd, #c5d6f8); }
+html[data-ui="ro"] .btn-share { min-height: 26px; }
 html[data-ui="ro"] .field select, html[data-ui="ro"] .field input[type=number], html[data-ui="ro"] .gsearch input,
 html[data-ui="ro"] .slot-h select, html[data-ui="ro"] .ench-row select, html[data-ui="ro"] .ench-row input[type=number], html[data-ui="ro"] .ps-grid input {
-  border-radius: 2px; min-height: 28px; font-size: 13px; box-shadow: 1px 1px 2px rgba(0, 0, 0, .12) inset;
+  border-radius: 0; min-height: 24px; font-size: 12.5px; padding: 0 6px;
 }
 
-/* 裝備視窗 */
+/* 裝備視窗：圖示在外側、名稱在內側，每格一條底線，中間是條紋底 */
 .equip-win { display: none; }
+.coll { display: none; }
 html[data-ui="ro"] .equip-win {
-  display: grid; gap: 4px 8px; margin-bottom: 10px;
-  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
-  grid-template-areas: "tabs tabs tabs" "headTop ch headMid" "armor ch headLow" "weapon ch shield" "garment ch shoes" "accR ch accL";
+  display: grid; gap: 0 0; margin-bottom: 12px; border: 1px solid var(--card-border); background: #fff;
+  grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr);
+  grid-template-areas: "tabs tabs tabs" "headTop ch headMid" "headLow ch armor" "weapon ch shield" "garment ch shoes" "accR ch accL";
 }
-html[data-ui="ro"] .equip-win.sp { grid-template-areas: "tabs tabs tabs" "costume ch cMid" "cGar ch cLow"; }
-html[data-ui="ro"] .eq-tabs { grid-area: tabs; display: flex; gap: 2px; border-bottom: 1px solid var(--card-border); margin-bottom: 4px; }
-html[data-ui="ro"] .eq-tabs button { border-bottom: 0; border-radius: 4px 4px 0 0; background: linear-gradient(#e6edf6, #c7d4e4); color: #3b4a60; min-height: 26px; padding: 0 12px; box-shadow: none; }
-html[data-ui="ro"] .eq-tabs button[aria-selected="true"] { background: #fdfdfe; color: #1f2633; position: relative; top: 1px; }
+html[data-ui="ro"] .equip-win.sp { grid-template-areas: "tabs tabs tabs" "costume ch cMid" "cGar ch cLow"; background: linear-gradient(#fff, #dde3f4); }
+html[data-ui="ro"] .eq-tabs { grid-area: tabs; display: flex; gap: 1px; padding: 3px 4px 0; background: var(--ro-stripe); border-bottom: 1px solid #1d2238; }
+html[data-ui="ro"] .eq-tabs button { border-bottom: 0; border-radius: 5px 5px 0 0; background: var(--ro-lines); color: #5a6072; min-height: 20px; padding: 0 12px; box-shadow: none; }
+html[data-ui="ro"] .eq-tabs button[aria-selected="true"] { background: #fff; color: var(--ro-navy); font-weight: 700; }
 html[data-ui="ro"] .eq {
-  display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 3px 6px; text-align: left; font-weight: 400;
-  background: #fff; border: 1px solid #b5c2d3; border-radius: 3px; box-shadow: none; min-width: 0;
+  display: flex; align-items: center; gap: 6px; min-height: 34px; margin: 0 6px; padding: 2px 2px; text-align: right; flex-direction: row-reverse;
+  background: transparent; border: 0; border-bottom: 1px solid #b4b4bc; border-radius: 0; box-shadow: none; min-width: 0;
 }
-html[data-ui="ro"] .eq.l { flex-direction: row-reverse; text-align: right; }
-html[data-ui="ro"] .eq:hover { background: #eef4fc; }
-html[data-ui="ro"] .eq.sel { border-color: #4f7fc4; background: #e2ecfa; box-shadow: 0 0 0 1px #4f7fc4 inset; }
-html[data-ui="ro"] .eq .ico {
-  flex: 0 0 28px; height: 28px; border: 1px solid #a9b7ca; border-radius: 3px; background: linear-gradient(#f7f9fc, #e3e9f1);
-  display: grid; place-items: center; font-size: 11px; color: #8292a8;
-}
-html[data-ui="ro"] .eq.has .ico { background: linear-gradient(#fff6dc, #f1dca6); border-color: #c6a75c; color: #7a5a14; font-weight: 700; }
-html[data-ui="ro"] .eq .tx { min-width: 0; display: grid; line-height: 1.25; }
-html[data-ui="ro"] .eq .tx small { font-size: 11px; color: var(--dim); }
-html[data-ui="ro"] .eq .tx b { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html[data-ui="ro"] .eq:not(.has) .tx b { color: #9aa6b6; font-weight: 400; }
-html[data-ui="ro"] .eq.occ { opacity: .55; }
+html[data-ui="ro"] .eq.l { flex-direction: row; text-align: left; }
+html[data-ui="ro"] .eq:hover { background: #eef3fd; }
+html[data-ui="ro"] .eq.sel { background: #d9e4fb; }
+html[data-ui="ro"] .eq .ico { flex: 0 0 26px; height: 26px; display: grid; place-items: center; font-size: 0; color: transparent; border: 0; background: radial-gradient(ellipse 13px 8px at center, #a9b6da 0 45%, rgba(169, 182, 218, .35) 75%, transparent 100%); }
+html[data-ui="ro"] .eq.has .ico { background: none; }
+html[data-ui="ro"] .eq .ico img { display: block; image-rendering: pixelated; }
+html[data-ui="ro"] .equip-win.sp .eq .ico { background: #dde2fa; border-radius: 4px; }
+html[data-ui="ro"] .equip-win.sp .eq.has .ico { background: #b9c3ea; }
+html[data-ui="ro"] .eq .tx { min-width: 0; display: grid; line-height: 1.2; }
+html[data-ui="ro"] .eq .tx small { font-size: 10.5px; color: #a3a6b4; }
+html[data-ui="ro"] .eq .tx b { font-size: 12px; font-weight: 400; color: #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-ui="ro"] .eq:not(.has):not(.occ) .tx b { display: none; }
+html[data-ui="ro"] .eq:not(.has):not(.occ) .tx small { font-size: 13px; font-weight: 700; color: #d0d2dc; }
+html[data-ui="ro"] .eq.occ .tx b { color: #9a9dac; }
 html[data-ui="ro"] .eq-ch {
-  grid-area: ch; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  border: 1px solid #b5c2d3; border-radius: 3px; background: radial-gradient(ellipse at 50% 40%, #ffffff, #dce5f0); padding: 8px; text-align: center;
+  grid-area: ch; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 6px 22px; text-align: center;
+  border-left: 1px solid #b4b4bc; border-right: 1px solid #b4b4bc; background: var(--ro-lines);
 }
-html[data-ui="ro"] .eq-ch b { font-size: 13px; color: #22324d; }
+html[data-ui="ro"] .eq-ch::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 46px; height: 14px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(90, 90, 90, .75), rgba(120, 120, 120, .35) 60%, transparent 75%); }
+html[data-ui="ro"] .equip-win.sp .eq-ch { background: transparent; border-color: transparent; }
+html[data-ui="ro"] .eq-ch b { font-size: 12px; color: var(--ro-navy); }
 html[data-ui="ro"] .eq-ch small { font-size: 11px; color: var(--dim); }
-html[data-ui="ro"] .eq-ch dl { display: grid; grid-template-columns: auto auto; gap: 0 8px; margin: 4px 0 0; font-size: 11px; }
-html[data-ui="ro"] .eq-ch dt { color: var(--dim); text-align: right; }
-html[data-ui="ro"] .eq-ch dd { margin: 0; font-weight: 700; color: var(--primary); text-align: left; font-variant-numeric: tabular-nums; }
+html[data-ui="ro"] .eq-ch dl { display: grid; grid-template-columns: auto auto; gap: 0 8px; margin: 3px 0 0; font-size: 11px; }
+html[data-ui="ro"] .eq-ch dt { color: var(--ro-navy); font-weight: 700; text-align: right; }
+html[data-ui="ro"] .eq-ch dd { margin: 0; color: #000; text-align: left; font-variant-numeric: tabular-nums; }
 
-/* 只顯示選中部位的「物品資訊」視窗 */
+/* 物品資訊視窗：只顯示選中的部位；左邊黑框大圖、右邊內容 */
 html[data-ui="ro"] .slots { display: block; }
 html[data-ui="ro"] #slots > .slot:not(.sel) { display: none; }
-html[data-ui="ro"] .slot { border: 1px solid var(--card-border); border-radius: 4px; background: #fff; padding: 0 10px 10px; box-shadow: 2px 3px 0 rgba(30, 45, 70, .15); }
-html[data-ui="ro"] .slot-h { margin: 0 -10px 8px; padding: 5px 8px; background: var(--ro-title); border-bottom: 1px solid var(--card-border); border-radius: 3px 3px 0 0; }
-html[data-ui="ro"] .slot-h b { font-size: 12px; }
-html[data-ui="ro"] .slot .meta { font-size: 12px; color: #3f4d63; background: var(--tile-bg); border: 1px solid #d5dde8; border-radius: 2px; padding: 4px 6px; }
+html[data-ui="ro"] .slot { border: 1px solid var(--card-border); border-radius: 2px; background: #fff; padding: 0 10px 10px; box-shadow: none; }
+html[data-ui="ro"] .slot::after { content: ""; display: block; clear: both; }
+html[data-ui="ro"] .slot-h { margin: 0 -10px 10px; padding: 5px 8px; background: var(--ro-lines); border-bottom: 1px solid #c9c9d1; }
+html[data-ui="ro"] .slot-h b { font-size: 12px; color: var(--ro-navy); }
+html[data-ui="ro"] .coll { display: block; float: left; width: 75px; height: 100px; margin: 0 14px 8px 2px; background: #fff; border: 1px solid #000; box-shadow: 3px 3px 0 #bcbcc4; image-rendering: pixelated; }
+html[data-ui="ro"] .slot .meta, html[data-ui="ro"] .slot .rf, html[data-ui="ro"] .slot .ench, html[data-ui="ro"] .slot .addon, html[data-ui="ro"] .slot .eff { overflow: hidden; }
+html[data-ui="ro"] .slot .meta { font-size: 12px; color: #33384a; margin-bottom: 6px; }
 html[data-ui="ro"] .eff { font-size: 12.5px; }
 html[data-ui="ro"] .eff li { border-left-width: 2px; }
-html[data-ui="ro"] .eff li.on { color: #1f2633; }
-html[data-ui="ro"] .eff li .t { color: #2b5aa8; }
+html[data-ui="ro"] .eff li.on { color: #15171c; }
+html[data-ui="ro"] .eff li .t { color: var(--ro-navy); }
+html[data-ui="ro"] .eff li.sum { border-radius: 0; }
 
 /* 能力值視窗 */
 html[data-ui="ro"] .tot-list { font-size: 12.5px; }
-html[data-ui="ro"] .tot-list li { border-bottom: 0; padding: 2px 6px; }
-html[data-ui="ro"] .tot-list li:nth-child(odd) { background: #eef3f9; }
-html[data-ui="ro"] .setc { border-radius: 2px; font-size: 12px; background: #fff; }
-html[data-ui="ro"] .empty { border-radius: 2px; }
+html[data-ui="ro"] .tot-list li { border-bottom: 1px solid #e3e4ea; padding: 2px 4px; }
+html[data-ui="ro"] .tot-list li span { color: var(--ro-navy); font-weight: 700; }
+html[data-ui="ro"] .tot-list li b { color: #000; font-weight: 400; }
+html[data-ui="ro"] .notes-list li span { color: #15171c; font-weight: 400; }
+html[data-ui="ro"] .setc { border-radius: 0; font-size: 12px; background: #fff; }
+html[data-ui="ro"] .empty { border-radius: 0; }
+
+/* 精煉拉霸：加上標籤、縮短 */
+html[data-ui="ro"] .rf { max-width: 340px; gap: 8px; }
+html[data-ui="ro"] .rf .rl { display: inline; font-size: 12px; font-weight: 700; color: var(--ro-navy); white-space: nowrap; }
+html[data-ui="ro"] .rf .rv { min-width: 2.6em; font-size: 13px; font-weight: 400; color: #000; background: #f1f1f4; border: 1px solid #b4b4bc; padding: 0 6px; text-align: center; }
+html[data-ui="ro"] .slot .rf { margin: 6px 0; }
+
+/* 其他區塊 */
+html[data-ui="ro"] .page-note, html[data-ui="ro"] details.ps { border-radius: 2px; background: #fff; border: 1px solid var(--card-border); }
+html[data-ui="ro"] .page-note summary, html[data-ui="ro"] details.ps summary { font-size: 12px; }
+html[data-ui="ro"] .foot { color: #f0f2f7; }
+html[data-ui="ro"] .foot .recruit, html[data-ui="ro"] .foot .boba { border-radius: 8px; background: #fff; }
+html[data-ui="ro"] .foot a { color: #fff !important; }
+html[data-ui="ro"] .foot .boba { color: #C07C62 !important; }
+html[data-ui="ro"] .beta { border-radius: 3px; }
+html[data-ui="ro"] .chip { border-radius: 3px; }
+html[data-ui="ro"] .share-bar { border-radius: 2px; background: #fff; }
 
 @media (max-width: 640px) {
   html[data-ui="ro"] .equip-win {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: "tabs tabs" "ch ch" "headTop headMid" "armor headLow" "weapon shield" "garment shoes" "accR accL";
+    grid-template-areas: "tabs tabs" "ch ch" "headTop headMid" "headLow armor" "weapon shield" "garment shoes" "accR accL";
   }
   html[data-ui="ro"] .equip-win.sp { grid-template-areas: "tabs tabs" "ch ch" "costume cMid" "cGar cLow"; }
-  html[data-ui="ro"] .eq-ch { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; }
+  html[data-ui="ro"] .eq-ch { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; padding: 6px; border: 0; border-bottom: 1px solid #b4b4bc; }
+  html[data-ui="ro"] .eq-ch::after { display: none; }
   html[data-ui="ro"] .eq-ch dl { margin: 0; grid-template-columns: repeat(3, auto auto); }
+  html[data-ui="ro"] .coll { width: 60px; height: 80px; margin-right: 10px; }
 }
-
-/* 其他區塊 */
-html[data-ui="ro"] .page-note, html[data-ui="ro"] details.ps { border-radius: 3px; background: var(--card); border: 1px solid var(--card-border); box-shadow: 0 0 0 1px #fff inset; }
-html[data-ui="ro"] .page-note summary, html[data-ui="ro"] details.ps summary { font-size: 12px; }
-html[data-ui="ro"] .foot .recruit, html[data-ui="ro"] .foot .boba { border-radius: 3px; }
-html[data-ui="ro"] .beta { border-radius: 2px; }
-html[data-ui="ro"] .chip { border-radius: 2px; }
-html[data-ui="ro"] .eq .ico img { display: block; image-rendering: pixelated; }
-html[data-ui="ro"] .eq.has .ico:has(img) { background: linear-gradient(#ffffff, #e6ecf4); border-color: #a9b7ca; }
-
-/* 精煉拉霸：加上標籤、縮短 */
-html[data-ui="ro"] .rf { max-width: 340px; gap: 8px; }
-html[data-ui="ro"] .rf .rl { display: inline; font-size: 12px; font-weight: 700; color: #22324d; white-space: nowrap; }
-html[data-ui="ro"] .rf .rv { min-width: 2.6em; font-size: 14px; background: #fff; border: 1px solid #a9b7ca; border-radius: 2px; padding: 0 6px; text-align: center; box-shadow: 1px 1px 2px rgba(0, 0, 0, .12) inset; }
-html[data-ui="ro"] .slot .rf { margin: 8px 0; }
 
 /* 電腦版右側能力視窗：捲軸放在視窗裡面，標題列固定 */
 @media (min-width: 1100px) {
   html[data-ui="ro"] .gear-side { overflow: visible; max-height: none; scrollbar-gutter: auto; border-radius: 0; }
-  html[data-ui="ro"] .gear-side > .card { max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #8fa3bd #e8eef6; }
-  html[data-ui="ro"] .gear-side > .card > h2 { position: sticky; top: -10px; z-index: 2; }
+  html[data-ui="ro"] .gear-side > .card { max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #8fa3d6 #eef1f8; }
+  html[data-ui="ro"] .gear-side > .card > h2 { position: sticky; top: 0; z-index: 2; }
 }
+
+/* 物品資訊視窗（對裝備按右鍵） */
+.ro-info { position: fixed; inset: auto; margin: 0; padding: 0; width: min(430px, calc(100vw - 16px)); border: 1px solid #9a9fb2; border-radius: 6px 6px 2px 2px; background: #fff; color: #15171c; box-shadow: 2px 3px 0 rgba(20, 30, 60, .3); font-size: 12.5px; line-height: 1.5; overflow: hidden; }
+.ro-info:not([popover]):not(.open) { display: none; }
+.ro-info::backdrop { background: transparent; }
+.ro-info-h { display: flex; align-items: center; gap: 8px; min-height: 19px; padding: 0 6px 0 8px; font-size: 12px; color: #000; cursor: move; user-select: none; touch-action: none;
+  background: repeating-linear-gradient(to bottom, #e6edfb 0 1px, #c9d6f3 1px 2px, #b6c7ee 2px 3px); border-bottom: 1px solid #1d2238; }
+.ro-info-h span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ro-info .ro-x, html[data-ui="ro"] .ro-info .ro-x { flex: 0 0 13px; width: 13px; height: 13px; min-height: 0; padding: 0; line-height: 11px; font-size: 11px; font-weight: 700; color: #fff; border: 0; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f); box-shadow: 0 0 0 1px #9fb2e2; }
+.ro-info-b { max-height: min(70vh, 480px); overflow-y: auto; padding: 12px 10px 10px; scrollbar-width: thin; scrollbar-color: #8fa3d6 #eef1f8;
+  background: repeating-linear-gradient(to bottom, #fff 0 2px, #e4e4e8 2px 3px) top / 100% 9px no-repeat, #fff; }
+.ro-info-b::after { content: ""; display: block; clear: both; }
+.ro-info .coll { display: block; float: left; width: 75px; height: 100px; margin: 0 14px 8px 2px; background: #fff; border: 1px solid #000; box-shadow: 3px 3px 0 #bcbcc4; image-rendering: pixelated; }
+.ro-desc { overflow: hidden; word-break: break-word; }
