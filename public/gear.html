@@ -215,10 +215,10 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=26"></script>
+<script src="gear-data.js?v=27"></script>
 <script src="enchant-data.js?v=4"></script>
 <script src="addon-data.js?v=4"></script>
-<script src="slot-data.js?v=1"></script>
+<script src="slot-data.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -243,7 +243,10 @@ const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {}, ench: fals
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 function fixState() {
   st.ps = st.ps || {};
-  for (const [k] of GEAR_SLOTS) if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
+  for (const [k] of GEAR_SLOTS) {
+    if (st.slots[k] && GEAR_RENAMED[st.slots[k].n]) st.slots[k].n = GEAR_RENAMED[st.slots[k].n];
+    if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
+  }
 }
 function load() {
   st = DEFAULT();
@@ -267,7 +270,7 @@ function unpackState(code) {
   const s = DEFAULT();
   s.lv = n(o.l, 120, 1, 200); s.job = JOBS.includes(o.j) ? o.j : ''; s.all = n(o.a, 0, 0, 20); s.ench = !!o.e;
   for (const k of PS) if (o.p && o.p[k]) s.ps[k] = n(o.p[k], 0, 0, 300);
-  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [], a: v[3] && typeof v[3] === 'object' && Array.isArray(v[3].v) ? { p: n(v[3].p, 0, 0, 9), v: v[3].v.slice(0, 5).map(x => Array.isArray(x) ? [n(x[0], -1, -1, 99), n(x[1], 0, 0, 9999)] : [-1, 0]) } : null }; }
+  for (const [k] of GEAR_SLOTS) { const v = o.s && o.s[k]; if (Array.isArray(v) && GEAR_RENAMED[v[0]]) v[0] = GEAR_RENAMED[v[0]]; if (Array.isArray(v) && BY_NAME[v[0]]) s.slots[k] = { n: v[0], r: BY_NAME[v[0]].ref ? n(v[1], 0, 0, 20) : 0, e: Array.isArray(v[2]) ? v[2].map(x => typeof x === 'string' ? x : '').slice(0, 4) : [], a: v[3] && typeof v[3] === 'object' && Array.isArray(v[3].v) ? { p: n(v[3].p, 0, 0, 9), v: v[3].v.slice(0, 5).map(x => Array.isArray(x) ? [n(x[0], -1, -1, 99), n(x[1], 0, 0, 9999)] : [-1, 0]) } : null }; }
   return s;
 }
 function readHash() {
