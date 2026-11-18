@@ -220,7 +220,7 @@
   </div>
 </div>
 
-<script src="gear-data.js?v=29"></script>
+<script src="gear-data.js?v=30"></script>
 <script src="enchant-data.js?v=4"></script>
 <script src="addon-data.js?v=4"></script>
 <script src="slot-data.js?v=2"></script>
@@ -577,7 +577,7 @@ function slotBody(k, res) {
   const li = (cls, t, body, tag) => `<li class="${cls}"><span class="t">${t}</span>${body}${tag ? `<span class="tag">${tag}</span>` : ''}</li>`;
   let eff = '';
   if (Object.keys(it.b).length) eff += li('on', '基本', fmtEff(it.b));
-  for (const x of it.t || []) if (!/^\d 洞$/.test(x)) eff += li('txt', '效果', x);
+  for (const x of it.t || []) if (!/^\d 洞$/.test(x)) eff += li('txt', NOTE_RE.test(x) ? '備註' : '效果', x);
   for (const n of perKeys(it)) { const t = Math.floor(r / n), e = it['p' + n]; eff += li(t ? 'on' : '', `每精煉 ${n}`, fmtEff(e) + (t > 1 && Object.keys(mul(e, 1)).length ? `<span class="tot">＝${fmtEff(mul(e, t))}</span>` : ''), `目前 ×${t}`); }
   eff += ths.map(n => li(r >= n ? 'on' : n === next ? 'next' : '', '+' + n, fmtEff(it.r[n]), n === next ? `再 +${n - r}` : '')).join('');
   if (it.pf) { const t = pfTimes(it, r); eff += li(t ? 'on' : '', `+${it.pf[0]} 起每 +1`, fmtEff(it.pf[1]) + (t > 1 ? `<span class="tot">＝${fmtEff(mul(it.pf[1], t))}</span>` : ''), t ? `目前 ×${t}` : `再 +${it.pf[0] - r}`); }
@@ -641,6 +641,8 @@ function slotHtml([k, label, kinds], res) {
   return h + `<ul class="eff">${b.eff}</ul></div>`;
 }
 
+// 備註類文字（不可破壞、資料待補、取得方式…）不算效果
+const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$|歸屬版/;
 function renderResult(res) {
   const { tot, setInfo, combos, notes, over } = res;
   // 武器精煉同時加 ATK 與 MATK，併進這兩行顯示（註明含精煉多少）
@@ -675,7 +677,6 @@ function renderResult(res) {
   const cEnt = Object.entries(cAll).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
   // 備註類文字（不可破壞、資料待補、取得方式…）不算效果，不列在這裡
-  const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$/;
   const eff = notes.map(x => { const i = x.indexOf('：'); return [x.slice(0, i), x.slice(i + 1)]; }).filter(([, t]) => !NOTE_RE.test(t));
   $('notes').innerHTML = eff.length ? eff.map(([n, t]) => `<li><span>${t}</span><b class="src">${n}</b></li>`).join('') : `<li><span>無</span></li>`;
 }
