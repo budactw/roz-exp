@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=22">
-<link rel="stylesheet" href="ro.css?v=11">
+<link rel="stylesheet" href="ro.css?v=12">
 <script>{ const u = new URLSearchParams(location.search).get('ui'); if (u) localStorage.setItem('gear-ui', u); if ((u || localStorage.getItem('gear-ui')) === 'ro') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -230,10 +230,10 @@
 
 <script src="gear-data.js?v=31"></script>
 <script src="enchant-data.js?v=4"></script>
-<script src="addon-data.js?v=4"></script>
+<script src="addon-data.js?v=5"></script>
 <script src="slot-data.js?v=2"></script>
-<script src="icon-data.js?v=1"></script>
-<script src="costume-data.js?v=2"></script>
+<script src="icon-data.js?v=2"></script>
+<script src="costume-data.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -256,6 +256,7 @@ const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.incl
 
 const DEFAULT = () => ({ lv: 120, job: '', all: 0, ps: {}, slots: {}, ench: false, cs: {}, sk: false, skl: {} });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
+const maxRef = it => (it && it.maxRef) || 20;   // 精煉上限（典藏板是 +10）
 // 服飾附魔石：st.cs[部位] = 石頭名稱
 const stoneOf = k => { const p = COSTUME_POS.find(x => x[0] === k); return p && COSTUME_STONE[p[2]].find(x => x.n === st.cs[k]); };
 const stoneJobOk = x => !x.j || !st.job || x.j.includes(st.job);
@@ -265,6 +266,7 @@ function fixState() {
   for (const [k] of GEAR_SLOTS) {
     if (st.slots[k] && GEAR_RENAMED[st.slots[k].n]) st.slots[k].n = GEAR_RENAMED[st.slots[k].n];
     if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
+    if (st.slots[k].r > maxRef(BY_NAME[st.slots[k].n])) st.slots[k].r = maxRef(BY_NAME[st.slots[k].n]);
   }
 }
 function load() {
@@ -663,13 +665,13 @@ function slotHtml([k, label, kinds], res) {
   const b = slotBody(k, res);
   if (typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n]) h += `<img class="coll" src="collection/${GEAR_ICON[it.n]}.png" alt="" width="75" height="100" loading="lazy">`;
   h += `<div class="meta">${b.meta}</div>`;
-  if (it.ref) h += `<div class="rf"><span class="rl" aria-hidden="true">精煉</span><input type="range" min="0" max="20" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
+  if (it.ref) h += `<div class="rf"><span class="rl" aria-hidden="true">精煉</span><input type="range" min="0" max="${maxRef(it)}" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
   h += enchHtml(k, it, cur.r) + addonHtml(k, it);
   return h + `<ul class="eff">${b.eff}</ul></div>`;
 }
 
 // 備註類文字（不可破壞、資料待補、取得方式…）不算效果
-const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$|歸屬版/;
+const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破壞|取得|資料未|未載明|原文|不完整|^\d 洞|不可精煉|聖屬性$|歸屬版|才有效果$|密穴生效$/;
 function renderResult(res) {
   const { tot, setInfo, combos, notes, over } = res;
   // 武器精煉同時加 ATK 與 MATK，併進這兩行顯示（註明含精煉多少）
@@ -738,7 +740,8 @@ const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', h
 let eqTab = 'main';
 const EQ_SP_ICO = { costume: '上', cMid: '中', cLow: '下', cGar: '披' };
 // 特殊裝備和一般裝備同一個 10 格版型：服飾放在對應的位置，其餘 6 格是空的
-const EQ_SP_AREA = { costume: 'headTop', cLow: 'headLow', cMid: 'headMid', cGar: 'garment' }, EQ_SP_NONE = ['weapon', 'accR', 'armor', 'shield', 'shoes', 'accL'];
+const EQ_SP_AREA = { costume: 'headTop', cLow: 'headLow', cMid: 'headMid', cGar: 'garment', spBoard: 'shield', spPet: 'accL', spLucky: 'accR' }, EQ_SP_NONE = ['weapon', 'armor', 'shoes'];
+const EQ_SP_KEYS = ['costume', 'spBoard', 'spPet', 'spLucky'];   // 放在特殊裝備頁的部位
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
   const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
@@ -749,16 +752,18 @@ function renderEquipWin(res) {
   const sp = eqTab === 'sp';
   const cell = (k, label, left, has, nm, ico, occ, area) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${area || k}" onclick="selSlot('${k}')" oncontextmenu="return roCtx(event, '${k}')" aria-pressed="${k === roSel}">
       <span class="ico" aria-hidden="true">${ico}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
+  const gearCell = ([k, label], area) => {
+    const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
+    return cell(k, label, EQ_L.includes(area || k), it, occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備',
+      it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : (EQ_ICO[k] || ''), occ, area);
+  };
   $('equipWin').classList.toggle('sp', sp);
   $('equipWin').innerHTML = tabs + ch + (sp ? COSTUME_POS.map(([k, label, pos]) => {
     const x = stoneOf(k), it = k === 'costume' && BY_NAME[st.slots.costume.n];
     return cell(k, label, EQ_L.includes(EQ_SP_AREA[k]), x || it, [it && it.n, x && `${x.n}(${pos})`].filter(Boolean).join('／') || '未裝備',
       it && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_SP_ICO[k], false, EQ_SP_AREA[k]);
-  }).concat(EQ_SP_NONE.map(a => `<div class="eq eq-none" style="grid-area:${a}"></div>`)) : GEAR_SLOTS.filter(([k]) => k !== 'costume').map(([k, label]) => {
-    const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
-    return cell(k, label, EQ_L.includes(k), it, occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備',
-      it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : EQ_ICO[k], occ);
-  })).join('');
+  }).concat(GEAR_SLOTS.filter(([k]) => k.startsWith('sp')).map(x => gearCell(x, EQ_SP_AREA[x[0]])), EQ_SP_NONE.map(a => `<div class="eq eq-none" style="grid-area:${a}"></div>`))
+    : GEAR_SLOTS.filter(([k]) => !EQ_SP_KEYS.includes(k)).map(x => gearCell(x))).join('');
 }
 // ===== 物品資訊視窗（對裝備按右鍵）：物品大圖＋遊戲內說明原文 =====
 let DESC = null;
@@ -780,10 +785,12 @@ const infoPop = 'popover' in HTMLElement.prototype;
 function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else el.classList.remove('open'); }
 async function showInfo(k, x, y) {
   const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) return;
-  if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=1')).json(); } catch (e) { DESC = {}; } }
+  if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=2')).json(); } catch (e) { DESC = {}; } }
   const el = $('roInfo'), id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
   $('roInfoName').textContent = `${it.ref && cur.r ? `+${cur.r} ` : ''}${it.n}${holes ? ` [${holes}]` : ''}`;
-  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>`;
+  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` +
+    // 這件裝備目前實際給的能力（含精煉、附魔、附加能力）
+    ((slotBody(k, compute()).eff.match(/<li class="sum">.*?<\/li>/) || [''])[0].replace(/^<li class="sum">/, '<div class="ro-sum">').replace(/<\/li>$/, '</div>'));
   if (infoPop) { hideInfo(); el.showPopover(); } else el.classList.add('open');
   const r = el.getBoundingClientRect();
   el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
@@ -856,14 +863,16 @@ function refreshSlots() {
 
 function pick(k, n) {
   const it = BY_NAME[n];
-  st.slots[k] = { n, r: it && it.ref ? st.all : 0, e: [], a: null };
+  st.slots[k] = { n, r: it && it.ref && !it.sp ? st.all : 0, e: [], a: null };
+  // 特殊裝備（寵物戒指、幸運髮飾）的能力都來自附魔／附加能力，穿上時自動開啟設定
+  if (it && it.sp && !st.ench && (enchSlots(it).length || addonPools(it).length)) { st.ench = true; $('useEnch').checked = true; }
   for (const o of (it && it.occ) || []) st.slots[o] = { n: '', r: 0 };
   save(); render();
 }
 function setRef(k, v) { st.slots[k].r = +v; save(); refreshSlots(); }
 $('allRef').addEventListener('input', e => {
   st.all = +e.target.value;
-  for (const { slot, it } of equipped()) if (it.ref) st.slots[slot].r = st.all;
+  for (const { slot, it } of equipped()) if (it.ref && !it.sp) st.slots[slot].r = st.all;
   save(); render();
 });
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');

@@ -6,7 +6,7 @@ const norm = s => s.replace(/\s+/g, '');
 const BASIC = { STR: 'STR', AGI: 'AGI', VIT: 'VIT', INT: 'INT', DEX: 'DEX', LUK: 'LUK', ATK: 'ATK', MATK: 'MATK', HIT: 'HIT', FLEE: 'FLEE', CRI: 'CRI', DEF: 'DEF', MDEF: 'MDEF',
   MaxHP: 'MHP', 'MaxHP(%)': 'MHPp', MaxSP: 'MSP', 'MaxSP(%)': 'MSPp', 'ATK(%)': 'ATKp', 'MATK(%)': 'MATKp', ASPD: 'aspdFlat', '攻擊速度增加(%)': 'aspdP',
   '暴擊傷害增加(%)': 'crit', '遠距離攻擊增加(%)': 'ranged', '治癒量增加(%)': 'heal', '受到治癒量增加': 'healRecv', '受到治癒量增加(%)': 'healRecv',
-  '變動詠唱時間減少': 'vct', '變動詠唱減少(%)': 'vct', '變動詠唱時間減少(%)': 'vct', 'HP自然恢復速度增加(%)': 'hpRegen', 'SP自然恢復速度增加(%)': 'spRegen',
+  '變動詠唱時間減少': 'vct', '變動詠唱減少(%)': 'vct', '變動詠唱時間減少(%)': 'vct', 'HP自然恢復速度增加(%)': 'hpRegen', 'SP自然恢復速度增加(%)': 'spRegen', 'HP自然回復速度增加(%)': 'hpRegen', 'SP自然回復速度增加(%)': 'spRegen', '受到治癒量': 'healRecv',
   '對一般敵人造成的物理傷害增加(%)': 'normal', '對一般敵人造成的魔法傷害增加(%)': 'normalM' };
 // 名稱 → [效果鍵, 正負]；鍵以 _c: 開頭表示技能／條件加成
 function keyOf(raw) {
@@ -46,6 +46,8 @@ if (ph && mg) push('勇者的改造箱', `it => ${JSON.stringify(LHZ)}.includes(
 const lava = J('out_lava.json'); if (lava) push('熔岩精華', `it => ${JSON.stringify(lava.targets)}.includes(it.n)`, [pool(lava.pools[0], '熔岩精華')]);
 const dr = J('out_dragon.json'); if (dr) push('漩渦的天龍神力', `it => ${JSON.stringify(dr.targets)}.includes(it.n)`, [pool(dr.pools[0], '漩渦的天龍神力')]);
 const fw = J('out_fw.json'); if (fw) push('巨神蟒的卷軸', `it => /^巨神蟒蛇皮（/.test(it.n)`, fw.pools.map(p => pool(p, /魔法/.test(p.title) ? '巨神蟒的卷軸（魔法）' : '巨神蟒的卷軸（物理）')));
+// 幸運髮飾（特殊裝備）：只取「附加能力箱子」那一池；四洞附魔另外寫在 costume-data.js
+const lk = J('out_lucky.json'); if (lk) push('幸運髮飾附加能力箱子', `it => it.n === '幸運髮飾'`, [pool(lk.pools[0], '幸運髮飾附加能力箱子')]);
 const qs = J('out_queen.json'); if (qs) push('驚駭森靈皇后的卷軸', `it => ${JSON.stringify(qs.targets)}.includes(it.n)`, [pool(qs.pools[0], '驚駭森靈皇后的卷軸')]);
 // 魔物掉落裝備（原生附加能力）：池 1～4 武器分近距離／遠距離／魔法，池 5 鎧甲／披肩／鞋子，克雷斯特漢姆只有披肩
 const drop = J('out_drop.json'), DROP = { weapon: {}, armor: [], garment: [], shoes: [] };
