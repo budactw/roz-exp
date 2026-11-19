@@ -329,7 +329,7 @@
 <script src="slot-data.js?v=2"></script>
 <script src="aspd-data.js?v=1"></script>
 <script src="skill-data.js?v=1"></script>
-<script src="skill-tree.js?v=1"></script>
+<script src="skill-tree.js?v=2"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=6"></script>
@@ -1047,7 +1047,7 @@ async function showSkillInfo(sid, x, y) {
   if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } }
   const s = SKILLS[sid], lv = SkillTree.lvOf(st.skt, sid);
   $('skInfoName').textContent = `${s.n}　Lv ${lv} / ${s.m}`;
-  $('skInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SKDESC[sid]) : '（沒有說明）'}</div>`;
+  $('skInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SkillTree.descFor(SKDESC[sid], st.job)) : '（沒有說明）'}</div>`;
   $('skInfo').querySelector('.ro-info-b').scrollTop = 0;
   openInfo('skInfo', x, y);
 }
