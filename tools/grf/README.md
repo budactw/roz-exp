@@ -36,6 +36,14 @@ node -e "eval(require('fs').readFileSync('public/gear-data.js','utf8')+';global.
 python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js public/collection public/desc-data.json
 ```
 
+配裝 Buff 區的道具圖示（`public/buff-data.js` 裡的 `ic` 物品編號與料理圖示）：
+
+```bash
+python -I tools/grf/build-buff-icons.py <data.grf> /tmp/ii64.lub public/buff-data.js public/icons
+```
+
+技能 Buff 的圖示直接用 `public/skillicons/<技能編號>.png`（`sk`）。
+
 ## 卡片
 
 `public/card-data.js`：客戶端說明「系列：卡片」的物品，說明文字用 `tools/lib/effparse.js`（和附魔同一套規則）轉成效果，「和 X 卡片一起裝備時」轉成套卡：

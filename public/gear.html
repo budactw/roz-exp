@@ -104,6 +104,8 @@
   .bf-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
   .bf { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
   .bf label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; }
+  .bf-ic { width: 24px; height: 24px; flex-shrink: 0; image-rendering: pixelated; }
+  .bf-food label > span { display: flex; align-items: center; gap: 4px; }
   .bf input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; margin: 0; }
   .bf .nm { font-size: .86rem; font-weight: 600; color: var(--text); }
   .bf .nm small { font-weight: 400; color: var(--dim); margin-left: 4px; }
@@ -361,7 +363,7 @@
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=7"></script>
 <script src="rune-data.js?v=1"></script>
-<script src="buff-data.js?v=2"></script>
+<script src="buff-data.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -432,6 +434,7 @@ function buffsOn() {
   if (Object.keys(food).length) out.push({ n: '料理', e: food });
   return out;
 }
+const bfIcon = src => src ? `<img class="bf-ic" src="${src}.png" width="24" height="24" alt="" loading="lazy">` : '';
 let buffHtmlLast = '', buffOpen = localStorage.getItem('gear-buff-closed') !== '1';   // 預設展開，收合後記住（收合時 Buff 照樣計算）
 function toggleBuffCard() { buffOpen = !buffOpen; localStorage.setItem('gear-buff-closed', buffOpen ? '' : '1'); render(); }
 function renderBuff() {
@@ -443,7 +446,7 @@ function renderBuff() {
   const item = b => {
     const l = st.bf[b.id] || 0, lv = l || b.max || 1, na = buffNa(b), on = l > 0 && !na;
     const sel = b.max ? `<select data-lv="${b.id}" aria-label="${b.n} 等級">${opt(b.max, lv, i => 'Lv' + i)}</select>` : '';
-    return `<div class="bf${on ? ' on' : ''}${na ? ' na' : ''}"><label><input type="checkbox" data-b="${b.id}"${l ? ' checked' : ''}${na && !l ? ' disabled' : ''}>` +
+    return `<div class="bf${on ? ' on' : ''}${na ? ' na' : ''}"><label><input type="checkbox" data-b="${b.id}"${l ? ' checked' : ''}${na && !l ? ' disabled' : ''}>${bfIcon(b.ic ? `icons/${b.ic}` : b.sk ? `skillicons/${b.sk}` : '')}` +
       `<span><span class="nm">${b.n}${b.sub ? `<small>${b.sub}</small>` : ''}</span><span class="ef">${na || fmtEff(b.e(lv))}</span></span></label>${sel}</div>`;
   };
   let h = '';
@@ -452,7 +455,7 @@ function renderBuff() {
     if (g === 'self' && !st.job) { h += `<div class="bf-sec">${title}</div><div class="hint">選職業後顯示。</div>`; continue; }
     if (!list.length) continue;
     h += `<div class="bf-sec">${title}</div>`;
-    if (g === 'item') h += `<div class="bf-food">` + BUFF_FOOD.map(s => `<label>${s} 料理<select data-food="${s}"><option value="0">無</option>${opt(10, st.bf['f' + s] || 0, i => '+' + i)}</select></label>`).join('') + `</div>`;
+    if (g === 'item') h += `<div class="bf-food">` + BUFF_FOOD.map(s => `<label><span>${bfIcon(`icons/${BUFF_FOOD_IC[s]}`)}${s} 料理</span><select data-food="${s}"><option value="0">無</option>${opt(10, st.bf['f' + s] || 0, i => '+' + i)}</select></label>`).join('') + `</div>`;
     h += `<div class="bf-grid">${list.map(item).join('')}</div>`;
   }
   if (h === buffHtmlLast) return;

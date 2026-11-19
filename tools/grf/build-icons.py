@@ -83,4 +83,4 @@ def main():
     if desc_path: json.dump(descs, open(desc_path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('icons', len(out), 'miss', len(miss), '、'.join(miss), 'collection', nc)
 
-main()
+if __name__ == '__main__': main()
