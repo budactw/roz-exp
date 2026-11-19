@@ -7,7 +7,8 @@
     "directory": "./public",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/s/*"]
+    // 網頁先經過 Worker（擋 AI 爬蟲）；圖片、JS、CSS、資料檔直接給，不算 Worker 請求數
+    "run_worker_first": ["/*", "!/*.js", "!/*.json", "!/*.css", "!/icons/*", "!/skillicons/*", "!/collection/*", "!/guide/*", "!/img/*"]
   },
   // 回報 API 速率限制：每個 IP 每分鐘 2 次
   "ratelimits": [

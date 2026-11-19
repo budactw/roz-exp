@@ -1,11 +1,17 @@
 // 回報問題 API：POST /api/report → 轉送到 Discord Webhook
 // 短網址：POST /api/short 建立、GET /s/代號 轉到原本的分享連結
-// 其他路徑由靜態資源（public/）處理
+// AI 爬蟲（User-Agent）擋在最前面；其他路徑由靜態資源（public/）處理
 const MAX_LEN = 1500;
+// AI 爬蟲（訓練、AI 搜尋、AI 代理）：網頁一律 403；robots.txt 照常給，讓它們看得到規則
+// 一般搜尋引擎（Googlebot、Bingbot）、連結預覽（Discordbot、facebookexternalhit）不擋
+const AI_BOT = /GPTBot|ChatGPT|OAI-SearchBot|ClaudeBot|Claude-(User|SearchBot|Web)|anthropic-ai|Google-CloudVertexBot|GoogleOther|CCBot|PerplexityBot|Perplexity-User|Bytespider|Amazonbot|meta-external(agent|fetcher)|FacebookBot|cohere-(ai|training)|Diffbot|Omgili|YouBot|Timpibot|ImagesiftBot|AI2Bot|DuckAssistBot|MistralAI|PanguBot|Kangaroo Bot|Webzio|img2dataset|Brightbot|Bravebot/i;
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname !== '/robots.txt' && AI_BOT.test(request.headers.get('User-Agent') || '')) {
+      return new Response('AI crawlers are not allowed. See /robots.txt\n', { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noindex, noai, noimageai' } });
+    }
     if (url.pathname === '/api/short') return createShort(request, env, url);
     if (url.pathname.startsWith('/s/')) return openShort(env, url);
     if (url.pathname !== '/api/report') return env.ASSETS.fetch(request);
