@@ -364,7 +364,7 @@ function renderRune() {
   $('runeBox').classList.toggle('hidden', !st.rune);
   if (!st.rune) return;
   if (!$('runeSet').options.length) $('runeSet').innerHTML = `<option value="0">（未裝備）</option>` + [1, 2, 3, 4].map(t => `<optgroup label="符文石碑 ${RUNE_TIER[t]}">` +
-    RUNE_SETS.filter(x => x.t === t).map(x => `<option value="${x.id}">${RUNE_TIER[t]} ${x.n}</option>`).join('') + `</optgroup>`).join('');
+    RUNE_SETS.filter(x => x.t === t).map(x => `<option value="${x.id}">${RUNE_TIER[t]} ${x.n}（${fmtEff(x.e)}）</option>`).join('') + `</optgroup>`).join('');
   $('runeSet').value = String(st.rs || 0); $('runeLv').value = st.rl;
   const ru = runeOn(), nx = ru && ru.x.up.find(([n]) => n > st.rl);
   $('runeEff').innerHTML = ru ? `目前效果：<b>${fmtEff(ru.e)}</b>${nx ? `<br>強化 +${nx[0]} 時再加：${fmtEff(nx[1])}` : ''}` : '';
