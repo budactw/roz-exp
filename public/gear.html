@@ -86,10 +86,23 @@
   .set-wrap { display: grid; gap: 16px; margin-bottom: 16px; }
   .set-wrap > .card { margin-bottom: 0; }
   /* 人物狀態漂浮：固定在畫面上、可拖曳；設定卡片改成整排 */
+  /* 漂浮／固定按鈕放在標題列右邊（包一層 span，遊戲版面才不會把它移到標題下面那排） */
+  #statCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
+  #statFloat { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
+  html[data-ui="ro"] #statCard > h2::after { margin-left: 6px; }
+  html[data-ui="ro"] #statFloat { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   #statCard.floating { position: fixed; z-index: 45; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
   #statCard.floating > h2 { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
   #statCard.floating > .hint { display: none; }
   .set-wrap:has(> #statCard.floating) { grid-template-columns: minmax(0, 1fr); }
+  #statFab { display: none; position: fixed; right: 12px; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); z-index: 47; width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--primary); background: var(--card); color: var(--text); box-shadow: 0 6px 18px rgba(0, 0, 0, .28); flex-direction: column; align-items: center; justify-content: center; gap: 0; font-size: 1.2rem; line-height: 1.1; padding: 0; cursor: pointer; }
+  #statFab small { font-size: .62rem; color: var(--dim); }
+  @media (max-width: 640px) {
+    #statFab.show { display: flex; }
+    #statFloat { display: none; }
+    #statCard.pop { position: fixed; z-index: 46; left: 8px; right: 8px; top: 8px; max-height: calc(100dvh - 150px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .35); }
+    #statCard.pop > .hint { display: none; }
+  }
   @media (min-width: 900px) { .set-wrap { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
   .stat-win { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 14px; }
   .sw-l, .sw-r { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; align-items: center; gap: 4px 6px; font-variant-numeric: tabular-nums; }
@@ -280,7 +293,7 @@
   </div>
 
   <div class="card" id="statCard">
-    <h2>🧍 人物狀態 <button type="button" class="btn-ghost" id="statFloat" onclick="toggleStatFloat()" aria-pressed="false"></button></h2>
+    <h2>🧍 人物狀態 <span class="h2-act"><button type="button" class="btn-ghost" id="statFloat" onclick="toggleStatFloat()" aria-pressed="false"></button></span></h2>
     <div class="stat-win">
       <div class="sw-l" id="psGrid"></div>
       <div class="sw-r" id="swR"></div>
@@ -346,6 +359,7 @@
   </div>
 </div>
 
+<button type="button" class="stat-fab" id="statFab" onclick="toggleStatPop()" aria-controls="statCard" aria-expanded="false" aria-label="人物狀態"></button>
 <div class="dock none" id="dock">
   <div class="dock-in"><div class="dock-chips" id="dockChips" role="region" aria-label="能力加總摘要" tabindex="0"></div><button class="dock-btn" onclick="$('totCard').scrollIntoView({ behavior: 'smooth' })">看加總 ↓</button></div>
 </div>
@@ -1548,8 +1562,27 @@ $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (
 // ===== 人物狀態：固定／漂浮（漂浮時拖曳標題列移動，位置記在這台裝置；勾 Buff、加技能點時不用捲回去看）=====
 const STAT_FLOAT_KEY = 'gear-stat-float';
 let statPos = (() => { try { const p = JSON.parse(localStorage.getItem(STAT_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })();
+// 手機（寬 640 以下）不用拖曳漂浮，改成右下角的圓形按鈕：人物狀態捲出畫面時出現，點一下展開、再點收起
+const mqMobile = matchMedia('(max-width: 640px)');
+let statPop = false;
+function syncStatFab() {
+  const fab = $('statFab'), mob = mqMobile.matches;
+  if (!mob) statPop = false;
+  $('statCard').classList.toggle('pop', statPop);
+  let show = statPop;
+  if (mob && !statPop) { const r = $('statCard').getBoundingClientRect(); show = r.bottom < 60 || r.top > innerHeight - 80; }
+  fab.classList.toggle('show', show);
+  fab.setAttribute('aria-expanded', String(statPop));
+  fab.innerHTML = statPop ? '✕<small>收起</small>' : '🧍<small>狀態</small>';
+}
+function toggleStatPop() { statPop = !statPop; syncStatFab(); if (statPop) track('gear_stat_pop'); }
+// 展開時點標題列（遊戲版面右邊的 ✕）也能收起
+$('statCard').querySelector('h2').addEventListener('click', e => { if (statPop && !e.target.closest('button')) toggleStatPop(); });
+let fabRaf = 0;
+window.addEventListener('scroll', () => { if (!fabRaf) fabRaf = requestAnimationFrame(() => { fabRaf = 0; syncStatFab(); }); }, { passive: true });
+mqMobile.addEventListener('change', () => { placeStat(); syncStatFab(); });
 function placeStat() {
-  const c = $('statCard'), on = !!statPos;
+  const c = $('statCard'), on = !!statPos && !mqMobile.matches;
   c.classList.toggle('floating', on);
   $('statFloat').textContent = on ? '📌 固定' : '🪟 漂浮';
   $('statFloat').setAttribute('aria-pressed', String(on));
@@ -1573,8 +1606,8 @@ $('statCard').querySelector('h2').addEventListener('pointerdown', e => {
   const up = () => { h2.removeEventListener('pointermove', mv); h2.removeEventListener('pointerup', up); h2.removeEventListener('pointercancel', up); saveStatPos(); };
   h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
 });
-window.addEventListener('resize', () => { if (statPos) placeStat(); });
-placeStat();
+window.addEventListener('resize', () => { if (statPos) placeStat(); syncStatFab(); });
+placeStat(); syncStatFab();
 function buildQuickSet() {
   const groups = [...new Set(GEAR_SETS.map(x => x.g))];
   $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
