@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=28">
-<link rel="stylesheet" href="ro.css?v=29">
+<link rel="stylesheet" href="ro.css?v=30">
 <script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -88,8 +88,10 @@
   /* 人物狀態漂浮：固定在畫面上、可拖曳；設定卡片改成整排 */
   /* 漂浮／固定按鈕放在標題列右邊（包一層 span，遊戲版面才不會把它移到標題下面那排） */
   #statCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
+  .stat-close { display: none; }
+  #statCard > h2 .h2-act { gap: 6px; }
+  .stat-close, .stash-close { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
   #statFloat { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
-  html[data-ui="ro"] #statCard > h2::after { margin-left: 6px; }
   html[data-ui="ro"] #statFloat { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   #statCard.floating { position: fixed; z-index: 45; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
   #statCard.floating > h2 { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -108,6 +110,7 @@
     #statCard.pop.closing { transform: translateX(100%); }
     @media (prefers-reduced-motion: reduce) { #statCard.pop, #statFab { transition: none; } }
     #statCard.pop > .hint { display: none; }
+    #statCard.pop .stat-close { display: inline-block; }
   }
   @media (min-width: 900px) { .set-wrap { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
   .stat-win { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 14px; }
@@ -227,9 +230,8 @@
   .eq-stash { white-space: nowrap; min-height: 32px; font-size: .82rem; font-weight: 400; }
   .eq-stash small { margin-left: 3px; color: var(--dim); font-variant-numeric: tabular-nums; }
   .eq-stash[aria-expanded="true"], html[data-ui] .eq-stash[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
-  :is(#stashClose, #stashFloat) { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
-  html[data-ui="ro"] #stashCard > h2::after { margin-left: 6px; }
-  html[data-ui="ro"] :is(#stashClose, #stashFloat) { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
+  #stashFloat { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
+  html[data-ui="ro"] #stashFloat { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   /* 倉庫漂浮（電腦版）：可拖曳標題列移動、拖右下角調整大小 */
   #stashCard.floating { position: fixed; z-index: 44; width: min(720px, calc(100vw - 16px)); min-width: 280px; min-height: 80px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; resize: both; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
   #stashCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -335,7 +337,7 @@
   </div>
 
   <div class="card" id="statCard">
-    <h2>🧍 人物狀態 <span class="h2-act"><button type="button" class="btn-ghost" id="statFloat" onclick="toggleStatFloat()" aria-pressed="false"></button></span></h2>
+    <h2>🧍 人物狀態 <span class="h2-act"><button type="button" class="btn-ghost" id="statFloat" onclick="toggleStatFloat()" aria-pressed="false"></button><button type="button" class="btn-ghost stat-close ro-close" onclick="toggleStatPop()" title="收起" aria-label="收起">收起</button></span></h2>
     <div class="stat-win">
       <div class="sw-l" id="psGrid"></div>
       <div class="sw-r" id="swR"></div>
@@ -362,7 +364,7 @@
 
   <!-- 倉庫：按裝備標題列的「📦 倉庫」開關；漂浮（預設）或固定在這裡 -->
   <div class="card hidden" id="stashCard">
-    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashFloat" onclick="toggleStashFloat()"></button><button type="button" class="btn-ghost" id="stashClose" onclick="toggleStashWin(false)">關閉</button></span></h2>
+    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashFloat" onclick="toggleStashFloat()"></button><button type="button" class="btn-ghost stash-close ro-close" id="stashClose" onclick="toggleStashWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
     <div class="stash-tabs" id="stashTabs" role="tablist" aria-label="倉庫分類"></div><div class="stash-list" id="stashList"></div>
   </div>
 
@@ -1793,7 +1795,7 @@ function toggleStatPop() {
   c.classList.add('closing');
   setTimeout(() => { c.classList.remove('closing'); syncStatFab(); }, 260);
 }
-// 展開時點標題列（遊戲版面右邊的 ✕）也能收起
+// 展開時點標題列也能收起（右邊另有「收起」／遊戲版面的 ✕ 按鈕）
 $('statCard').querySelector('h2').addEventListener('click', e => { if (statPop && !e.target.closest('button')) toggleStatPop(); });
 mqMobile.addEventListener('change', () => { placeStat(); syncStatFab(); });
 function placeStat() {

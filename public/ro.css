@@ -40,10 +40,10 @@ html[data-ui="ro"] .card > h2 {
   margin: 0 -10px 10px; padding: 0 8px 0 10px; min-height: 26px; line-height: 26px; font-size: 14px; font-weight: 400; letter-spacing: 0; color: #000;
   background: var(--ro-stripe); border-bottom: 1px solid #000; border-radius: 5px 5px 0 0;
 }
-html[data-ui="ro"] .card > h2::after {
-  content: ""; margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px;
-  border-radius: 50%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.6 1.6l4.8 4.8M6.4 1.6l-4.8 4.8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 8px 8px no-repeat, radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f); box-shadow: 0 0 0 1px #9fb2e2;
-}
+/* 標題列右邊的藍色 ✕：只放在真的能關的視窗（.ro-close 按鈕），沒有關閉功能的不畫 */
+html[data-ui="ro"] button.ro-close { flex: 0 0 16px; width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; border-radius: 50%; font-size: 0; color: transparent; cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.6 1.6l4.8 4.8M6.4 1.6l-4.8 4.8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 8px 8px no-repeat, radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f); box-shadow: 0 0 0 1px #9fb2e2; }
+html[data-ui="ro"] button.ro-close:hover { filter: brightness(1.12); }
 html[data-ui="ro"] .sec-title { font-size: 13.5px; font-weight: 700; color: var(--ro-navy); margin: 12px 0 4px; padding: 0 0 2px; border-bottom: 1px solid #b9bccb; letter-spacing: 0; }
 html[data-ui="ro"] .hint, html[data-ui="ro"] .field label { font-size: 13px; }
 
@@ -224,10 +224,6 @@ html[data-ui="ro"] .btn-del { color: var(--danger); }
 html[data-ui="ro"] .btn-now { color: var(--ro-navy); font-weight: 700; }
 /* 視窗裡的區塊一律方角（各頁自己的清單、提示框、標籤等），按鈕、開關、分段按鈕維持圓角 */
 html[data-ui="ro"] :is(.card, .result, .modal-card, .kr) :not(button, input, select, .n, .seg, .seg *, .beta, img) { border-radius: 2px; }
-html[data-ui="ro"] .result > h2::after {
-  content: ""; margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 0 0 1px #9fb2e2;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.6 1.6l4.8 4.8M6.4 1.6l-4.8 4.8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 8px 8px no-repeat, radial-gradient(circle at 35% 30%, #b9cdf6, #3c62c4 60%, #24418f);
-}
 html[data-ui="ro"] .card > h2, html[data-ui="ro"] .result > h2 { border-radius: 5px 5px 0 0; }
 html[data-ui="ro"] .potion-row select.p-cur { border-radius: 0; min-height: 28px; font-size: 14px; }
 /* 韓服資料頁的每一筆 */
