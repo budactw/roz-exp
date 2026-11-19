@@ -209,7 +209,7 @@
   <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
 
   <div class="share-bar hidden" id="shareBar">
-    <span class="t">👀 正在檢視分享的配裝，修改不會儲存</span>
+    <span class="t" id="shareMsg">👀 正在檢視分享的配裝，修改不會儲存</span>
     <span class="acts"><button class="btn-sm" onclick="saveShared()">存成我的配裝</button><button class="btn-ghost" onclick="closeShared()">關閉</button></span>
   </div>
 
@@ -420,7 +420,7 @@ const itemCode = n => { const id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON
 const enchList = (it, i) => { const sl = enchSlots(it)[i]; return sl ? [...new Set(sl.list.flatMap(([, names]) => names))] : []; };
 const treeIds = cls => SkillTree.pagesOf(cls).flatMap(p => Object.keys(p.pos).map(Number).sort((a, b) => a - b).map(k => p.pos[k])).filter(sid => SkillTree.fixedLv(sid) == null);
 function packState() {
-  const o = { v: 2, l: st.lv, a: st.all, s: {} }; if (st.job) o.j = JOBS.indexOf(st.job) + 1; if (st.jl !== 70) o.jl = st.jl; if (st.ench) o.e = 1;
+  const o = { v: 2, l: st.lv, a: st.all, s: {} }; const nm = shareName(); if (nm) o.nm = nm; if (st.job) o.j = JOBS.indexOf(st.job) + 1; if (st.jl !== 70) o.jl = st.jl; if (st.ench) o.e = 1;
   if (PS.some(k => st.ps[k])) o.p = PS.map(k => st.ps[k] || 0);
   for (const [k] of GEAR_SLOTS) {
     const x = st.slots[k], it = BY_NAME[x.n]; if (!it) continue;
@@ -437,8 +437,12 @@ function packState() {
   const kl = Object.fromEntries(Object.entries(st.skl).filter(([, v]) => v)); if (Object.keys(kl).length) o.kl = kl;
   return b64e(JSON.stringify(o));
 }
+// 分享連結帶角色名稱：選了角色時才帶（「不分角色」不帶）
+const shareName = () => who === 'char' && curChar() ? String(curChar().name || '').trim().slice(0, 20) : '';
+let sharedFrom = '';   // 打開的分享連結裡的角色名稱
 function unpackState(code) {
   const o = JSON.parse(b64d(code)), n = (v, d, lo, hi) => Number.isFinite(+v) ? Math.max(lo, Math.min(hi, Math.round(+v))) : d;
+  sharedFrom = typeof o.nm === 'string' ? o.nm.trim().slice(0, 20) : '';
   const s = DEFAULT();
   s.lv = n(o.l, 120, 1, 200); s.jl = n(o.jl, 70, 1, 70); s.all = n(o.a, 0, 0, 20); s.ench = !!o.e;
   s.job = typeof o.j === 'number' ? (JOBS[o.j - 1] || '') : JOBS.includes(o.j) ? o.j : '';
@@ -473,7 +477,7 @@ async function share(btn) {
   const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''))
     .concat(COSTUME_POS.filter(([k]) => stoneOf(k)).map(([k, , pos]) => `${st.cs[k]}(${pos})`));
   if (!names.length) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
-  const text = `RO樂園配裝${st.job ? `（${st.job}）` : ''}：${names.join('、')}`;
+  const nm = shareName(), text = `RO樂園配裝${nm ? `｜${nm}` : ''}${st.job ? `（${st.job}）` : ''}：${names.join('、')}`;
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
     try { await navigator.share({ title: 'RO樂園配裝模擬器', text, url }); track('gear_share', { method: 'native' }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
@@ -485,7 +489,11 @@ async function saveShared() {
   shared = false; clearHash(); save(); syncShared(); render(); track('gear_share_save');
 }
 function closeShared() { useNow(); }
-function syncShared() { $('shareBar').classList.toggle('hidden', !shared); renderChars(); }
+function syncShared() {
+  $('shareBar').classList.toggle('hidden', !shared);
+  $('shareMsg').textContent = `👀 正在檢視${shared && sharedFrom ? `「${sharedFrom}」` : ''}分享的配裝，修改不會儲存`;
+  renderChars();
+}
 function renderChars() {
   $('charCard').classList.toggle('hidden', shared);
   const chip = (on, click, name, sub) => `<button type="button" class="chip${on ? ' cur' : ''}" onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
