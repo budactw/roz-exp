@@ -87,6 +87,10 @@
   .ps-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; }
   @media (max-width: 640px) { .ps-grid { grid-template-columns: repeat(3, 1fr); } }
   .sk-box { margin-top: 10px; }
+  .rune-box { margin: 4px 0 10px; }
+  .rune-row { display: grid; grid-template-columns: minmax(0, 1fr) 6em; gap: 8px; }
+  .rune-eff { margin-top: 6px; font-size: .85rem; color: var(--dim); }
+  .rune-eff b { color: var(--text); font-weight: 600; }
   .sk-ico { float: left; margin: 2px 10px 6px 0; image-rendering: pixelated; }
   .ps-grid input { width: 100%; padding: 0 8px; min-height: 38px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .9rem; }
   .notes { margin: 0; padding-left: 18px; font-size: .84rem; line-height: 1.65; }
@@ -219,6 +223,11 @@
     </div>
     <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 啟用附魔</label>
     <label class="sw"><input type="checkbox" id="useCard" switch role="switch"> 啟用卡片</label>
+    <label class="sw"><input type="checkbox" id="useRune" switch role="switch"> 啟用符文</label>
+    <div class="rune-box hidden" id="runeBox"><div class="rune-row">
+      <div class="field"><label for="runeSet">符文石碑</label><select id="runeSet"></select></div>
+      <div class="field"><label for="runeLv">強化</label><input type="number" id="runeLv" min="0" max="15" inputmode="numeric" value="0"></div>
+    </div><div class="rune-eff" id="runeEff"></div></div>
     <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 啟用技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button></div>
@@ -319,6 +328,7 @@
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=6"></script>
+<script src="rune-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -339,16 +349,31 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, cs: {}, sk: false, skl: {} });
+const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, rune: false, rs: 0, rl: 0, cs: {}, sk: false, skl: {} });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 const maxRef = it => (it && it.maxRef) || 20;   // 精煉上限（典藏板是 +10）
 // 服飾附魔石：st.cs[部位] = 石頭名稱
 const stoneOf = k => { const p = COSTUME_POS.find(x => x[0] === k); return p && COSTUME_STONE[p[2]].find(x => x.n === st.cs[k]); };
 const stoneJobOk = x => !x.j || !st.job || x.j.includes(st.job);
+// ===== 符文石碑：同時只能裝 1 組，效果看強化等級（+0～+15，到了就一路累加）=====
+const RUNE_TIER = ['', 'Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'];
+const runeSet = id => typeof RUNE_SETS !== 'undefined' && RUNE_SETS.find(x => x.id === +id);
+function runeEff(x, lv) { const e = {}; add(e, x.e, null); for (const [n, u] of x.up) if (lv >= n) add(e, u, null); return e; }
+const runeOn = () => { const x = st.rune && runeSet(st.rs); return x ? { x, e: runeEff(x, st.rl) } : null; };
+function renderRune() {
+  $('runeBox').classList.toggle('hidden', !st.rune);
+  if (!st.rune) return;
+  if (!$('runeSet').options.length) $('runeSet').innerHTML = `<option value="0">（未裝備）</option>` + [1, 2, 3, 4].map(t => `<optgroup label="符文石碑 ${RUNE_TIER[t]}">` +
+    RUNE_SETS.filter(x => x.t === t).map(x => `<option value="${x.id}">${RUNE_TIER[t]} ${x.n}</option>`).join('') + `</optgroup>`).join('');
+  $('runeSet').value = String(st.rs || 0); $('runeLv').value = st.rl;
+  const ru = runeOn(), nx = ru && ru.x.up.find(([n]) => n > st.rl);
+  $('runeEff').innerHTML = ru ? `目前效果：<b>${fmtEff(ru.e)}</b>${nx ? `<br>強化 +${nx[0]} 時再加：${fmtEff(nx[1])}` : ''}` : '';
+}
 function fixState() {
   st.skt = st.skt && typeof st.skt === 'object' ? st.skt : {};
   st.ps = st.ps || {}; st.cs = st.cs && typeof st.cs === 'object' ? st.cs : {}; st.skl = st.skl && typeof st.skl === 'object' ? st.skl : {};
   for (const [k] of COSTUME_POS) if (!stoneOf(k)) st.cs[k] = '';
+  if (!runeSet(st.rs)) st.rs = 0; st.rl = Math.max(0, Math.min(15, +st.rl || 0));
   for (const [k] of GEAR_SLOTS) {
     if (st.slots[k] && GEAR_RENAMED[st.slots[k].n]) st.slots[k].n = GEAR_RENAMED[st.slots[k].n];
     if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
@@ -398,6 +423,7 @@ function packState() {
     if (st.ench && (e.some(Boolean) || x.a) || cd.some(Boolean)) o.s[k].push(st.ench ? e : [], st.ench ? x.a || 0 : 0);
     if (cd.some(Boolean)) o.s[k].push(cd.join('.').replace(/(\.0)+$/, ''));
   }
+  if (st.rune && runeSet(st.rs)) o.r = [RUNE_SETS.findIndex(x => x.id === st.rs) + 1, st.rl];
   if (COSTUME_POS.some(([k]) => st.cs[k])) o.c = COSTUME_POS.map(([k, , pos]) => st.cs[k] ? COSTUME_STONE[pos].findIndex(x => x.n === st.cs[k]) + 1 : 0);
   if (st.sk) o.k = 1;
   if (st.job) { const t = treeIds(st.job).map(sid => SkillTree.lvOf(st.skt, sid).toString(36)).join('').replace(/0+$/, ''); if (t) o.t = t; }
@@ -421,6 +447,7 @@ function unpackState(code) {
     s.slots[k] = { n: nm, r: it.ref ? n(v[1], 0, 0, maxRef(it)) : 0, e, a, cd };
   }
   if (Object.values(s.slots).some(x => x.cd && x.cd.some(Boolean))) s.card = true;
+  if (Array.isArray(o.r) && RUNE_SETS[o.r[0] - 1]) { s.rune = true; s.rs = RUNE_SETS[o.r[0] - 1].id; s.rl = n(o.r[1], 0, 0, 15); }
   if (Array.isArray(o.c)) COSTUME_POS.forEach(([k, , pos], i) => { const x = o.c[i]; s.cs[k] = typeof x === 'number' ? (COSTUME_STONE[pos][x - 1] || {}).n || '' : typeof x === 'string' ? x : ''; });
   s.sk = !!o.k;
   if (typeof o.t === 'string' && s.job) treeIds(s.job).forEach((sid, i) => { const lv = parseInt(o.t[i] || '0', 36) || 0; if (lv) s.skt[sid] = Math.min(SKILLS[sid].m, lv); });
@@ -481,7 +508,7 @@ async function deleteChar() {
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, x.cur ? 'char' : 'free'); useNow();
 }
 function syncInputs() {
-  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useSkill').checked = !!st.sk; skKey = null;
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useRune').checked = !!st.rune; $('useSkill').checked = !!st.sk; skKey = null;
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -503,7 +530,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、技能樹（另有獨立頁面）、人物狀態、角色、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
+  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態、角色、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲風格；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
@@ -640,6 +667,7 @@ function compute() {
   const cs = costumeOn();
   for (const x of cs.stones) { const nt = []; add(all, x.e, nt); nt.forEach(t => notes.push(`${x.n}(${x.pos})：${t}`)); }
   for (const c of cs.combos) if (c.ok) add(all, c.e, null);
+  const ru = runeOn(); if (ru) add(all, ru.e, null);
   const tot = all;
   const setInfo = [];
   for (const s of GEAR_SETS) {
@@ -1021,6 +1049,7 @@ function renderTree() {
 function render() {
   renderTree();
   renderSkillBox();
+  renderRune();
   const res = compute();
   $('allRef').value = st.all; $('allRefV').innerText = '+' + st.all;
   const spSlots = GEAR_SLOTS.filter(([k]) => EQ_SP_KEYS.includes(k));
@@ -1274,13 +1303,17 @@ $('allRef').addEventListener('input', e => {
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
 $('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
-if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
+if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useRune').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
 $('useSkill').checked = !!st.sk;
 $('useSkill').addEventListener('change', e => { st.sk = e.target.checked; save(); render(); track('gear_skill', { on: st.sk }); });
 $('skGrid').addEventListener('input', e => { const k = e.target.dataset.sk; if (!k) return; st.skl[k] = Math.max(0, Math.min(99, parseInt(e.target.value) || 0)); save(); refreshSlots(); });
 $('useEnch').checked = !!st.ench;
 $('useEnch').addEventListener('change', e => { st.ench = e.target.checked; save(); render(); track('gear_ench', { on: st.ench }); });
 $('useCard').checked = !!st.card;
+$('useRune').checked = !!st.rune;
+$('useRune').addEventListener('change', e => { st.rune = e.target.checked; save(); render(); track('gear_rune', { on: st.rune }); });
+$('runeSet').addEventListener('change', e => { st.rs = +e.target.value || 0; save(); render(); });
+$('runeLv').addEventListener('change', e => { st.rl = Math.max(0, Math.min(15, parseInt(e.target.value) || 0)); save(); render(); });
 $('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });

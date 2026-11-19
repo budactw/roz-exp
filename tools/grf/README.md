@@ -50,6 +50,15 @@ node tools/grf/build-cards.js /tmp/items.json public/gear-data.js public/card-da
 python3 -I tools/grf/card-class.py <rathena>/db/re/item_db_etc.yml <rathena>/db/re/mob_db.yml,<rathena>/db/pre-re/mob_db.yml public/card-data.js tools/grf/card-class.json
 ```
 
+## 符文石碑
+
+`public/rune-data.js`：客戶端安裝資料夾 `System\Rune` 的 `runeset_desc.lub`（各組名稱與效果說明）、`runeset_info.lub`、`runesystemid.lub`（不在 data.grf 裡）：
+
+```bash
+<有 lupa 的 python> -I tools/grf/build-runes.py <客戶端>/System/Rune /tmp/rune-sets.json
+node tools/grf/build-runes.js /tmp/rune-sets.json public/gear-data.js public/rune-data.js
+```
+
 ## 技能樹
 
 `public/skill-data.js`、`public/skill-desc.json`、`public/skillicons/`：
