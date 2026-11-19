@@ -1,14 +1,23 @@
 // 配裝頁的 Buff：效果數值取自樂園客戶端的技能說明（skill-desc.json）與物品說明
-// { id 分享連結用代號, g 分組, n 名稱, sub 補充, max 最高等級（沒有＝只有開關）, job 只有這些職業能對自己用, wt 武器種類限制, excl 不能同時存在的 Buff, e(Lv) 效果 }
+// { id 分享連結用代號, g 分組, n 名稱, sub 補充, max 最高等級（沒有＝只有開關）, job 只有這些職業能對自己用, wt 武器種類限制, lv 要求 Base 等級,
+//   pot 攻速藥水（能不能喝看 aspd-data.js 的職業資料）, excl 不能同時存在的 Buff（可以是陣列）, e(Lv) 效果 }
 // 效果用配裝的能力代號；特殊的：_ac 心神凝聚（純素質＋Job 的 AGI、DEX 加 %）、_amod 攻速的狀態修正（和攻速計算頁同一套）
 const BUFF_FOOD = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK'];   // 各素質料理 +1～+10（分享代號 fSTR…）；和頂級料理套餐取較高的
-const BUFF_GROUP = { item: '天地樹、料理', party: '隊友給的技能', song: '演奏、舞蹈、合奏', self: '自己的技能' };
+const BUFF_GROUP = { item: '天地樹、料理', potion: '藥水、道具', party: '隊友給的技能', song: '演奏、舞蹈、合奏', self: '自己的技能' };
 const BUFFS = (() => {
   const ALL = n => ({ STR: n, AGI: n, VIT: n, INT: n, DEX: n, LUK: n });
   const AXE_MACE = ['單手斧', '雙手斧', '鈍器'];
   return [
     { id: 'yg', g: 'item', n: '天地樹祝福', sub: '天地樹魔杖、戰鬥繃帶', e: () => ({ ...ALL(7), ATK: 30, MATK: 30, HIT: 5, FLEE: 5 }) },
     { id: 'fc', g: 'item', n: '頂級料理套餐', e: () => ({ ...ALL(10), ATK: 30, MATK: 30 }) },
+    // 攻速藥水三選一：狀態修正和攻速計算頁相同
+    { id: 'p1', g: 'potion', n: '集中藥水', pot: 1, excl: ['p2', 'p3'], e: () => ({ _amod: 4 }) },
+    { id: 'p2', g: 'potion', n: '覺醒藥水', pot: 1, lv: 40, excl: ['p1', 'p3'], e: () => ({ _amod: 6 }) },
+    { id: 'p3', g: 'potion', n: '菠色克藥水', pot: 1, lv: 85, excl: ['p1', 'p2'], e: () => ({ _amod: 9 }) },
+    { id: 'ch', g: 'potion', n: '挑戰藥水', e: () => ({ ATK: 30, MATK: 30, ATKp: 1, MATKp: 1, HIT: 30, FLEE: 30, aspdFlat: 1, spCost: -5, fct: 30 }) },
+    { id: 'lm', g: 'potion', n: '極限藥水', e: () => ({ MHPp: 5, MSPp: 5, crit: 5, ranged: 5, magicAll: 5, _t: '詠唱不會中斷' }) },
+    { id: 'ws', g: 'potion', n: '打磨石', e: () => ({ CRI: 30 }) },
+    { id: 'ed', g: 'potion', n: '能量飲料', e: () => ({ MHPp: -10, MSPp: -10, ATK: 30, MATK: 30, aspd: 5, vct: 5, _t: '物理／魔法攻擊時一定機率發動心神凝聚 Lv3' }) },
     { id: 'bl', g: 'party', n: '天使之賜福', max: 10, excl: 'cl', e: l => ({ STR: l, INT: l, DEX: l, HIT: 2 * l }) },
     // 慈悲術、純白百合花＝天使之賜福 Lv10、加速術 Lv10 再加施展者 Job Lv ÷ 10（以祭司 Job 70 計算）
     { id: 'cl', g: 'party', n: '慈悲術', sub: '祭司 Job 70', excl: 'bl', e: () => ({ STR: 17, INT: 17, DEX: 17, HIT: 34 }) },

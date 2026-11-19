@@ -267,9 +267,9 @@
   </div>
 
   <div class="card hidden" id="buffCard">
-    <h2>✨ Buff</h2>
-    <div id="buffBody"></div>
-    <div class="hint">勾選的 Buff 會算進人物狀態和能力加總。料理和頂級料理套餐取較高的；天使之賜福與慈悲術、加速術與純白百合花擇一。</div>
+    <h2>✨ Buff <button type="button" class="btn-ghost" id="buffToggle" onclick="toggleBuffCard()"></button></h2>
+    <div id="buffWrap"><div id="buffBody"></div>
+    <div class="hint">勾選的 Buff 會算進人物狀態和能力加總。料理和頂級料理套餐取較高的；攻速藥水三選一；天使之賜福與慈悲術、加速術與純白百合花擇一。</div></div>
   </div>
 
   <div class="card st-card hidden" id="stCard">
@@ -361,7 +361,7 @@
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=7"></script>
 <script src="rune-data.js?v=1"></script>
-<script src="buff-data.js?v=1"></script>
+<script src="buff-data.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -415,8 +415,10 @@ function cleanBuff(bf) {
   return o;
 }
 // 不能用的原因（職業不對不會列出來，這裡只看武器）
-const buffNa = b => b.wt && !b.wt.includes(wType()) ? `要裝備${b.wt.join('／')}` : '';
-const buffShown = b => !b.job || (st.job && b.job.includes(st.job));
+const buffNa = b => b.wt && !b.wt.includes(wType()) ? `要裝備${b.wt.join('／')}` : b.lv && st.lv < b.lv ? `要 Base Lv ${b.lv} 以上` : '';
+// 攻速藥水：職業能不能喝看攻速資料（沒選職業就全部列出）
+const potOk = b => { const c = st.job && typeof ASPD_DATA !== 'undefined' && ASPD_DATA.classes.find(x => x.name === (ASPD_CLS[st.job] || st.job)); return !c || c.potions.includes(b.n); };
+const buffShown = b => (!b.job || (st.job && b.job.includes(st.job))) && (!b.pot || potOk(b));
 // 目前生效的 Buff：[{ 名稱, 效果 }]
 function buffsOn() {
   if (!st.buff) return [];
@@ -430,10 +432,13 @@ function buffsOn() {
   if (Object.keys(food).length) out.push({ n: '料理', e: food });
   return out;
 }
-let buffHtmlLast = '';
+let buffHtmlLast = '', buffOpen = localStorage.getItem('gear-buff-closed') !== '1';   // 預設展開，收合後記住（收合時 Buff 照樣計算）
+function toggleBuffCard() { buffOpen = !buffOpen; localStorage.setItem('gear-buff-closed', buffOpen ? '' : '1'); render(); }
 function renderBuff() {
   $('buffCard').classList.toggle('hidden', !st.buff);
-  if (!st.buff) return;
+  $('buffToggle').textContent = buffOpen ? '收合' : '展開';
+  $('buffWrap').classList.toggle('hidden', !buffOpen);
+  if (!st.buff || !buffOpen) return;
   const opt = (n, cur, fmt) => Array.from({ length: n }, (_, i) => `<option value="${i + 1}"${i + 1 === cur ? ' selected' : ''}>${fmt(i + 1)}</option>`).join('');
   const item = b => {
     const l = st.bf[b.id] || 0, lv = l || b.max || 1, na = buffNa(b), on = l > 0 && !na;
@@ -457,7 +462,7 @@ function renderBuff() {
   if (key) { const el = $('buffBody').querySelector(key); if (el) el.focus(); }
 }
 function setBuff(id, lv) {
-  if (lv > 0) { st.bf[id] = lv; const b = BUFF_BY[id]; if (b && b.excl) delete st.bf[b.excl]; } else delete st.bf[id];
+  if (lv > 0) { st.bf[id] = lv; const b = BUFF_BY[id]; for (const x of [].concat(b && b.excl || [])) delete st.bf[x]; } else delete st.bf[id];
   save(); render(); if (lv > 0) track('gear_buff_pick', { buff: id });
 }
 function fixState() {
