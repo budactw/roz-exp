@@ -224,21 +224,22 @@
   .stash-add { flex: 0 0 auto; min-height: 38px; padding: 0 8px; font-size: .95rem; white-space: nowrap; }
   html[data-ui="ro"] .slot-h .stash-add { height: 26px; min-height: 0; padding: 0 6px; font-size: 13px; line-height: 24px; }
   #stashCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-  :is(#stashToggle, #stashFloat) { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
+  .eq-stash { white-space: nowrap; min-height: 32px; font-size: .82rem; font-weight: 400; }
+  .eq-stash small { margin-left: 3px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .eq-stash[aria-expanded="true"], html[data-ui] .eq-stash[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+  :is(#stashClose, #stashFloat) { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
   html[data-ui="ro"] #stashCard > h2::after { margin-left: 6px; }
-  html[data-ui="ro"] :is(#stashToggle, #stashFloat) { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
+  html[data-ui="ro"] :is(#stashClose, #stashFloat) { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   /* 倉庫漂浮（電腦版）：可拖曳標題列移動、拖右下角調整大小 */
   #stashCard.floating { position: fixed; z-index: 44; width: min(720px, calc(100vw - 16px)); min-width: 280px; min-height: 80px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; resize: both; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
   #stashCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
-  #stashCard.floating .hint { display: none; }
-  @media (max-width: 640px) { #stashFloat { display: none; } }
   .stash-n { font-size: .8rem; font-weight: 400; color: var(--dim); }
   .stash-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
   .stash-tabs:empty { display: none; }
   .stash-tabs button { min-height: 30px; padding: 0 10px; font-size: .82rem; border-radius: 999px; }
   .stash-tabs button small { margin-left: 3px; color: var(--dim); font-variant-numeric: tabular-nums; }
   .stash-tabs button[aria-selected="true"], html[data-ui] .stash-tabs button[aria-selected="true"] { border-color: var(--primary); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
-  .stash-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 6px; margin-bottom: 8px; }   /* 夠寬就好幾件並排 */
+  .stash-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 6px; }   /* 夠寬就好幾件並排 */
   .stash-h { grid-column: 1 / -1; margin-top: 6px; font-size: .78rem; font-weight: 700; color: var(--dim); }
   .stash-h:first-child { margin-top: 0; }
   .stash-it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
@@ -357,9 +358,15 @@
     </div>
   </div>
 
+  <!-- 倉庫：按裝備標題列的「📦 倉庫」開關；漂浮（預設）或固定在這裡 -->
+  <div class="card hidden" id="stashCard">
+    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashFloat" onclick="toggleStashFloat()"></button><button type="button" class="btn-ghost" id="stashClose" onclick="toggleStashWin(false)">關閉</button></span></h2>
+    <div class="stash-tabs" id="stashTabs" role="tablist" aria-label="倉庫分類"></div><div class="stash-list" id="stashList"></div>
+  </div>
+
   <div class="gear-layout"><div class="gear-main">
   <div class="card">
-    <h2>🛡️ 裝備 <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button></h2>
+    <h2>🛡️ 裝備 <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button><button type="button" class="btn-ghost eq-stash" id="stashBtn" onclick="toggleStashWin()" aria-expanded="false" aria-controls="stashCard">📦 倉庫</button></h2>
     <div class="eq-tools">
       <search class="field gsearch-wrap"><label for="gq">搜尋裝備／卡片</label>
         <div class="gsearch"><input type="search" id="gq" name="q" placeholder="裝備或卡片名稱、分類、職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="gqRes" aria-autocomplete="list"><span class="cnt" id="gqCnt" role="status"></span></div>
@@ -372,11 +379,6 @@
     <div class="equip-win" id="equipWin"></div>
     <div class="slots" id="slots"></div>
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
-  </div>
-  <div class="card" id="stashCard">
-    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashFloat" onclick="toggleStashFloat()" aria-pressed="false"></button><button type="button" class="btn-ghost" id="stashToggle" onclick="toggleStash()"></button></span></h2>
-    <div id="stashBody"><div class="stash-tabs" id="stashTabs" role="tablist" aria-label="倉庫分類"></div><div class="stash-list" id="stashList"></div>
-    <div class="hint">在裝備欄按「📦 存倉」存入設定好的裝備（精煉、附魔、附加能力、卡片），按「套用」穿回原本的部位。所有角色共用，只存在這台裝置。</div></div>
   </div>
   </div><aside class="gear-side">
 
@@ -1402,7 +1404,9 @@ function openInfo(id, x, y) {
 let infoSlot = null;
 // 物品資訊視窗開著時，配裝一改就更新內容（不移動位置）
 function refreshInfo() { if (infoSlot && DESC && (infoPop ? $('roInfo').matches(':popover-open') : $('roInfo').open)) fillInfo(infoSlot); }
-async function showInfo(k, x, y) {
+let infoStash = null;   // 看的是倉庫裡的裝備（右鍵倉庫）：暫時換上來算，算完換回去
+async function showInfo(k, x, y, sx = null) {
+  infoStash = sx;
   if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=2')).json(); } catch (e) { DESC = {}; } }
   if (!fillInfo(k)) return;
   const el = $('roInfo');
@@ -1412,6 +1416,12 @@ async function showInfo(k, x, y) {
   el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
 }
 function fillInfo(k) {
+  if (!infoStash) return fillInfo1(k);
+  const keep = [st.slots[k], st.ench, st.card], x = infoStash;
+  st.slots[k] = stashSlot(x); if ((x.e || []).some(Boolean) || x.a) st.ench = true; if ((x.cd || []).some(Boolean)) st.card = true;
+  try { return fillInfo1(k); } finally { [st.slots[k], st.ench, st.card] = keep; }
+}
+function fillInfo1(k) {
   const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) { hideInfo(); return false; }
   infoSlot = k;
   const id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
@@ -1575,7 +1585,7 @@ function setRef(k, v) { st.slots[k].r = +v; save(); refreshSlots(); }
 // ===== 倉庫：存下設定好的單件裝備（精煉、附魔、附加能力、卡片），所有角色共用，只存在這台裝置 =====
 // 存的是畫面上看得到的：附魔／附加能力沒開就不存，卡片沒開就不存
 const STASH_KEY = 'roz-gear-stash-v1', STASH_MAX = 300;
-let stashOpen = localStorage.getItem('gear-stash-closed') !== '1';
+let stashOpen = localStorage.getItem('gear-stash-open') === '1', stashFix = localStorage.getItem('gear-stash-mode') === 'fix';   // 開著沒；固定（放在技能樹和裝備之間）或漂浮
 // 分類（上面那排）：部位 → 分類
 const STASH_CAT = [['weapon', '武器', ['weapon']], ['shield', '左手', ['shield']], ['head', '頭飾', ['headTop', 'headMid', 'headLow']], ['armor', '鎧甲', ['armor']],
   ['garment', '披肩', ['garment']], ['shoes', '鞋子', ['shoes']], ['acc', '飾品', ['accR', 'accL']], ['sp', '特殊', ['costume', 'spBoard', 'spPet', 'spLucky']]];
@@ -1614,17 +1624,18 @@ function stashDesc(x, it) {
     const ad = pool ? x.a.v.map((v, i) => { const o = v && pool.lines[i] && pool.lines[i].opts[v[0]]; return o ? `${o[0].replace(/%$/, '')} ${Math.max(o[3], Math.min(o[4], v[1]))}${/%$/.test(o[0]) ? '%' : ''}` : ''; }).filter(Boolean) : [];
     if (ad.length) out.push('附加：' + ad.join('、'));
   }
-  const cd = (x.cd || []).filter(id => CARDS[id]).map(id => CARDS[id].n);
-  if (cd.length) out.push('卡片：' + cd.join('、'));
+  // 卡片名稱去掉「卡片」兩個字，同一張插好幾張寫 ×N
+  const cn = {}; for (const id of (x.cd || []).filter(id => CARDS[id])) { const n = CARDS[id].n.replace(/卡片$/, ''); cn[n] = (cn[n] || 0) + 1; }
+  if (Object.keys(cn).length) out.push('卡片：' + Object.entries(cn).map(([n, c]) => c > 1 ? `${n}×${c}` : n).join('、'));
   return out.join('　');
 }
 function renderStash() {
   const list = readStash(), shown = list.filter(x => BY_NAME[stashName(x)] && GEAR_SLOTS.some(([k]) => k === x.k));
   $('stashN').textContent = shown.length ? `${shown.length} 件` : '';
-  $('stashToggle').textContent = stashOpen ? '收合' : '展開';
-  $('stashBody').classList.toggle('hidden', !stashOpen);
+  $('stashBtn').innerHTML = '📦 倉庫' + (shown.length ? `<small>${shown.length}</small>` : '');
+  $('stashBtn').setAttribute('aria-expanded', String(stashOpen));
   if (!stashOpen) return;
-  if (!shown.length) { $('stashTabs').innerHTML = ''; $('stashList').innerHTML = `<div class="stash-empty">倉庫是空的。</div>`; return; }
+  if (!shown.length) { $('stashTabs').innerHTML = ''; $('stashList').innerHTML = `<div class="stash-empty">倉庫是空的。在各部位標題右邊按「📦 存倉」，把設定好的裝備（精煉、附魔、附加能力、卡片）存進來；按「套用」穿回原本的部位。所有角色共用，只存在這台裝置。</div>`; return; }
   // 分類列：只列有東西的；選的分類沒東西了就回到「全部」
   const cats = STASH_CAT.map(([id, label, ks]) => [id, label, ks, shown.filter(x => ks.includes(x.k)).length]).filter(c => c[3]);
   if (!cats.some(c => c[0] === stashTab)) stashTab = '';
@@ -1637,51 +1648,60 @@ function renderStash() {
     const cur = BY_NAME[st.slots[k].n] && !occupiedBy(k) ? stashSig(stashOf(k)) : '';
     return `<div class="stash-h">${label}</div>` + xs.map(x => {
       const n = stashName(x), it = BY_NAME[n], on = cur === stashSig(x), why = stashWhy(it, k), d = stashDesc(x, it), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[n];
-      return `<div class="stash-it${on ? ' on' : ''}" data-id="${x.id}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span class="ph"></span>'}` +
+      return `<div class="stash-it${on ? ' on' : ''}" data-id="${x.id}" oncontextmenu="return stashCtx(event, '${x.id}')">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span class="ph"></span>'}` +
         `<span class="nm">${it.ref && x.r ? `+${x.r} ` : ''}${n}${d ? `<span class="sub">${d}</span>` : ''}${why && !on ? `<span class="sub bad">${why}</span>` : ''}</span>` +
         (on ? `<span class="ok">✓ 穿著中</span>` : `<button type="button" class="btn-ghost" onclick="stashUse('${x.id}')"${why ? ' disabled' : ''}>套用</button>`) +
         `<button type="button" class="btn-ghost del" title="從倉庫刪除" aria-label="從倉庫刪除" onclick="stashDel('${x.id}')">✕</button></div>`;
     }).join('');
   }).join('');
 }
-function toggleStash() { stashOpen = !stashOpen; localStorage.setItem('gear-stash-closed', stashOpen ? '' : '1'); renderStash(); }
+function toggleStashWin(on = !stashOpen) {
+  stashOpen = on; localStorage.setItem('gear-stash-open', on ? '1' : '');
+  placeStash(); renderStash();
+  if (on && stashFix) $('stashCard').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+  track('gear_stash_open', { on });
+}
+// 倉庫的一筆 → 部位的設定
+function stashSlot(x) { const it = BY_NAME[stashName(x)]; return { n: it.n, r: it.ref ? Math.min(+x.r || 0, maxRef(it)) : 0, e: (x.e || []).slice(), a: x.a ? { p: x.a.p || 0, v: x.a.v.map(v => v.slice()) } : null, cd: (x.cd || []).slice() }; }
+// 右鍵倉庫裡的裝備：物品資訊視窗（和裝備視窗一樣）
+function stashCtx(e, id) { const x = readStash().find(y => y.id === id); if (!x || !BY_NAME[stashName(x)]) return true; e.preventDefault(); showInfo(x.k, e.clientX, e.clientY, x); return false; }
 function stashUse(id) {
   const x = readStash().find(y => y.id === id), k = x && x.k, it = x && BY_NAME[stashName(x)];
   if (!it || !st.slots[k] || stashWhy(it, k)) return;
   // 要穿的部位被雙手武器之類佔住：先卸下佔住的那件
   for (const [o] of GEAR_SLOTS) { const oi = BY_NAME[st.slots[o].n]; if (o !== k && oi && (oi.occ || []).includes(k)) st.slots[o] = { n: '', r: 0 }; }
-  st.slots[k] = { n: it.n, r: it.ref ? Math.min(+x.r || 0, maxRef(it)) : 0, e: (x.e || []).slice(), a: x.a ? { p: x.a.p || 0, v: x.a.v.map(v => v.slice()) } : null, cd: (x.cd || []).slice() };
+  st.slots[k] = stashSlot(x);
   for (const o of it.occ || []) st.slots[o] = { n: '', r: 0 };
   if (((x.e || []).some(Boolean) || x.a) && !st.ench) { st.ench = true; $('useEnch').checked = true; }
   if ((x.cd || []).some(Boolean) && !st.card) { st.card = true; $('useCard').checked = true; }
   if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
   roSel = k; save(); render(); track('gear_stash_use');
 }
-// 倉庫漂浮（電腦版；手機不漂浮）：位置、大小存在 gear-stash-float
+// 倉庫漂浮：位置、大小存在 gear-stash-float（固定之後再漂浮也回到原來的位置和大小）
 const STASH_FLOAT_KEY = 'gear-stash-float';
-let stashPos = (() => { try { const p = JSON.parse(localStorage.getItem(STASH_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })();
-let stashLast = null;
-const saveStashPos = () => localStorage.setItem(STASH_FLOAT_KEY, stashPos ? JSON.stringify(stashPos) : '');
+let stashPos = (() => { try { const p = JSON.parse(localStorage.getItem(STASH_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })() || { x: 16, y: 72 };
+const saveStashPos = () => localStorage.setItem(STASH_FLOAT_KEY, JSON.stringify(stashPos));
 function placeStash() {
-  const c = $('stashCard'), on = !!stashPos && !mqMobile.matches;
-  c.classList.toggle('floating', on);
-  $('stashFloat').textContent = on ? '📌 固定' : '🪟 漂浮';
-  $('stashFloat').setAttribute('aria-pressed', String(on));
-  if (!on) { c.style.left = c.style.top = c.style.width = c.style.height = c.style.zIndex = ''; return; }
-  if (stashPos.w && !c.style.width) { c.style.width = stashPos.w + 'px'; c.style.height = stashPos.h ? stashPos.h + 'px' : ''; }
+  const c = $('stashCard'), fl = stashOpen && !stashFix;
+  c.classList.toggle('hidden', !stashOpen); c.classList.toggle('floating', fl);
+  $('stashFloat').textContent = stashFix ? '🪟 漂浮' : '📌 固定';
+  $('stashFloat').title = stashFix ? '變成浮在畫面上的視窗' : '固定在技能樹和裝備中間';
+  if (!fl) { c.style.left = c.style.top = c.style.width = c.style.height = c.style.zIndex = c.style.maxHeight = ''; return; }
+  if (stashPos.w && !c.style.width) { c.style.width = Math.min(stashPos.w, innerWidth - 16) + 'px'; c.style.height = stashPos.h ? stashPos.h + 'px' : ''; }
   const m = 8, w = c.offsetWidth;
   stashPos.x = Math.round(Math.max(m, Math.min(innerWidth - w - m, stashPos.x)));
   stashPos.y = Math.round(Math.max(m, Math.min(innerHeight - 60, stashPos.y)));
   c.style.left = stashPos.x + 'px'; c.style.top = stashPos.y + 'px';
+  c.style.maxHeight = (innerHeight - stashPos.y - m) + 'px';   // 下緣不超出畫面，內容在視窗裡捲動
 }
 function toggleStashFloat() {
-  // 預設放左上角（人物狀態漂浮預設在右上）；固定後再漂浮回到上次的位置和大小
-  if (stashPos) { stashLast = stashPos; stashPos = null; } else stashPos = stashLast || { x: 16, y: 72 };
-  if (stashPos && !stashOpen) toggleStash();
-  placeStash(); saveStashPos(); track('gear_stash_float', { on: !!stashPos });
+  stashFix = !stashFix; localStorage.setItem('gear-stash-mode', stashFix ? 'fix' : '');
+  placeStash();
+  if (stashFix) $('stashCard').scrollIntoView({ behavior: 'auto', block: 'nearest' });
+  track('gear_stash_float', { on: !stashFix });
 }
 $('stashCard').querySelector('h2').addEventListener('pointerdown', e => {
-  if (!stashPos || mqMobile.matches || e.button || e.target.closest('button')) return;
+  if (!$('stashCard').classList.contains('floating') || e.button || e.target.closest('button')) return;
   const h2 = e.currentTarget, dx = e.clientX - stashPos.x, dy = e.clientY - stashPos.y;
   h2.setPointerCapture(e.pointerId); e.preventDefault();
   const mv = ev => { stashPos.x = ev.clientX - dx; stashPos.y = ev.clientY - dy; placeStash(); };
@@ -1690,7 +1710,7 @@ $('stashCard').querySelector('h2').addEventListener('pointerdown', e => {
 });
 // 拖右下角改大小時記住（只有使用者拖過才會有 style.width）
 new ResizeObserver(() => {
-  const c = $('stashCard'); if (!stashPos || !c.classList.contains('floating') || !c.style.width) return;
+  const c = $('stashCard'); if (!c.classList.contains('floating') || !c.style.width) return;
   const w = Math.round(c.offsetWidth), h = c.style.height ? Math.round(c.offsetHeight) : 0;
   if (w !== stashPos.w || h !== (stashPos.h || 0)) { stashPos.w = w; stashPos.h = h; clearTimeout(placeStash.t); placeStash.t = setTimeout(saveStashPos, 300); }
 }).observe($('stashCard'));
@@ -1789,9 +1809,12 @@ $('statCard').querySelector('h2').addEventListener('pointerdown', e => {
   const up = () => { h2.removeEventListener('pointermove', mv); h2.removeEventListener('pointerup', up); h2.removeEventListener('pointercancel', up); saveStatPos(); };
   h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
 });
-window.addEventListener('resize', () => { if (statPos) placeStat(); if (stashPos) placeStash(); syncStatFab(); });
-mqMobile.addEventListener('change', placeStash);
+window.addEventListener('resize', () => { if (statPos) placeStat(); if (stashOpen && !stashFix) placeStash(); syncStatFab(); });
 placeStat(); syncStatFab(); placeStash();
+// Esc 關掉漂浮的倉庫（對話框開著時不管）
+// 物品資訊視窗開著時 Esc 先關資訊視窗（capture：在資訊視窗的 Esc 處理之前判斷）
+const infoOpen = id => infoPop ? $(id).matches(':popover-open') : $(id).open;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && stashOpen && !stashFix && !$('dlg').classList.contains('open') && !infoOpen('roInfo') && !infoOpen('skInfo')) toggleStashWin(false); }, true);
 // 兩個漂浮視窗疊在一起時，點到的那個放上面
 for (const id of ['statCard', 'stashCard']) $(id).addEventListener('pointerdown', e => {
   const c = e.currentTarget; if (!c.classList.contains('floating')) return;
