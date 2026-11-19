@@ -68,7 +68,7 @@ export default {
 
 // ===== 短網址 =====
 // 存 KV：key＝代號，value＝分享碼，metadata＝{ p 頁面, t 最後打開時間 }；一年沒人打開自動過期，打開時（超過 30 天才）重新計時
-const SHORT_PAGES = { gear: ['/gear', 's'], skill: ['/skill', 'k'] };
+const SHORT_PAGES = { gear: ['/gear', 's'], skill: ['/skill', 'k'], aspd: ['/aspd', 's'] };
 const TTL = 365 * 86400, REFRESH = 30 * 86400 * 1000;
 const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 

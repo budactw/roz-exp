@@ -199,6 +199,7 @@
 </div>
 
 <script src="aspd-data.js?v=1"></script>
+<script src="short-link.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const D = ASPD_DATA;
@@ -308,7 +309,7 @@ function readHash() {
 function clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
 async function share(btn) {
   const r = compute();
-  const url = `${location.origin}${location.pathname}#s=${packState()}`;
+  const code = packState(), url = await shortUrl('aspd', code, `${location.origin}${location.pathname}#s=${code}`);   // 短網址（失敗就用長連結）
   const wpn = st.main + (st.off !== '無' ? `＋${st.off}` : '');
   const text = `${st.cls}／${wpn}　最終 ASPD ${r.finalInt}（每秒 ${Number.isFinite(r.hits) ? r.hits.toFixed(2) : '—'} 下）`;
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
