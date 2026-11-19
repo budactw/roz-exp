@@ -323,7 +323,7 @@
   <div class="ro-info-b" id="skInfoBody"></div>
 </dialog>
 
-<script src="gear-data.js?v=35"></script>
+<script src="gear-data.js?v=36"></script>
 <script src="enchant-data.js?v=5"></script>
 <script src="addon-data.js?v=5"></script>
 <script src="slot-data.js?v=2"></script>
@@ -334,7 +334,7 @@
 <script src="skill-tree.js?v=2"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
-<script src="card-data.js?v=6"></script>
+<script src="card-data.js?v=7"></script>
 <script src="rune-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -668,6 +668,8 @@ function compute() {
     for (const x of enchOn(slot, it, r)) add(tot, x.eff, nt);
     for (const x of addonOn(slot, it)) add(tot, x.eff, nt);
     for (const [, id] of cardsOn(slot, it)) { const cn = []; curRef = r; add(tot, CARDS[id].e, cn); cn.forEach(x => notes.push(`${CARDS[id].n}：${x}`)); cardNames.push(CARDS[id].n); }
+    // 裝備本身「插 X 卡片時」的效果（ci: [[卡片名稱, 效果]]，例如鯊魚寶寶背包）
+    for (const [cname, e] of it.ci || []) if (cardsOn(slot, it).some(([, id]) => CARDS[id].n === cname)) { const cn = []; add(tot, e, cn); cn.forEach(x => notes.push(`${it.n}：${x}`)); }
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
@@ -977,8 +979,11 @@ function statusOf(tot) {
     const wpen = wk === '無' ? 0 : ac.pen[wk], spen = lk === '無' ? 0 : ((left.s === 'weapon' && ac.left ? ac.left[lk] : ac.pen[lk]) ?? 0);
     if (wpen !== undefined) {
       const statB = Math.sqrt(S.DEX * S.DEX / (['弓', '樂器', '鞭子'].includes(wt) ? 7 : 5) + S.AGI * S.AGI / 2) / 4;
-      const a1 = Math.floor(ac.base + wpen + spen + statB);
-      out.aspd = Math.min(190, Math.floor(a1 + (195 - a1) * ((tot.aspd || 0) + (tot.aspdP || 0)) / 100 + (tot.aspdFlat || 0)));
+      // 被動技能的狀態修正（和攻速計算頁一樣）：賢者拿書時，進化之書每 Lv 修正 +0.5 → AGI × 修正 ÷ 200
+      const mod = st.job === '賢者' && wt === '書' ? 0.5 * skLv('進化之書') : 0;
+      const a1 = Math.floor(ac.base + wpen + spen + statB + mod * S.AGI / 200);
+      // 上限：Base 99 以下 190、100 以上 193（同攻速計算頁）
+      out.aspd = Math.min(st.lv >= 100 ? 193 : 190, Math.floor(a1 + (195 - a1) * ((tot.aspd || 0) + (tot.aspdP || 0)) / 100 + (tot.aspdFlat || 0)));
     }
   }
   return out;

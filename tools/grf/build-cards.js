@@ -52,7 +52,8 @@ function line(s) {
   // 「精煉每+1，…」「盾牌精煉度每提高1點，…」：依精煉值（沒寫部位＝插著的這件；最後的「精煉上限為+10」是最多算到幾）
   m = norm(s).match(/^(盾牌|防盾|鎧甲|盔甲|武器|披肩|鞋子|靴子|頭盔)?精煉(?:值|度)?每(?:提高)?\+?(\d+)(?:點)?時?，(.+?)(?:[(（]但.*?精煉上限為\+?(\d+)[)）])?$/);
   if (m) { const e = sentence(m[3]); if (!e._t) return { _rr: [[REF_POS[m[1]] || '', +m[2], e, m[4] ? +m[4] : 0]] }; }
-  m = norm(s).match(/^每BaseLv\.?(\d+)(?:級)?，(.+)$/i);
+  m = norm(s).match(/^(?:每BaseLv\.?(\d+)(?:級)?|BaseLv每\+?(\d+)(?:級)?時?)，(.+)$/i);
+  if (m) { m = [m[0], m[1] || m[2], m[3]]; }
   if (m) { const e = sentence(m[2]); if (!e._t) return { _lv: [+m[1], e] }; }
   // 「…，當盜賊系列裝備時，…」：前後拆開
   const k = s.search(/[，,]\s*(?=當|對[^，]+時)/); if (k > 0) return merge(line(s.slice(0, k)), line(s.slice(k + 1)));
