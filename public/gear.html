@@ -1133,7 +1133,10 @@ function slotBody(k, res) {
   const li = (cls, t, body, tag) => `<li class="${cls}"><span class="t">${t}</span>${body}${tag ? `<span class="tag">${tag}</span>` : ''}</li>`;
   let eff = '';
   if (Object.keys(it.b).length) eff += li('on', '基本', fmtEff(it.b));
-  for (const x of it.t || []) if (!/^\d 洞$/.test(x)) eff += li('txt', NOTE_RE.test(x) ? '備註' : '效果', x);
+  // 卡片搭配（ci：插在這件；cw：插在身上任何部位）改用「搭配」列顯示，成立是綠色；說明文字裡同一句就不重複列
+  const cardCombo = [...(it.ci || []).map(([c, e]) => [c, e, cardsOn(k, it).some(([, id]) => CARDS[id].n === c), '插']), ...(it.cw || []).map(([c, e]) => [c, e, equipped().some(({ slot, it: o }) => cardsOn(slot, o).some(([, id]) => CARDS[id].n === c)), '同時裝備'])];
+  for (const x of it.t || []) if (!/^\d 洞$/.test(x) && !cardCombo.some(([c]) => x.includes(c) && x.includes('自動計算'))) eff += li('txt', NOTE_RE.test(x) ? '備註' : '效果', x);
+  for (const [c, e, on, how] of cardCombo) eff += li(on ? 'on' : '', '搭配', `${how}「${c}」：${fmtEff(e)}${on ? '' : (st.card ? '（還沒插這張卡）' : '（啟用卡片後才計算）')}`);
   for (const n of perKeys(it)) { const t = Math.floor(r / n), e = it['p' + n]; eff += li(t ? 'on' : '', `每精煉 ${n}`, fmtEff(e) + (t > 1 && Object.keys(mul(e, 1)).length ? `<span class="tot">＝${fmtEff(mul(e, t))}</span>` : ''), `目前 ×${t}`); }
   eff += ths.map(n => li(r >= n ? 'on' : n === next ? 'next' : '', '+' + n, fmtEff(it.r[n]), n === next ? `再 +${n - r}` : '')).join('');
   if (it.pf) { const t = pfTimes(it, r); eff += li(t ? 'on' : '', `+${it.pf[0]} 起每 +1`, fmtEff(it.pf[1]) + (t > 1 ? `<span class="tot">＝${fmtEff(mul(it.pf[1], t))}</span>` : ''), t ? `目前 ×${t}` : `再 +${it.pf[0] - r}`); }
