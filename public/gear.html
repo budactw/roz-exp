@@ -69,6 +69,9 @@
   /* 角色 */
   .chars { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
   .char-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars .chip[data-id] { touch-action: manipulation; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+  .chars.sorting, .chars.sorting .chip { cursor: grabbing; }
+  .chars .chip.dragging { opacity: .6; outline: 2px dashed var(--primary); outline-offset: 2px; }
   .chars .chip-add { border-style: dashed; color: var(--dim); background: transparent; }
   .chars .chip-add:hover { color: var(--primary); border-color: var(--primary); }
   .char-acts { display: flex; gap: 6px; margin-left: auto; }
@@ -82,6 +85,11 @@
   /* 設定＋人物狀態 */
   .set-wrap { display: grid; gap: 16px; margin-bottom: 16px; }
   .set-wrap > .card { margin-bottom: 0; }
+  /* 人物狀態漂浮：固定在畫面上、可拖曳；設定卡片改成整排 */
+  #statCard.floating { position: fixed; z-index: 45; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
+  #statCard.floating > h2 { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #statCard.floating > .hint { display: none; }
+  .set-wrap:has(> #statCard.floating) { grid-template-columns: minmax(0, 1fr); }
   @media (min-width: 900px) { .set-wrap { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
   .stat-win { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 14px; }
   .sw-l, .sw-r { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; align-items: center; gap: 4px 6px; font-variant-numeric: tabular-nums; }
@@ -272,7 +280,7 @@
   </div>
 
   <div class="card" id="statCard">
-    <h2>🧍 人物狀態</h2>
+    <h2>🧍 人物狀態 <button type="button" class="btn-ghost" id="statFloat" onclick="toggleStatFloat()" aria-pressed="false"></button></h2>
     <div class="stat-win">
       <div class="sw-l" id="psGrid"></div>
       <div class="sw-r" id="swR"></div>
@@ -609,11 +617,11 @@ function syncShared() {
 }
 function renderChars() {
   $('charCard').classList.toggle('hidden', shared);
-  const chip = (on, click, name, sub) => `<button type="button" class="chip${on ? ' cur' : ''}" onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
+  const chip = (on, click, name, sub, id) => `<button type="button" class="chip${on ? ' cur' : ''}"${id ? ` data-id="${id}" title="拖曳可以調整順序"` : ''} onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
   // 左邊：角色清單＋新增（虛線）；右邊：對「目前角色」的操作（◀ ▶ 移動順序），刪除用紅字
   const ids = Object.keys(S.chars);
   $('chars').innerHTML = `<div class="char-list">` + chip(who === 'free', 'switchFree()', '不分角色') +
-    Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, escHtml(c.name), c.gear && c.gear.job)).join('') +
+    Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, escHtml(c.name), c.gear && c.gear.job, id)).join('') +
     `<button type="button" class="chip chip-add" onclick="addChar()">＋ 新增角色</button></div>` +
     (who === 'char' ? `<div class="char-acts" role="group" aria-label="目前角色「${escHtml(curChar().name)}」">` +
       `<button type="button" class="btn-ghost mv" onclick="moveChar(-1)" title="往前移" aria-label="往前移"${ids[0] === S.cur ? ' disabled' : ''}>◀</button>` +
@@ -631,15 +639,52 @@ async function addChar() {
   track('add_char', { chars: Object.keys(x.chars).length, from: 'gear' });
 }
 // 移動角色順序：角色名單的順序就是物件的鍵順序（和每日任務、期間活動、攻速計算共用，順序會一起變）
-function moveChar(d) {
-  const x = readChars(), ids = Object.keys(x.chars), i = ids.indexOf(S.cur), j = i + d;
-  if (i < 0 || j < 0 || j >= ids.length) return;
-  [ids[i], ids[j]] = [ids[j], ids[i]];
+function setCharOrder(ids) {
+  const x = readChars(); ids = ids.filter(k => x.chars[k]).concat(Object.keys(x.chars).filter(k => !ids.includes(k)));
   x.chars = Object.fromEntries(ids.map(k => [k, x.chars[k]]));
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); S = x; renderChars();
+}
+function moveChar(d) {
+  const ids = Object.keys(readChars().chars), i = ids.indexOf(S.cur), j = i + d;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  setCharOrder(ids);
   // 重畫後焦點留在同一顆按鈕，可以連按
   const [b, o] = [d, -d].map(v => document.querySelector(`#chars .mv[onclick="moveChar(${v})"]`)); (b && !b.disabled ? b : o) && (b && !b.disabled ? b : o).focus();
 }
+// 拖曳角色排序：滑鼠按住拖過 5px 開始；手機長按 0.35 秒再拖（避免和捲動衝突）。放開才存，拖過的那次不算點擊
+let charDrag = null, charDragClick = false;
+function charDragStart(d) {
+  d.on = true; d.el.classList.add('dragging'); $('chars').classList.add('sorting');
+  try { d.el.setPointerCapture(d.pid); } catch (e) {}
+  if (navigator.vibrate && d.touch) navigator.vibrate(15);
+}
+function charDragEnd(commit) {
+  const d = charDrag; charDrag = null; if (!d) return;
+  clearTimeout(d.timer); if (!d.on) return;
+  d.el.classList.remove('dragging'); $('chars').classList.remove('sorting');
+  charDragClick = true; setTimeout(() => { charDragClick = false; }, 0);
+  if (commit) setCharOrder([...$('chars').querySelectorAll('.chip[data-id]')].map(x => x.dataset.id)); else renderChars();
+  track('char_drag');
+}
+$('chars').addEventListener('pointerdown', e => {
+  const el = e.target.closest('.chip[data-id]'); if (!el || e.button) return;
+  const d = charDrag = { el, pid: e.pointerId, x: e.clientX, y: e.clientY, on: false, touch: e.pointerType !== 'mouse' };
+  if (d.touch) d.timer = setTimeout(() => { if (charDrag === d) charDragStart(d); }, 350);
+});
+window.addEventListener('pointermove', e => {
+  const d = charDrag; if (!d || e.pointerId !== d.pid) return;
+  const far = Math.hypot(e.clientX - d.x, e.clientY - d.y);
+  if (!d.on) { if (!d.touch && far > 5) charDragStart(d); else if (d.touch && far > 8) { clearTimeout(d.timer); charDrag = null; } return; }
+  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('#chars .chip[data-id]');
+  if (over && over !== d.el) { const r = over.getBoundingClientRect(), after = e.clientY > r.bottom || (e.clientY >= r.top && e.clientX > r.left + r.width / 2); over.parentNode.insertBefore(d.el, after ? over.nextSibling : over); }
+});
+window.addEventListener('pointerup', e => { if (charDrag && e.pointerId === charDrag.pid) charDragEnd(true); });
+window.addEventListener('pointercancel', e => { if (charDrag && e.pointerId === charDrag.pid) charDragEnd(false); });
+// 拖曳中不要捲動頁面（手機）
+document.addEventListener('touchmove', e => { if (charDrag && charDrag.on) e.preventDefault(); }, { passive: false });
+$('chars').addEventListener('click', e => { if (charDragClick) { e.preventDefault(); e.stopPropagation(); } }, true);
+$('chars').addEventListener('contextmenu', e => { if (charDrag) e.preventDefault(); });
 // 複製角色：用目前角色的整份配裝（職業、等級、素質、裝備、附魔、卡片、符文、Buff、技能樹）建一個新角色
 async function copyChar() {
   const c = curChar(); if (!c) return;
@@ -1500,6 +1545,36 @@ $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); 
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
 $('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('');
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });
+// ===== 人物狀態：固定／漂浮（漂浮時拖曳標題列移動，位置記在這台裝置；勾 Buff、加技能點時不用捲回去看）=====
+const STAT_FLOAT_KEY = 'gear-stat-float';
+let statPos = (() => { try { const p = JSON.parse(localStorage.getItem(STAT_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })();
+function placeStat() {
+  const c = $('statCard'), on = !!statPos;
+  c.classList.toggle('floating', on);
+  $('statFloat').textContent = on ? '📌 固定' : '🪟 漂浮';
+  $('statFloat').setAttribute('aria-pressed', String(on));
+  if (!on) { c.style.left = c.style.top = ''; return; }
+  // 留在畫面內（至少露出標題列）
+  const m = 8, w = c.offsetWidth;
+  statPos.x = Math.round(Math.max(m, Math.min(innerWidth - w - m, statPos.x)));
+  statPos.y = Math.round(Math.max(m, Math.min(innerHeight - 60, statPos.y)));
+  c.style.left = statPos.x + 'px'; c.style.top = statPos.y + 'px';
+}
+const saveStatPos = () => localStorage.setItem(STAT_FLOAT_KEY, statPos ? JSON.stringify(statPos) : '');
+function toggleStatFloat() {
+  statPos = statPos ? null : { x: innerWidth, y: 72 };   // 預設放右上角
+  placeStat(); saveStatPos(); track('gear_stat_float', { on: !!statPos });
+}
+$('statCard').querySelector('h2').addEventListener('pointerdown', e => {
+  if (!statPos || e.button || e.target.closest('button')) return;
+  const h2 = e.currentTarget, dx = e.clientX - statPos.x, dy = e.clientY - statPos.y;
+  h2.setPointerCapture(e.pointerId); e.preventDefault();
+  const mv = ev => { statPos.x = ev.clientX - dx; statPos.y = ev.clientY - dy; placeStat(); };
+  const up = () => { h2.removeEventListener('pointermove', mv); h2.removeEventListener('pointerup', up); h2.removeEventListener('pointercancel', up); saveStatPos(); };
+  h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
+});
+window.addEventListener('resize', () => { if (statPos) placeStat(); });
+placeStat();
 function buildQuickSet() {
   const groups = [...new Set(GEAR_SETS.map(x => x.g))];
   $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
