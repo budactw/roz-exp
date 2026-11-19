@@ -249,6 +249,8 @@
   .stash-it .nm { flex: 1; min-width: 0; font-size: .9rem; font-weight: 600; overflow-wrap: anywhere; }
   .stash-it .sub { display: block; font-size: .78rem; font-weight: 400; color: var(--dim); }
   .stash-it .sub.bad { color: var(--danger); }
+  .stash-it .memo { display: block; font-size: .8rem; font-weight: 400; color: var(--primary); overflow-wrap: anywhere; }
+  .stash-it button.memo-btn { padding: 0 8px; }
   .stash-it .ok { font-size: .8rem; color: var(--green); white-space: nowrap; }
   .stash-it button { flex: 0 0 auto; min-height: 32px; padding: 0 10px; font-size: .82rem; }
   .stash-it button:disabled { opacity: .45; cursor: default; }
@@ -1649,8 +1651,9 @@ function renderStash() {
     return `<div class="stash-h">${label}</div>` + xs.map(x => {
       const n = stashName(x), it = BY_NAME[n], on = cur === stashSig(x), why = stashWhy(it, k), d = stashDesc(x, it), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[n];
       return `<div class="stash-it${on ? ' on' : ''}" data-id="${x.id}" oncontextmenu="return stashCtx(event, '${x.id}')">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span class="ph"></span>'}` +
-        `<span class="nm">${it.ref && x.r ? `+${x.r} ` : ''}${n}${d ? `<span class="sub">${d}</span>` : ''}${why && !on ? `<span class="sub bad">${why}</span>` : ''}</span>` +
+        `<span class="nm">${it.ref && x.r ? `+${x.r} ` : ''}${n}${x.m ? `<span class="memo">📝 ${escHtml(x.m)}</span>` : ''}${d ? `<span class="sub">${d}</span>` : ''}${why && !on ? `<span class="sub bad">${why}</span>` : ''}</span>` +
         (on ? `<span class="ok">✓ 穿著中</span>` : `<button type="button" class="btn-ghost" onclick="stashUse('${x.id}')"${why ? ' disabled' : ''}>套用</button>`) +
+        `<button type="button" class="btn-ghost memo-btn" title="${x.m ? '修改備註' : '加備註'}" aria-label="${x.m ? '修改備註' : '加備註'}" onclick="stashMemo('${x.id}')">✏️</button>` +
         `<button type="button" class="btn-ghost del" title="從倉庫刪除" aria-label="從倉庫刪除" onclick="stashDel('${x.id}')">✕</button></div>`;
     }).join('');
   }).join('');
@@ -1714,9 +1717,18 @@ new ResizeObserver(() => {
   const w = Math.round(c.offsetWidth), h = c.style.height ? Math.round(c.offsetHeight) : 0;
   if (w !== stashPos.w || h !== (stashPos.h || 0)) { stashPos.w = w; stashPos.h = h; clearTimeout(placeStash.t); placeStash.t = setTimeout(saveStashPos, 300); }
 }).observe($('stashCard'));
+// 備註（最多 40 字；不算在「一模一樣」的比對裡）
+async function stashMemo(id) {
+  const x = readStash().find(y => y.id === id); if (!x) return;
+  const v = await dialog({ title: '倉庫備註', msg: `${x.r ? `+${x.r} ` : ''}${stashName(x)}（清空就是刪除備註）`, input: x.m || '', okText: '儲存' });
+  if (v === null) return;
+  const list = readStash(), y = list.find(z => z.id === id); if (!y) return;
+  if (v) y.m = v.slice(0, 40); else delete y.m;
+  writeStash(list); renderStash(); track('gear_stash_memo');
+}
 async function stashDel(id) {
   const list = readStash(), x = list.find(y => y.id === id); if (!x) return;
-  if (!await dialog({ title: '從倉庫刪除？', msg: `${x.r ? `+${x.r} ` : ''}${stashName(x)}`, okText: '刪除' })) return;
+  if (!await dialog({ title: '從倉庫刪除？', msg: `${x.r ? `+${x.r} ` : ''}${stashName(x)}${x.m ? `（${x.m}）` : ''}`, okText: '刪除' })) return;
   writeStash(readStash().filter(y => y.id !== id)); renderStash(); track('gear_stash_del');
 }
 $('allRef').addEventListener('input', e => {
