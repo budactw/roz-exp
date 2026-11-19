@@ -955,7 +955,8 @@ function statusOf(tot) {
     atk: [Math.floor(lv / 4 + (ranged ? S.DEX : S.STR) + (ranged ? S.STR : S.DEX) / 5 + S.LUK / 3), (tot.wATK || 0) + (tot.refATK || 0) + (tot.ATK || 0)],
     matk: [Math.floor(lv / 4) + S.INT + Math.floor(S.INT / 2) + Math.floor(S.DEX / 5) + Math.floor(S.LUK / 3), (tot.refATK || 0) + (tot.MATK || 0)],
     hit: 175 + lv + S.DEX + Math.floor(S.LUK / 3) + (tot.HIT || 0),
-    cri: (1 + Math.floor(S.LUK * 0.3) + (tot.CRI || 0)) * (wt === '拳刃' ? 2 : 1),
+    // CRI：1 + LUK÷3（遊戲內部以 0.1 為單位：10 + ⌊LUK×10÷3⌋，最後才捨去），拳刃 ×2
+    cri: Math.floor((10 + Math.floor(S.LUK * 10 / 3) + (tot.CRI || 0) * 10) * (wt === '拳刃' ? 2 : 1) / 10),
     def: [Math.floor((lv + S.VIT) / 2 + S.AGI / 5), tot.DEF || 0],
     mdef: [Math.floor(S.INT + lv / 4 + (S.VIT + S.DEX) / 5), tot.MDEF || 0],
     flee: [100 + lv + S.AGI + Math.floor(S.LUK / 5) + (tot.FLEE || 0), 1 + Math.floor(S.LUK / 10) + (c['完全迴避#'] || 0)],
