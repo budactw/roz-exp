@@ -73,6 +73,8 @@
   .chars .chip-add:hover { color: var(--primary); border-color: var(--primary); }
   .char-acts { display: flex; gap: 6px; margin-left: auto; }
   .char-acts button { font-size: .82rem; padding: 4px 10px; }
+  .char-acts .mv { padding: 4px 8px; }
+  .char-acts .mv:disabled { opacity: .35; cursor: default; }
   .char-acts .danger, html[data-ui] .char-acts button.danger { color: var(--danger); }
   .chars .chip { cursor: pointer; font-size: .85rem; padding: 4px 12px; min-height: 0; font-family: inherit; }
   .chars .chip small { margin-left: 6px; color: var(--dim); font-size: .75rem; }
@@ -608,11 +610,14 @@ function syncShared() {
 function renderChars() {
   $('charCard').classList.toggle('hidden', shared);
   const chip = (on, click, name, sub) => `<button type="button" class="chip${on ? ' cur' : ''}" onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
-  // 左邊：角色清單＋新增（虛線）；右邊：對「目前角色」的操作，刪除用紅字
+  // 左邊：角色清單＋新增（虛線）；右邊：對「目前角色」的操作（◀ ▶ 移動順序），刪除用紅字
+  const ids = Object.keys(S.chars);
   $('chars').innerHTML = `<div class="char-list">` + chip(who === 'free', 'switchFree()', '不分角色') +
     Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, escHtml(c.name), c.gear && c.gear.job)).join('') +
     `<button type="button" class="chip chip-add" onclick="addChar()">＋ 新增角色</button></div>` +
-    (who === 'char' ? `<div class="char-acts" role="group" aria-label="目前角色「${escHtml(curChar().name)}」"><button type="button" class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button type="button" class="btn-ghost" onclick="copyChar()">📋 複製</button><button type="button" class="btn-ghost danger" onclick="deleteChar()">🗑 刪除</button></div>` : '');
+    (who === 'char' ? `<div class="char-acts" role="group" aria-label="目前角色「${escHtml(curChar().name)}」">` +
+      `<button type="button" class="btn-ghost mv" onclick="moveChar(-1)" title="往前移" aria-label="往前移"${ids[0] === S.cur ? ' disabled' : ''}>◀</button>` +
+      `<button type="button" class="btn-ghost mv" onclick="moveChar(1)" title="往後移" aria-label="往後移"${ids[ids.length - 1] === S.cur ? ' disabled' : ''}>▶</button><button type="button" class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button type="button" class="btn-ghost" onclick="copyChar()">📋 複製</button><button type="button" class="btn-ghost danger" onclick="deleteChar()">🗑 刪除</button></div>` : '');
 }
 function useNow() { clearHash(); shared = false; load(); syncInputs(); render(); }
 function switchFree() { localStorage.setItem(WHO_KEY, 'free'); useNow(); }
@@ -624,6 +629,16 @@ async function addChar() {
   x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
   track('add_char', { chars: Object.keys(x.chars).length, from: 'gear' });
+}
+// 移動角色順序：角色名單的順序就是物件的鍵順序（和每日任務、期間活動、攻速計算共用，順序會一起變）
+function moveChar(d) {
+  const x = readChars(), ids = Object.keys(x.chars), i = ids.indexOf(S.cur), j = i + d;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  x.chars = Object.fromEntries(ids.map(k => [k, x.chars[k]]));
+  localStorage.setItem(CHAR_KEY, JSON.stringify(x)); S = x; renderChars();
+  // 重畫後焦點留在同一顆按鈕，可以連按
+  const [b, o] = [d, -d].map(v => document.querySelector(`#chars .mv[onclick="moveChar(${v})"]`)); (b && !b.disabled ? b : o) && (b && !b.disabled ? b : o).focus();
 }
 // 複製角色：用目前角色的整份配裝（職業、等級、素質、裝備、附魔、卡片、符文、Buff、技能樹）建一個新角色
 async function copyChar() {
@@ -1107,8 +1122,8 @@ function statusOf(tot) {
       // Buff 的狀態修正（_amod：雙手劍加速、速度激發等）一起加
       const mod = (st.job === '賢者' && wt === '書' ? 0.5 * skLv('進化之書') : 0) + (tot._amod || 0);
       const a1 = Math.floor(ac.base + wpen + spen + statB + mod * S.AGI / 200);
-      // 上限：Base 99 以下 190、100 以上 193（同攻速計算頁）
-      out.aspd = Math.min(st.lv >= 100 ? 193 : 190, Math.floor(a1 + (195 - a1) * ((tot.aspd || 0) + (tot.aspdP || 0)) / 100 + (tot.aspdFlat || 0)));
+      // 上限：Base 99 以下 190、100 以上 191（樂園目前最高 191，同攻速計算頁）
+      out.aspd = Math.min(st.lv >= 100 ? 191 : 190, Math.floor(a1 + (195 - a1) * ((tot.aspd || 0) + (tot.aspdP || 0)) / 100 + (tot.aspdFlat || 0)));
     }
   }
   return out;
