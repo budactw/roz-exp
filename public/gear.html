@@ -344,7 +344,7 @@
       <div class="sw-l" id="psGrid"></div>
       <div class="sw-r" id="swR"></div>
     </div>
-    <div class="hint">左邊填純素質，旁邊是 Job 加成＋裝備加成（打開「啟用 Buff」也會算進去）。右邊依 Renewal 公式，不含藥水。</div>
+    <div class="hint">左邊填純素質，旁邊是 Job 加成＋裝備加成（打開「啟用 Buff」時，Buff、料理、藥水也會算進去）。右邊依 Renewal 公式。</div>
   </div>
   <div id="statSpacer" hidden></div>
   </div>
@@ -1224,7 +1224,7 @@ function statusOf(tot) {
     out.sp = Math.floor((Math.floor(hs.sp[li] * (100 + S.INT) / 100) + (tot.MSP || 0)) * (100 + (tot.MSPp || 0)) / 100);
     out.hpsure = !!hs.ok && lv >= hs.ok;
   }
-  // ASPD：和攻速計算頁同一套公式（不含藥水）
+  // ASPD：和攻速計算頁同一套公式（攻速藥水從 Buff 的 _amod 加進來）
   const ac = st.job && typeof ASPD_DATA !== 'undefined' && ASPD_DATA.classes.find(x => x.name === (ASPD_CLS[st.job] || st.job));
   if (ac) {
     const wk = w ? (ASPD_WT[wt] || wt) : '無', lk = left ? (ASPD_WT[left.type] || left.type) : '無';

@@ -82,7 +82,7 @@
   <div class="card" id="settings">
     <h2>2. 角色、設定與人物狀態</h2>
     <h3 class="sub-h">角色</h3>
-    <figure><img src="guide/g-chars.webp" width="1192" height="90" alt="角色列：不分角色、各角色、新增、改名、刪除" loading="lazy"></figure>
+    <figure><img src="guide/g-chars.webp?v=2" width="1192" height="90" alt="角色列：不分角色、各角色（後面是職業）、新增角色，右邊是排序、改名、複製、刪除" loading="lazy"></figure>
     <ul>
       <li>每個角色各存一份配裝，點角色名稱就切換；名稱旁邊顯示該角色的職業。</li>
       <li>配裝的角色名單只和<b>技能樹頁</b>共用，和每日任務、期間活動、攻速計算的角色<b>分開</b>：在這裡新增、刪除、改名、排序、切換，都不會影響那幾頁（反過來也一樣）。</li>
@@ -90,10 +90,12 @@
       <li>新增角色時，會先複製目前畫面上的配裝。</li>
       <li><b>📋 複製角色</b>：選了角色時出現，用這個角色的整份配裝（職業、等級、素質、裝備、附魔、卡片、符文、Buff、技能樹）建一個新角色，名稱預設「○○ 的複本」。適合同一隻角色試不同配裝。</li>
       <li><b>調整順序</b>：直接拖曳角色（手機長按一下再拖），或用 ◀ ▶ 移動目前角色。技能樹頁的角色順序也會跟著變。</li>
+      <li><b>✏️ 改名／🗑 刪除</b>：只改配裝（和技能樹頁）的這個角色；刪除會刪掉這個角色的配裝與技能點，每日任務等頁的同名角色和進度不受影響。</li>
+      <li>舊版配裝和每日任務共用角色；更新後第一次打開時，有配裝的角色會自動搬到配裝的名單，名稱和配裝都保留。</li>
     </ul>
     <div class="two">
-      <figure><img src="guide/g-settings.webp" width="800" height="539" alt="設定區：職業、Base 等級、Job 等級，啟用附魔／卡片／符文／技能樹開關" loading="lazy"><figcaption>設定</figcaption></figure>
-      <figure><img src="guide/g-status.webp" width="392" height="303" alt="人物狀態：六項素質與 ATK、MATK、HIT、CRI、DEF、MDEF、FLEE、ASPD" loading="lazy"><figcaption>人物狀態</figcaption></figure>
+      <figure><img src="guide/g-settings.webp?v=2" width="796" height="579" alt="設定區：職業、Base 等級、Job 等級，啟用附魔／卡片／符文／Buff／技能樹開關" loading="lazy"><figcaption>設定</figcaption></figure>
+      <figure><img src="guide/g-status.webp?v=2" width="392" height="369" alt="人物狀態：六項素質與 HP、SP、ATK、MATK、HIT、CRI、DEF、MDEF、FLEE、ASPD" loading="lazy"><figcaption>人物狀態</figcaption></figure>
     </div>
     <h3 class="sub-h">設定</h3>
     <ul>
@@ -113,11 +115,11 @@
     </ul>
     <h3 class="sub-h">人物狀態</h3>
     <ul>
-      <li><b>🪟 漂浮／📌 固定</b>：按「漂浮」後人物狀態會浮在畫面上，往下捲去勾 Buff、加技能點、換裝備時可以直接看素質變化；拖曳標題列可以移動位置，按「固定」放回原處（按鈕在人物狀態的標題列右邊）。手機上則是畫面右邊有一條「人物狀態」拉把，點一下人物狀態會從右邊滑出來，再點拉把（或點標題列）收起。</li>
+      <li><b>🪟 漂浮／📌 固定</b>：按「漂浮」後人物狀態會浮在畫面上，往下捲去勾 Buff、加技能點、換裝備時可以直接看素質變化；拖曳標題列可以移動位置，按「固定」放回原處（按鈕在人物狀態的標題列右邊）。手機上則是畫面右邊有一條「人物狀態」拉把，點一下人物狀態會從右邊滑出來，再點拉把、按標題列右邊的「收起」（遊戲版面是藍色 ✕）或點標題列收起。</li>
       <li>仿遊戲的 Alt+A 視窗。<b>左邊填純素質</b>，旁邊的「+ 數字」是 Job 加成加上裝備加成。巨神蟒蛇皮、神器等「依純素質加成」的裝備也是看這裡填的數字。</li>
       <li>右邊是 HP、SP、ATK、MATK、HIT、CRI、DEF、MDEF、FLEE、ASPD，依 Renewal 公式計算；ASPD 和攻速計算頁用同一套公式。</li>
       <li>HP／SP 前面標「約」的，代表這個職業、等級還沒和遊戲內數字對照確認（目前已確認：祭司、賢者、流氓 Lv 100 以上）；有其他職業的選角畫面 HP／SP 歡迎回報。</li>
-      <li>Job 加成六項素質都有（取自韓服 Ragnarok Zero 官方表，二轉用進階二轉的表，和樂園遊戲內一致）。打開「啟用 Buff」時，Buff 和料理也會算進去；不含藥水。</li>
+      <li>Job 加成六項素質都有（取自韓服 Ragnarok Zero 官方表，二轉用進階二轉的表，和樂園遊戲內一致）。打開「啟用 Buff」時，勾選的 Buff、料理和藥水（包括攻速藥水）也會算進去。</li>
     </ul>
   </div>
 
@@ -198,6 +200,7 @@
         <ul>
           <li>電腦：在裝備視窗的格子上<b>按右鍵</b>。</li>
           <li>手機：按部位選單右邊的藍色 <b>i</b> 按鈕。</li>
+          <li>倉庫：在倉庫裡的裝備上<b>按右鍵</b>，看存起來的那一件（不會換掉身上穿的）。</li>
         </ul>
         <p>視窗內容：</p>
         <ul>
@@ -229,7 +232,7 @@
   <div class="card" id="totals">
     <h2>9. 能力加總</h2>
     <div class="two">
-      <figure><img src="guide/g-totals.webp" width="376" height="1713" alt="能力加總：基本能力、技能條件加成、其他效果、套裝與套卡" loading="lazy"><figcaption>電腦版固定在右側；手機版在最下面，底部有摘要列</figcaption></figure>
+      <figure><img src="guide/g-totals.webp?v=2" width="372" height="1343" alt="能力加總：基本能力、技能條件加成、其他效果、套裝與套卡" loading="lazy"><figcaption>電腦版固定在右側；手機版在最下面，底部有摘要列</figcaption></figure>
       <div>
         <ul>
           <li><b>上半部</b>：STR、ATK、MHP、CRI、攻擊後延遲等可以直接加總的能力。武器精煉加的 ATK／MATK 會註明在後面。</li>
@@ -247,6 +250,7 @@
       <li>配裝<b>自動存在這台裝置的瀏覽器</b>（每個角色各一份），不會上傳；換裝置或清除瀏覽器資料就會消失。</li>
       <li>按能力加總最下面的<b>「分享這組配裝」</b>，會複製一個短網址（像 <code>/s/Ab3xK9q</code>，手機會叫出分享選單）；超過一年沒有人打開的短網址會自動失效（技能樹頁、攻速計算頁的分享也是短網址）。連結裡包含裝備、精煉、附魔、卡片、符文、技能點等全部設定。選了角色時，連結也會帶上角色名稱，對方打開會看到「正在檢視「角色名稱」分享的配裝」。</li>
       <li>別人打開你的連結時，畫面上方會提示「正在檢視分享的配裝」，修改不會蓋掉他自己的配裝；想留下來就按「存成我的配裝」。</li>
+      <li>分享連結<b>只有這組配裝</b>：倉庫、其他角色、每日任務與期間活動的進度都不會放進去。</li>
     </ul>
   </div>
 
