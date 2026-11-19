@@ -223,13 +223,23 @@
   /* 倉庫 */
   .stash-add { flex: 0 0 auto; min-height: 38px; padding: 0 8px; font-size: .95rem; white-space: nowrap; }
   html[data-ui="ro"] .slot-h .stash-add { height: 26px; min-height: 0; padding: 0 6px; font-size: 13px; line-height: 24px; }
-  #stashCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
-  #stashToggle { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
+  #stashCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  :is(#stashToggle, #stashFloat) { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
   html[data-ui="ro"] #stashCard > h2::after { margin-left: 6px; }
-  html[data-ui="ro"] #stashToggle { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
+  html[data-ui="ro"] :is(#stashToggle, #stashFloat) { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
+  /* 倉庫漂浮（電腦版）：可拖曳標題列移動、拖右下角調整大小 */
+  #stashCard.floating { position: fixed; z-index: 44; width: min(720px, calc(100vw - 16px)); min-width: 280px; min-height: 80px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; resize: both; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
+  #stashCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #stashCard.floating .hint { display: none; }
+  @media (max-width: 640px) { #stashFloat { display: none; } }
   .stash-n { font-size: .8rem; font-weight: 400; color: var(--dim); }
-  .stash-list { display: grid; gap: 6px; margin-bottom: 8px; }
-  .stash-h { margin-top: 6px; font-size: .78rem; font-weight: 700; color: var(--dim); }
+  .stash-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .stash-tabs:empty { display: none; }
+  .stash-tabs button { min-height: 30px; padding: 0 10px; font-size: .82rem; border-radius: 999px; }
+  .stash-tabs button small { margin-left: 3px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .stash-tabs button[aria-selected="true"], html[data-ui] .stash-tabs button[aria-selected="true"] { border-color: var(--primary); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .stash-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 6px; margin-bottom: 8px; }   /* 夠寬就好幾件並排 */
+  .stash-h { grid-column: 1 / -1; margin-top: 6px; font-size: .78rem; font-weight: 700; color: var(--dim); }
   .stash-h:first-child { margin-top: 0; }
   .stash-it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
   .stash-it.on { border-color: var(--green); }
@@ -364,9 +374,9 @@
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
   </div>
   <div class="card" id="stashCard">
-    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashToggle" onclick="toggleStash()"></button></span></h2>
-    <div id="stashBody"><div class="stash-list" id="stashList"></div>
-    <div class="hint">在裝備欄按 📦 存入設定好的裝備（精煉、附魔、附加能力、卡片），按「套用」穿回原本的部位。所有角色共用，只存在這台裝置。</div></div>
+    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashFloat" onclick="toggleStashFloat()" aria-pressed="false"></button><button type="button" class="btn-ghost" id="stashToggle" onclick="toggleStash()"></button></span></h2>
+    <div id="stashBody"><div class="stash-tabs" id="stashTabs" role="tablist" aria-label="倉庫分類"></div><div class="stash-list" id="stashList"></div>
+    <div class="hint">在裝備欄按「📦 存倉」存入設定好的裝備（精煉、附魔、附加能力、卡片），按「套用」穿回原本的部位。所有角色共用，只存在這台裝置。</div></div>
   </div>
   </div><aside class="gear-side">
 
@@ -1157,7 +1167,7 @@ function slotHtml([k, label, kinds], res) {
   if (occ) return `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
   const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" aria-label="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
   const none = gq && !list.some(x => x !== it) ? `<option disabled>（沒有符合「${gq}」的裝備）</option>` : '';
-  let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select>${it ? `<button type="button" class="info-btn" aria-label="物品資訊" title="物品資訊" onclick="infoBtn(event, '${k}')">i</button><button type="button" class="btn-ghost stash-add" title="存入倉庫" aria-label="存入倉庫" onclick="stashAdd('${k}', this)">📦</button>` : ''}</div>`;
+  let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select>${it ? `<button type="button" class="info-btn" aria-label="物品資訊" title="物品資訊" onclick="infoBtn(event, '${k}')">i</button><button type="button" class="btn-ghost stash-add" title="存入倉庫" aria-label="存入倉庫" onclick="stashAdd('${k}', this)">📦 存倉</button>` : ''}</div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   if (typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n]) h += `<img class="coll" src="collection/${GEAR_ICON[it.n]}.png" alt="" width="75" height="100" loading="lazy">`;
@@ -1566,6 +1576,11 @@ function setRef(k, v) { st.slots[k].r = +v; save(); refreshSlots(); }
 // 存的是畫面上看得到的：附魔／附加能力沒開就不存，卡片沒開就不存
 const STASH_KEY = 'roz-gear-stash-v1', STASH_MAX = 300;
 let stashOpen = localStorage.getItem('gear-stash-closed') !== '1';
+// 分類（上面那排）：部位 → 分類
+const STASH_CAT = [['weapon', '武器', ['weapon']], ['shield', '左手', ['shield']], ['head', '頭飾', ['headTop', 'headMid', 'headLow']], ['armor', '鎧甲', ['armor']],
+  ['garment', '披肩', ['garment']], ['shoes', '鞋子', ['shoes']], ['acc', '飾品', ['accR', 'accL']], ['sp', '特殊', ['costume', 'spBoard', 'spPet', 'spLucky']]];
+let stashTab = localStorage.getItem('gear-stash-tab') || '';
+function setStashTab(t) { stashTab = t; localStorage.setItem('gear-stash-tab', t); renderStash(); }
 function readStash() { try { const x = JSON.parse(localStorage.getItem(STASH_KEY)); return Array.isArray(x) ? x.filter(y => y && typeof y.n === 'string' && typeof y.k === 'string') : []; } catch (e) { return []; } }
 const writeStash = list => localStorage.setItem(STASH_KEY, JSON.stringify(list));
 const stashName = x => GEAR_RENAMED[x.n] || x.n;
@@ -1582,7 +1597,9 @@ function stashAdd(k, btn) {
   const x = stashOf(k), list = readStash(), sig = stashSig(x), had = list.find(y => stashSig(y) === sig);
   if (!had) { x.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); list.push(x); if (list.length > STASH_MAX) list.splice(0, list.length - STASH_MAX); writeStash(list); }
   const id = (had || x).id;
-  if (btn) { btn.textContent = had ? '已在倉庫' : '✓ 已存入'; btn.disabled = true; setTimeout(() => { btn.textContent = '📦'; btn.disabled = false; }, 1500); }
+  if (btn) { btn.textContent = had ? '已在倉庫' : '✓ 已存入'; btn.disabled = true; setTimeout(() => { btn.textContent = '📦 存倉'; btn.disabled = false; }, 1500); }
+  // 存進來的不在目前分類：切到它的分類，才看得到
+  if (stashTab && !STASH_CAT.find(c => c[0] === stashTab)[2].includes(k)) { stashTab = (STASH_CAT.find(c => c[2].includes(k)) || [''])[0]; localStorage.setItem('gear-stash-tab', stashTab); }
   renderStash();
   const el = document.querySelector(`.stash-it[data-id="${id}"]`); if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   if (!had) track('gear_stash_add');
@@ -1607,8 +1624,15 @@ function renderStash() {
   $('stashToggle').textContent = stashOpen ? '收合' : '展開';
   $('stashBody').classList.toggle('hidden', !stashOpen);
   if (!stashOpen) return;
-  if (!shown.length) { $('stashList').innerHTML = `<div class="stash-empty">倉庫是空的。</div>`; return; }
+  if (!shown.length) { $('stashTabs').innerHTML = ''; $('stashList').innerHTML = `<div class="stash-empty">倉庫是空的。</div>`; return; }
+  // 分類列：只列有東西的；選的分類沒東西了就回到「全部」
+  const cats = STASH_CAT.map(([id, label, ks]) => [id, label, ks, shown.filter(x => ks.includes(x.k)).length]).filter(c => c[3]);
+  if (!cats.some(c => c[0] === stashTab)) stashTab = '';
+  const tab = (id, label, n) => `<button type="button" class="btn-ghost" role="tab" aria-selected="${stashTab === id}" onclick="setStashTab('${id}')">${label}<small>${n}</small></button>`;
+  $('stashTabs').innerHTML = tab('', '全部', shown.length) + cats.map(([id, label, , n]) => tab(id, label, n)).join('');
+  const inCat = stashTab ? STASH_CAT.find(c => c[0] === stashTab)[2] : null;
   $('stashList').innerHTML = GEAR_SLOTS.map(([k, label]) => {
+    if (inCat && !inCat.includes(k)) return '';
     const xs = shown.filter(x => x.k === k); if (!xs.length) return '';
     const cur = BY_NAME[st.slots[k].n] && !occupiedBy(k) ? stashSig(stashOf(k)) : '';
     return `<div class="stash-h">${label}</div>` + xs.map(x => {
@@ -1633,6 +1657,43 @@ function stashUse(id) {
   if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
   roSel = k; save(); render(); track('gear_stash_use');
 }
+// 倉庫漂浮（電腦版；手機不漂浮）：位置、大小存在 gear-stash-float
+const STASH_FLOAT_KEY = 'gear-stash-float';
+let stashPos = (() => { try { const p = JSON.parse(localStorage.getItem(STASH_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })();
+let stashLast = null;
+const saveStashPos = () => localStorage.setItem(STASH_FLOAT_KEY, stashPos ? JSON.stringify(stashPos) : '');
+function placeStash() {
+  const c = $('stashCard'), on = !!stashPos && !mqMobile.matches;
+  c.classList.toggle('floating', on);
+  $('stashFloat').textContent = on ? '📌 固定' : '🪟 漂浮';
+  $('stashFloat').setAttribute('aria-pressed', String(on));
+  if (!on) { c.style.left = c.style.top = c.style.width = c.style.height = c.style.zIndex = ''; return; }
+  if (stashPos.w && !c.style.width) { c.style.width = stashPos.w + 'px'; c.style.height = stashPos.h ? stashPos.h + 'px' : ''; }
+  const m = 8, w = c.offsetWidth;
+  stashPos.x = Math.round(Math.max(m, Math.min(innerWidth - w - m, stashPos.x)));
+  stashPos.y = Math.round(Math.max(m, Math.min(innerHeight - 60, stashPos.y)));
+  c.style.left = stashPos.x + 'px'; c.style.top = stashPos.y + 'px';
+}
+function toggleStashFloat() {
+  // 預設放左上角（人物狀態漂浮預設在右上）；固定後再漂浮回到上次的位置和大小
+  if (stashPos) { stashLast = stashPos; stashPos = null; } else stashPos = stashLast || { x: 16, y: 72 };
+  if (stashPos && !stashOpen) toggleStash();
+  placeStash(); saveStashPos(); track('gear_stash_float', { on: !!stashPos });
+}
+$('stashCard').querySelector('h2').addEventListener('pointerdown', e => {
+  if (!stashPos || mqMobile.matches || e.button || e.target.closest('button')) return;
+  const h2 = e.currentTarget, dx = e.clientX - stashPos.x, dy = e.clientY - stashPos.y;
+  h2.setPointerCapture(e.pointerId); e.preventDefault();
+  const mv = ev => { stashPos.x = ev.clientX - dx; stashPos.y = ev.clientY - dy; placeStash(); };
+  const up = () => { h2.removeEventListener('pointermove', mv); h2.removeEventListener('pointerup', up); h2.removeEventListener('pointercancel', up); saveStashPos(); };
+  h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
+});
+// 拖右下角改大小時記住（只有使用者拖過才會有 style.width）
+new ResizeObserver(() => {
+  const c = $('stashCard'); if (!stashPos || !c.classList.contains('floating') || !c.style.width) return;
+  const w = Math.round(c.offsetWidth), h = c.style.height ? Math.round(c.offsetHeight) : 0;
+  if (w !== stashPos.w || h !== (stashPos.h || 0)) { stashPos.w = w; stashPos.h = h; clearTimeout(placeStash.t); placeStash.t = setTimeout(saveStashPos, 300); }
+}).observe($('stashCard'));
 async function stashDel(id) {
   const list = readStash(), x = list.find(y => y.id === id); if (!x) return;
   if (!await dialog({ title: '從倉庫刪除？', msg: `${x.r ? `+${x.r} ` : ''}${stashName(x)}`, okText: '刪除' })) return;
@@ -1728,8 +1789,14 @@ $('statCard').querySelector('h2').addEventListener('pointerdown', e => {
   const up = () => { h2.removeEventListener('pointermove', mv); h2.removeEventListener('pointerup', up); h2.removeEventListener('pointercancel', up); saveStatPos(); };
   h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
 });
-window.addEventListener('resize', () => { if (statPos) placeStat(); syncStatFab(); });
-placeStat(); syncStatFab();
+window.addEventListener('resize', () => { if (statPos) placeStat(); if (stashPos) placeStash(); syncStatFab(); });
+mqMobile.addEventListener('change', placeStash);
+placeStat(); syncStatFab(); placeStash();
+// 兩個漂浮視窗疊在一起時，點到的那個放上面
+for (const id of ['statCard', 'stashCard']) $(id).addEventListener('pointerdown', e => {
+  const c = e.currentTarget; if (!c.classList.contains('floating')) return;
+  for (const o of ['statCard', 'stashCard']) $(o).style.zIndex = ''; c.style.zIndex = 46;
+});
 function buildQuickSet() {
   const groups = [...new Set(GEAR_SETS.map(x => x.g))];
   $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
