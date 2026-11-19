@@ -95,12 +95,18 @@
   #statCard.floating > h2 { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
   #statCard.floating > .hint { display: none; }
   .set-wrap:has(> #statCard.floating) { grid-template-columns: minmax(0, 1fr); }
-  #statFab { display: none; position: fixed; right: 12px; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); z-index: 47; width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--primary); background: var(--card); color: var(--text); box-shadow: 0 6px 18px rgba(0, 0, 0, .28); flex-direction: column; align-items: center; justify-content: center; gap: 0; font-size: 1.2rem; line-height: 1.1; padding: 0; cursor: pointer; }
-  #statFab small { font-size: .62rem; color: var(--dim); }
+  /* 手機：右邊的直式拉把，點了人物狀態從右邊滑出（抽屜） */
+  #statFab { display: none; position: fixed; right: 0; top: calc(10dvh + 20px); z-index: 47; width: 30px; padding: 12px 0; border: 1px solid var(--primary); border-right: 0; border-radius: 10px 0 0 10px;
+    background: var(--primary); color: #fff; writing-mode: vertical-rl; font-size: .85rem; font-weight: 700; letter-spacing: .2em; line-height: 30px; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: -3px 3px 12px rgba(0, 0, 0, .25); transition: right .25s ease; min-height: 0; }
   @media (max-width: 640px) {
     #statFab.show { display: flex; }
+    #statFab[aria-expanded="true"] { right: min(360px, 92vw); }
     #statFloat { display: none; }
-    #statCard.pop { position: fixed; z-index: 46; left: 8px; right: 8px; top: 8px; max-height: calc(100dvh - 150px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .35); }
+    #statCard.pop { position: fixed; z-index: 46; top: 10dvh; right: 0; left: auto; width: min(360px, 92vw); max-height: 80dvh; overflow: auto; margin: 0; border-radius: 8px 0 0 8px;
+      box-shadow: -8px 8px 28px rgba(0, 0, 0, .35); transform: translateX(0); transition: transform .25s ease; }
+    #statCard.pop.closing { transform: translateX(100%); }
+    @media (prefers-reduced-motion: reduce) { #statCard.pop, #statFab { transition: none; } }
     #statCard.pop > .hint { display: none; }
   }
   @media (min-width: 900px) { .set-wrap { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
@@ -300,6 +306,7 @@
     </div>
     <div class="hint">左邊填純素質，旁邊是 Job 加成＋裝備加成（打開「啟用 Buff」也會算進去）。右邊依 Renewal 公式，不含藥水。</div>
   </div>
+  <div id="statSpacer" hidden></div>
   </div>
 
   <div class="card hidden" id="buffCard">
@@ -1569,17 +1576,27 @@ function syncStatFab() {
   const fab = $('statFab'), mob = mqMobile.matches;
   if (!mob) statPop = false;
   $('statCard').classList.toggle('pop', statPop);
-  let show = statPop;
-  if (mob && !statPop) { const r = $('statCard').getBoundingClientRect(); show = r.bottom < 60 || r.top > innerHeight - 80; }
-  fab.classList.toggle('show', show);
+  $('statSpacer').hidden = !statPop;   // 面板滑出時原位置留空，下面的內容才不會往上跳
+  fab.classList.toggle('show', mob);
   fab.setAttribute('aria-expanded', String(statPop));
-  fab.innerHTML = statPop ? '✕<small>收起</small>' : '🧍<small>狀態</small>';
+  fab.textContent = statPop ? '收起' : '人物狀態';
 }
-function toggleStatPop() { statPop = !statPop; syncStatFab(); if (statPop) track('gear_stat_pop'); }
+// 收起時先滑出去，動畫結束再放回原位
+function toggleStatPop() {
+  const c = $('statCard');
+  if (!statPop) {
+    // 先放在畫面右邊外面（closing），下一個畫格再拿掉，讓它滑進來
+    $('statSpacer').style.height = c.offsetHeight + 'px'; c.style.transition = 'none'; c.classList.add('closing'); statPop = true; syncStatFab();
+    void c.offsetWidth; c.style.transition = ''; void getComputedStyle(c).transform; requestAnimationFrame(() => c.classList.remove('closing'));
+    track('gear_stat_pop'); return;
+  }
+  statPop = false; $('statFab').setAttribute('aria-expanded', 'false'); $('statFab').textContent = '人物狀態';
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { syncStatFab(); return; }
+  c.classList.add('closing');
+  setTimeout(() => { c.classList.remove('closing'); syncStatFab(); }, 260);
+}
 // 展開時點標題列（遊戲版面右邊的 ✕）也能收起
 $('statCard').querySelector('h2').addEventListener('click', e => { if (statPop && !e.target.closest('button')) toggleStatPop(); });
-let fabRaf = 0;
-window.addEventListener('scroll', () => { if (!fabRaf) fabRaf = requestAnimationFrame(() => { fabRaf = 0; syncStatFab(); }); }, { passive: true });
 mqMobile.addEventListener('change', () => { placeStat(); syncStatFab(); });
 function placeStat() {
   const c = $('statCard'), on = !!statPos && !mqMobile.matches;
