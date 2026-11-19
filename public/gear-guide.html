@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>配裝模擬器使用說明｜RO樂園｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=25">
-<link rel="stylesheet" href="ro.css?v=26">
+<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="ro.css?v=28">
 <script src="ro-ui.js?v=2"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -44,7 +44,7 @@
   <div class="header">
     <div class="brand">
       <h1>配裝模擬器使用說明 <small>by 凌雲閣－師爺</small></h1>
-      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" aria-current="page" href="gear.html">🧩 配裝</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a class="active" aria-current="page" href="gear.html">🧩 配裝</a><a href="skill.html">🌳 技能樹</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
     </div>
     <div class="row">
       <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
@@ -96,8 +96,13 @@
       <li><b>職業／Base 等級</b>：決定清單裡出現哪些裝備；依職業生效的效果（例如巴基力防具、異世之靈 +9）也會跟著換。</li>
       <li><b>Job 等級</b>：用來查職業的素質加成。</li>
       <li><b>設定附魔</b>：開啟後，各部位會出現附魔與附加能力的選單。</li>
-      <li><b>技能已習得</b>：有些效果寫著「習得某技能時」（例如艾音布羅克武器 +9），開啟後才算進加總。</li>
-      <li><b>技能等級</b>：穿上「某技能每 Lv…」的裝備或附魔時，這裡會自動出現該技能的欄位，填入等級就照等級計算。</li>
+      <li><b>設定技能樹</b>：開啟後出現技能樹。「習得某技能時」（例如艾音布羅克武器 +9）和「某技能每 Lv…」（例如驚駭森靈皇后武器、職業精髓附魔）的效果，照技能樹的點數計算。</li>
+    </ul>
+    <h3 class="sub-h">技能樹</h3>
+    <ul>
+      <li>和遊戲的技能視窗一樣分一轉、二轉兩頁。點圖示或＋加點、右鍵或－減點，按住 Shift 一次加滿／歸零；前置技能會自動補上。</li>
+      <li>點技能名稱看遊戲內說明。技能點上限：一轉 49、二轉為 Job 等級 − 1，超過會變紅字。</li>
+      <li>也有獨立的「🌳 技能樹」頁，和配裝是同一份資料，兩邊改哪裡都會同步。</li>
     </ul>
     <h3 class="sub-h">人物狀態</h3>
     <ul>

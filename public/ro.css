@@ -259,3 +259,17 @@ html[data-ui="ro"] .sw-r small { color: #15171c; font-size: 13.5px; }
 html[data-ui="ro"] .eq-tools { gap: 8px; }
 html[data-ui="ro"] .eq-tools .rf { min-height: 28px; max-width: none; }
 html[data-ui="ro"] .eq-tools .field select, html[data-ui="ro"] .eq-tools .gsearch input { min-height: 28px; }
+/* 技能樹：遊戲技能視窗的樣子（白底格子、深藍字） */
+html[data-ui="ro"] .st-page { border: 1px solid #b4b4bc; background: #fff; }
+html[data-ui="ro"] .st-page h3 { margin: 0; padding: 4px 8px; background: #eef1f8; border-bottom: 1px solid #c9c9d1; font-size: 13.5px; color: var(--ro-navy); }
+html[data-ui="ro"] .st-grid { gap: 0; }
+html[data-ui="ro"] .st-cell { border: 0; border-right: 1px solid #ececf1; border-bottom: 1px solid #ececf1; border-radius: 0; background: #fff; }
+html[data-ui="ro"] .st-cell.st-blank { opacity: 1; }
+html[data-ui="ro"] .st-cell.on { background: #e9effc; }
+html[data-ui="ro"] .st-lv b { color: #000; }
+html[data-ui="ro"] .st-cell button { min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-weight: 400; }
+html[data-ui="ro"] .st-cell button:hover { background: none; }
+html[data-ui="ro"] .st-name { font-size: 11.5px; }
+html[data-ui="ro"] .st-lv { font-size: 12px; }
+html[data-ui="ro"] .st-cell .st-lv button { width: 16px; height: 16px; line-height: 14px; border: 1px solid #a5a8b6; border-radius: 50%; background: linear-gradient(#fff, #e8eaf0); font-size: 11px; }
+html[data-ui="ro"] .st-cell .st-lv button:hover { background: linear-gradient(#cbd5e9, #9db0d4 35%, #a8c0ef 60%, #dae4f7); }

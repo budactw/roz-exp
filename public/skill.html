@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RO樂園技能樹模擬器｜凌雲閣－師爺</title>
+<meta name="author" content="凌雲閣－師爺">
+<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="ro.css?v=28">
+<script>{ // 版面：和配裝頁同一個設定（預設遊戲風格）
+  const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
+  if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) gtag('config', 'G-WEJKY0CV80');
+  function track(name, params) { try { gtag('event', name, params || {}); } catch (e) {} }
+</script>
+<style>
+  .set-row { display: grid; grid-template-columns: 1fr 7em; gap: 12px; }
+  .field label { display: block; font-size: .8rem; color: var(--dim); margin-bottom: 4px; }
+  .field select { width: 100%; padding: 0 10px; min-height: 42px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: .95rem; font-family: inherit; }
+  .chars { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars .chip { cursor: pointer; font-size: .85rem; padding: 4px 12px; min-height: 0; font-family: inherit; }
+  .chars .chip small { margin-left: 6px; color: var(--dim); font-size: .75rem; }
+  .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-sm { background: var(--seg-active); color: #fff; border: 0; padding: 0 14px; }
+  .share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--primary); }
+  .share-bar .t { flex: 1 1 auto; font-weight: 700; color: var(--primary); }
+  .sk-ico { float: left; margin: 2px 10px 6px 0; image-rendering: pixelated; }
+  .ro-info { position: fixed; inset: auto; margin: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <h1>RO樂園技能樹模擬器 <span class="beta">Beta</span> <small>by 凌雲閣－師爺</small></h1>
+      <nav class="tabs"><a href="./">⚡ 經驗試算</a><a href="daily.html">📋 每日任務</a><a href="events.html">🎃 期間活動</a><a href="aspd.html">⚔️ 攻速計算</a><a href="gear.html">🧩 配裝</a><a class="active" aria-current="page" href="skill.html">🌳 技能樹</a><a href="kr.html">🇰🇷 韓服資料</a><a href="formula.html">📐 公式</a></nav>
+    </div>
+    <div class="row">
+      <button class="btn-ghost" id="uiBtn" onclick="toggleUi()"></button>
+    </div>
+  </div>
+
+  <div class="share-bar hidden" id="shareBar">
+    <span class="t">👀 正在檢視分享的技能樹，修改不會儲存</span>
+    <span class="row"><button class="btn-sm" onclick="saveShared()">存成我的技能樹</button><button class="btn-ghost" onclick="useNow()">關閉</button></span>
+  </div>
+
+  <div class="card" id="charCard">
+    <h2>👤 角色</h2>
+    <div class="chars" id="chars"></div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ 職業</h2>
+    <div class="set-row">
+      <div class="field"><label for="job">職業</label><select id="job"></select></div>
+      <div class="field"><label for="jobLv">Job 等級</label><input type="number" id="jobLv" min="1" max="70" value="70" inputmode="numeric"></div>
+    </div>
+    <div class="btns"><button class="btn-ghost" onclick="share(this)">🔗 分享這組技能</button><button class="btn-ghost" onclick="resetTree()">↺ 全部重置</button><a class="btn-ghost" style="display:inline-flex;align-items:center;text-decoration:none;" href="gear.html">🧩 到配裝</a></div>
+    <div class="hint">技能點和配裝頁是同一份：在這裡點的技能，配裝頁會自動開啟「設定技能樹」並照著計算。</div>
+  </div>
+
+  <div class="card">
+    <h2>🌳 技能樹</h2>
+    <div id="stTree"></div>
+    <div class="hint">點圖示或＋加點、右鍵或－減點（按住 Shift 一次加滿／歸零），前置技能會自動補上；點名稱看說明。技能點上限：一轉 49、二轉為 Job 等級 − 1。</div>
+  </div>
+
+  <div class="foot">
+    <div class="foot-row">
+      <div class="recruit">🏯 凌雲閣收人，歡迎 DC 私訊 <b>zhuge0520</b> <button class="btn-copy" onclick="copyText('zhuge0520', this)">複製</button></div>
+    </div>
+    <div style="margin-top:8px;">作者：凌雲閣－師爺　·　技能點數規則參考 <a href="https://rz.fharr.com/db/skilltree" target="_blank" rel="noopener" style="color:var(--primary)">幻想廳樂園技能樹</a></div>
+    <div class="privacy">本站是玩家自製的非官方工具，與官方無關。遊戲圖片與文字 © GRAVITY CO., Ltd. &amp; Lee MyoungJin (studio DTDS)，台灣由格雷維蒂互動營運。資料只存在你這台裝置的瀏覽器中。</div>
+  </div>
+</div>
+
+<dialog class="ro-info" id="roInfo" popover="manual" aria-labelledby="roInfoName">
+  <div class="ro-info-h"><span id="roInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo()">×</button></div>
+  <div class="ro-info-b" id="roInfoBody"></div>
+</dialog>
+
+<div class="modal" id="dlg">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><b id="dlgTitle"></b></div>
+    <div class="hint" id="dlgMsg" style="margin-bottom:10px;"></div>
+    <input type="text" id="dlgInput" class="hidden" style="margin-bottom:12px;" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn-ghost" id="dlgCancel">取消</button>
+      <button class="btn-sm" id="dlgOk">確定</button>
+    </div>
+  </div>
+</div>
+
+<script src="skill-data.js?v=1"></script>
+<script src="skill-tree.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
+// ===== 存檔：和配裝頁同一份（不分角色存 roz-gear-v1；角色存在 roz-daily-v1 的 chars[id].gear），這頁只改 job、jl、skt =====
+const KEY = 'roz-gear-v1', CHAR_KEY = 'roz-daily-v1', WHO_KEY = 'roz-gear-who';
+let S = { cur: null, chars: {} }, who = 'free', g = {}, shared = false;
+function readChars() { try { const x = JSON.parse(localStorage.getItem(CHAR_KEY)); if (x && x.chars) return x; } catch (e) {} return { cur: null, chars: {} }; }
+const curChar = () => S.chars[S.cur];
+function load() {
+  S = readChars(); if (S.cur && !S.chars[S.cur]) S.cur = Object.keys(S.chars)[0] || null;
+  who = localStorage.getItem(WHO_KEY) === 'char' && curChar() ? 'char' : 'free';
+  let x = null; if (who === 'char') x = curChar().gear; else try { x = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  g = x && typeof x === 'object' ? JSON.parse(JSON.stringify(x)) : {};
+  g.skt = g.skt && typeof g.skt === 'object' ? g.skt : {}; g.jl = g.jl || 70; g.job = JOBS.includes(g.job) ? g.job : '';
+}
+function save() {
+  if (shared) return;
+  localStorage.setItem(WHO_KEY, who);
+  // 只寫回技能相關欄位，其他配裝內容以存檔裡最新的為準；順便開啟配裝頁的「設定技能樹」
+  if (who !== 'char') { let x = {}; try { x = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {} Object.assign(x, { job: g.job, jl: g.jl, skt: g.skt, sk: true }); if (!x.slots) x.slots = {}; localStorage.setItem(KEY, JSON.stringify(x)); return; }
+  const c = readChars(); if (!c.chars[S.cur]) return;
+  c.chars[S.cur].gear = Object.assign(c.chars[S.cur].gear || { slots: {} }, { job: g.job, jl: g.jl, skt: g.skt, sk: true }); c.cur = S.cur;
+  localStorage.setItem(CHAR_KEY, JSON.stringify(c)); S = c;
+}
+// ===== 角色（和配裝、每日任務共用）=====
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function renderChars() {
+  $('charCard').classList.toggle('hidden', shared); $('shareBar').classList.toggle('hidden', !shared);
+  const chip = (on, click, name, sub) => `<button type="button" class="chip${on ? ' cur' : ''}" onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
+  $('chars').innerHTML = chip(who === 'free', 'switchFree()', '不分角色') +
+    Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, esc(c.name), c.gear && c.gear.job)).join('') +
+    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` + (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button>` : '');
+}
+function useNow() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); shared = false; load(); sync(); render(); }
+function switchFree() { localStorage.setItem(WHO_KEY, 'free'); useNow(); }
+function switchChar(id) { const x = readChars(); if (!x.chars[id]) return; x.cur = id; localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow(); }
+async function addChar() {
+  const name = (await dialog({ title: '新增角色：輸入角色名稱', input: '' }) || '').trim(); if (!name) return;
+  const x = readChars(), id = 'c' + Date.now().toString(36);
+  x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: { slots: {}, job: g.job, jl: g.jl, skt: JSON.parse(JSON.stringify(g.skt)) } }; x.cur = id;
+  localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
+}
+async function renameChar() { const n = (await dialog({ title: '角色改名', input: curChar().name }) || '').trim(); if (!n) return; const x = readChars(); if (x.chars[S.cur]) { x.chars[S.cur].name = n; localStorage.setItem(CHAR_KEY, JSON.stringify(x)); } useNow(); }
+// ===== 分享（#k=…，和配裝頁同一種技能編碼）=====
+const b64e = str => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = str => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), ch => ch.charCodeAt(0)));
+const treeIds = cls => SkillTree.pagesOf(cls).flatMap(p => Object.keys(p.pos).map(Number).sort((a, b) => a - b).map(k => p.pos[k])).filter(sid => SkillTree.fixedLv(sid) == null);
+const pack = () => b64e(JSON.stringify({ j: JOBS.indexOf(g.job) + 1, jl: g.jl, t: treeIds(g.job).map(sid => SkillTree.lvOf(g.skt, sid).toString(36)).join('').replace(/0+$/, '') }));
+function readHash() {
+  const m = location.hash.match(/^#k=([\w-]+)/); if (!m) return false;
+  try { const o = JSON.parse(b64d(m[1])); const job = JOBS[o.j - 1]; if (!job) return false;
+    g = { job, jl: Math.max(1, Math.min(70, +o.jl || 70)), skt: {} };
+    treeIds(job).forEach((sid, i) => { const lv = parseInt((o.t || '')[i] || '0', 36) || 0; if (lv) g.skt[sid] = Math.min(SKILLS[sid].m, lv); });
+    shared = true; return true; } catch (e) { return false; }
+}
+async function share(btn) {
+  if (!g.job) { await dialog({ title: '先選職業', okText: '好', cancel: false }); return; }
+  const url = `${location.origin}${location.pathname}#k=${pack()}`;
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) { try { await navigator.share({ title: 'RO樂園技能樹', text: `RO樂園技能樹（${g.job}）`, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  copyText(`RO樂園技能樹（${g.job}）\n${url}`, btn); track('skill_share');
+}
+async function saveShared() {
+  if (!await dialog({ title: '存成我的技能樹？', msg: `會取代${who === 'char' ? `「${curChar().name}」` : '你目前'}的職業與技能點。`, okText: '存檔' })) return;
+  const keep = g; shared = false; load(); Object.assign(g, keep); save(); useNow();
+}
+async function resetTree() { if (!await dialog({ title: '全部重置？', msg: '這個職業的技能點會全部歸零。' })) return; g.skt = {}; save(); render(); }
+// ===== 畫面 =====
+let SKDESC = null;
+const escH = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function descHtml(lines) {
+  return lines.map(l => { l = l.replace(/<INFO>.*?<\/INFO>/g, '').replace(/<\/?(NAVI|ITEM)>/g, ''); if (l.trim() === '_' || !l.trim()) return '<div>&nbsp;</div>';
+    let out = '', open = false;
+    for (const part of l.split(/(\^[0-9a-fA-F]{6})/)) { if (/^\^[0-9a-fA-F]{6}$/.test(part)) { if (open) out += '</span>'; open = part !== '^000000'; if (open) out += `<span style="color:#${part.slice(1)}">`; } else out += escH(part); }
+    return `<div>${out}${open ? '</span>' : ''}</div>`; }).join('');
+}
+const infoPop = 'popover' in HTMLElement.prototype;
+function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else if (el.open) el.close(); }
+async function showSkillInfo(sid, x, y) {
+  if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } }
+  const el = $('roInfo'), s = SKILLS[sid];
+  $('roInfoName').textContent = `${s.n}　Lv ${SkillTree.lvOf(g.skt, sid)} / ${s.m}`;
+  $('roInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SKDESC[sid]) : '（沒有說明）'}</div>`;
+  if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
+  const r = el.getBoundingClientRect();
+  el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
+  el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#roInfo')) hideInfo(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideInfo(); });
+function render() {
+  renderChars();
+  SkillTree.render($('stTree'), { cls: g.job, jl: g.jl, state: g.skt, onChange: () => { save(); render(); }, onInfo: showSkillInfo });
+}
+function sync() { $('job').value = g.job; $('jobLv').value = g.jl; }
+$('job').innerHTML = `<option value="">選擇職業…</option>` + JOBS.map(j => `<option>${j}</option>`).join('');
+$('job').addEventListener('change', e => { g.job = e.target.value; save(); render(); });
+$('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; g.jl = Math.max(1, Math.min(70, v)); save(); render(); });
+// ===== 共用：對話框、複製、版面 =====
+function dialog({ title, msg = '', input = null, okText = '確定', cancel = true }) {
+  return new Promise(res => {
+    const m = $('dlg'), inp = $('dlgInput');
+    $('dlgTitle').innerText = title; $('dlgMsg').innerText = msg; $('dlgMsg').style.display = msg ? '' : 'none';
+    inp.classList.toggle('hidden', input === null); inp.value = input || ''; $('dlgOk').innerText = okText; $('dlgCancel').style.display = cancel ? '' : 'none';
+    const close = v => { m.classList.remove('open'); $('dlgOk').onclick = $('dlgCancel').onclick = null; res(v); };
+    $('dlgOk').onclick = () => close(input === null ? true : inp.value.trim()); $('dlgCancel').onclick = () => close(null);
+    m.classList.add('open');
+  });
+}
+function copyText(text, btn) {
+  const done = () => { const t = btn.innerText; btn.innerText = '已複製'; setTimeout(() => btn.innerText = t, 1500); };
+  const manual = () => dialog({ title: '請手動複製', input: text.replace(/\n/g, ' '), okText: '關閉', cancel: false });
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(manual); else manual();
+}
+function toggleUi() { const ro = document.documentElement.dataset.ui !== 'ro'; if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui; localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; }
+$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲風格';
+if ((localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+window.addEventListener('hashchange', () => { if (readHash()) { sync(); render(); } });
+
+load(); readHash(); sync(); render();
+</script>
+<script src="report.js?v=5"></script>
+</body>
+</html>

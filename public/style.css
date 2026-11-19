@@ -292,3 +292,26 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
   .tabs { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; }
   .tabs a { padding: 7px 4px; font-size: .8rem; text-align: center; }
 }
+
+/* 技能樹（skill-tree.js；技能樹頁、配裝頁共用） */
+.st-pages { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); }
+.st-page h3 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 6px; font-size: .95rem; }
+.st-pt { margin-left: auto; font-size: .82rem; font-weight: 400; color: var(--dim); font-variant-numeric: tabular-nums; }
+.st-pt.over { color: var(--danger); font-weight: 700; }
+.st-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.st-cell { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; padding: 4px 2px 3px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--tile-bg); }
+.st-cell.st-blank { border-style: dashed; opacity: .35; background: transparent; }
+.st-cell.on { border-color: var(--primary); background: var(--soft); }
+.st-cell.fixed { opacity: .75; }
+.st-cell button { min-height: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.st-ico { width: 30px; height: 30px; display: grid; place-items: center; }
+.st-ico img { image-rendering: pixelated; }
+.st-cell:not(.on) .st-ico img { filter: grayscale(.7) opacity(.75); }
+.st-name { max-width: 100%; font-size: .7rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.st-name:hover { color: var(--primary); text-decoration: underline; }
+.st-lv { display: flex; align-items: center; gap: 2px; font-size: .75rem; font-variant-numeric: tabular-nums; }
+.st-lv b { color: var(--primary); }
+.st-lv small { color: var(--dim); }
+.st-cell .st-lv button { width: 18px; height: 18px; line-height: 16px; border-radius: 50%; border: 1px solid var(--input-border); font-size: .75rem; }
+.st-empty { padding: 16px; text-align: center; color: var(--dim); }
+@media (max-width: 560px) { .st-grid { gap: 3px; } .st-name { font-size: .62rem; } .st-lv small { display: none; } }
