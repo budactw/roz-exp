@@ -297,6 +297,7 @@
 <script src="skill-tree.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
+<script src="card-data.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -372,7 +373,9 @@ function packState() {
     const x = st.slots[k], it = BY_NAME[x.n]; if (!it) continue;
     o.s[k] = [itemCode(x.n), x.r];
     const e = (x.e || []).map((nm, i) => nm ? enchList(it, i).indexOf(nm) + 1 : 0);
-    if (st.ench && (e.some(Boolean) || x.a)) o.s[k].push(e, x.a || 0);
+    const cd = (x.cd || []).slice(0, holesOf(it)).map(v => +v || 0);
+    if (st.ench && (e.some(Boolean) || x.a) || cd.some(Boolean)) o.s[k].push(st.ench ? e : [], st.ench ? x.a || 0 : 0);
+    if (cd.some(Boolean)) o.s[k].push(cd.join('.').replace(/(\.0)+$/, ''));
   }
   if (COSTUME_POS.some(([k]) => st.cs[k])) o.c = COSTUME_POS.map(([k, , pos]) => st.cs[k] ? COSTUME_STONE[pos].findIndex(x => x.n === st.cs[k]) + 1 : 0);
   if (st.sk) o.k = 1;
@@ -393,7 +396,8 @@ function unpackState(code) {
     const it = BY_NAME[nm]; if (!it) continue;
     const e = Array.isArray(v[2]) ? v[2].slice(0, 4).map((x, i) => typeof x === 'number' ? (enchList(it, i)[x - 1] || '') : typeof x === 'string' ? x : '') : [];
     const a = v[3] && typeof v[3] === 'object' && Array.isArray(v[3].v) ? { p: n(v[3].p, 0, 0, 9), v: v[3].v.slice(0, 5).map(x => Array.isArray(x) ? [n(x[0], -1, -1, 99), n(x[1], 0, 0, 9999)] : [-1, 0]) } : null;
-    s.slots[k] = { n: nm, r: it.ref ? n(v[1], 0, 0, maxRef(it)) : 0, e, a };
+    const cd = typeof v[4] === 'string' ? v[4].split('.').map(x => CARDS[x] ? +x : 0) : [];
+    s.slots[k] = { n: nm, r: it.ref ? n(v[1], 0, 0, maxRef(it)) : 0, e, a, cd };
   }
   if (Array.isArray(o.c)) COSTUME_POS.forEach(([k, , pos], i) => { const x = o.c[i]; s.cs[k] = typeof x === 'number' ? (COSTUME_STONE[pos][x - 1] || {}).n || '' : typeof x === 'string' ? x : ''; });
   s.sk = !!o.k;
@@ -477,6 +481,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
+  ['2026/11/20', '新增卡片：依洞數插卡（388 張，取自遊戲客戶端），效果與套卡自動加總'],
   ['2026/11/20', '新增技能樹（設定裡開啟，也有獨立頁面）；技能相關效果照技能樹點數計算；分享連結縮短'],
   ['2026/11/20', '新增人物狀態面板、角色（和每日任務共用）、Job 等級；一鍵套裝與整套精煉移到裝備上方'],
   ['2026/11/19', '附魔「精髓」的技能等級、盔甲精煉加成改為自動計算；新增使用說明'],
@@ -517,7 +522,7 @@ function splitLabel(label) {
 }
 // 同一種效果在遊戲內有不同寫法，加總時統一成同一個名稱
 const C_ALIAS = { '十字驅魔傷害': '十字驅魔攻擊傷害', '強酸投擲傷害': '強酸攻擊傷害', '對暗屬性攻擊抗性': '暗屬性攻擊抗性' };
-const normLabel = x => { x = x.replace(/^受(?!到)/, '受到').replace('的所有傷害', '的傷害').replace(/(敵人|魔物)((?:物理|魔法|物理／魔法)?傷害#?)$/, '$1的$2'); return C_ALIAS[x] || x; };
+const normLabel = x => { x = x.replace(/的?物理攻擊力$/, '的物理傷害').replace(/(型|族|屬性)(?:魔物|敵人)的(物理|魔法|物理／魔法)?傷害/, '$1的$2傷害').replace(/^對(.+?屬性)(?:攻擊)?的抗性$/, '$1攻擊抗性').replace(/^受(?!到)/, '受到').replace('的所有傷害', '的傷害').replace(/(敵人|魔物)((?:物理|魔法|物理／魔法)?傷害#?)$/, '$1的$2'); return C_ALIAS[x] || x; };
 function splitC(c) { const o = {}; for (const [k, v] of Object.entries(c || {})) for (const x of splitLabel(k).map(normLabel)) o[x] = (o[x] || 0) + v; return o; }
 const pfTimes = (it, r) => it.pf ? Math.max(0, r - it.pf[0] + 1) : 0;
 function add(to, eff, notes) {
@@ -527,6 +532,7 @@ function add(to, eff, notes) {
     else if (k === '_job') { for (const [j, e] of v) { if (!st.job) notes && notes.push(`${j}：${fmtEff(e)}（選職業後才加總）`); else if (jobIn(j)) add(to, e, notes); } }
     else if (k === '_lv') add(to, mul(v[1], Math.floor(st.lv / v[0])), notes);
     // _rf: [每 N 精煉, 能力, 上限]＝依「這件裝備」的精煉值（例如放在 _job 裡的職業限定效果）
+    else if (k === '_rq') { for (const [n_, e] of v) if (curRef >= n_) add(to, e, notes); }
     else if (k === '_rf') { const t = Math.floor(Math.min(curRef, v[2] || 99) / v[0]); if (t) add(to, mul(v[1], t), notes); }
     // _sk: [[習得條件, 能力], …]＝開啟「技能已習得」才加總；_sl: [[技能, 每 N 級, 能力], …]＝依設定的技能等級
     else if (k === '_sk') { for (const [c, e] of v) { if (!skMet(c)) notes && notes.push(`${c}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '開啟「設定技能樹」後加總'}）`); else { const nt = []; add(to, e, nt); nt.forEach(x => notes && notes.push(`${c}：${x}`)); } } }
@@ -555,6 +561,7 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_c' ? Object.entries(v).map(([a, b]) => cLabel(a) + ' ' + cVal(a, b)).join('、') :
   k === '_job' ? v.map(([j, e]) => `${j}：${fmtEff(e)}${st.job && jobIn(j) ? ' ✓' : ''}`).join('；') :
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
+  k === '_rq' ? v.map(([n_, e]) => `精煉 +${n_} 以上：${fmtEff(e)}${curRef >= n_ ? ' ✓' : ''}`).join('；') :
   k === '_rf' ? `精煉每 +${v[0]}：${fmtEff(v[1])}${v[2] ? `（最多算到 +${v[2]}）` : ''}（目前 ×${Math.floor(Math.min(curRef, v[2] || 99) / v[0])}）` :
   k === '_sk' ? v.map(([c, e]) => `${c}：${fmtEff(e)}${skMet(c) ? ' ✓' : ''}`).join('；') :
   k === '_sl' ? v.map(([sk, per, e]) => `${slText(sk, per)}：${fmtEff(e)}（目前 Lv ${skLv(sk)}）`).join('；') :
@@ -572,6 +579,7 @@ function equipped() { return GEAR_SLOTS.map(([k]) => ({ slot: k, it: BY_NAME[st.
 const refOf = n => { const e = equipped().find(x => x.it.n === n); return e && e.it.ref ? e.r : 0; };
 
 function compute() {
+  const cardNames = [];
   const all = {}, notes = [], names = equipped().map(x => x.it.n), combos = [], per = {}, over = [0, 0];
   for (const { slot, it, r } of equipped()) {
     curRef = r;
@@ -584,6 +592,7 @@ function compute() {
     for (const [n, eff] of Object.entries(it.r || {})) if (r >= +n) add(tot, eff, nt);
     for (const x of enchOn(slot, it, r)) add(tot, x.eff, nt);
     for (const x of addonOn(slot, it)) add(tot, x.eff, nt);
+    for (const [, id] of cardsOn(slot, it)) { const cn = []; curRef = r; add(tot, CARDS[id].e, cn); cn.forEach(x => notes.push(`${CARDS[id].n}：${x}`)); cardNames.push(CARDS[id].n); }
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
@@ -614,7 +623,15 @@ function compute() {
     if (eachOn) add(tot, s.each[1]);
     setInfo.push({ s, have, full, sum, sumOn, eachOn });
   }
-  return { tot, notes, setInfo, combos, per, over };
+  // 套卡：說明裡的「和 X 卡片一起裝備時」
+  const cardSets = [];
+  for (const cs of typeof CARD_SETS !== 'undefined' ? CARD_SETS : []) {
+    const have = cs.cards.filter(n => cardNames.includes(n)); if (!have.length) continue;
+    const ok = have.length === cs.cards.length;
+    if (ok) { const cn = []; add(tot, cs.b, cn); cn.forEach(x => notes.push(`套卡：${x}`)); }
+    cardSets.push({ cs, have, ok });
+  }
+  return { tot, notes, setInfo, combos, per, over, cardSets };
 }
 
 // ===== 服飾附魔石（特殊裝備）=====
@@ -643,6 +660,27 @@ function stoneHtml(k) {
 }
 // 只有附魔石的部位（頭中、頭下、披肩）
 const stoneCard = ([k, label]) => `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b></div>${stoneHtml(k)}</div>`;
+
+// ===== 卡片（card-data.js）=====
+const holesOf = it => { const h = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0; return Math.min(4, +String(h || 0).split('～').pop() || 0); };
+const CARD_POS = { weapon: 'weapon', headTop: 'head', headMid: 'head', headLow: 'head', armor: 'armor', garment: 'garment', shoes: 'shoes', accR: 'acc', accL: 'acc' };
+const cardPos = (k, it) => k === 'shield' ? (it.s === 'weapon' || it.s === 'weaponL' ? 'weapon' : 'shield') : CARD_POS[k] || null;
+const CARD_LIST = {};   // 部位 → [編號]（照名稱排序）
+for (const [id, c] of Object.entries(typeof CARDS !== 'undefined' ? CARDS : {})) (CARD_LIST[c.p] = CARD_LIST[c.p] || []).push(+id);
+for (const l of Object.values(CARD_LIST)) l.sort((a, b) => CARDS[a].n.localeCompare(CARDS[b].n, 'zh-Hant'));
+// 這件裝備插了哪些卡：[[第幾洞, 卡片編號]]
+function cardsOn(k, it) {
+  const p = cardPos(k, it), n = holesOf(it); if (!p || !n) return [];
+  return (st.slots[k].cd || []).slice(0, n).map((id, i) => [i, id]).filter(([, id]) => CARDS[id] && CARDS[id].p === p);
+}
+function setCard(k, i, v) { const cd = st.slots[k].cd = (st.slots[k].cd || []).slice(); cd[i] = +v || 0; save(); render(); }
+function cardHtml(k, it) {
+  const p = cardPos(k, it), n = holesOf(it); if (!p || !n) return '';
+  const cd = st.slots[k].cd || [], list = CARD_LIST[p] || [];
+  return `<div class="addon"><div class="addon-h">卡片</div>` + Array.from({ length: n }, (_, i) =>
+    `<div class="ench-row"><label for="card-${k}-${i}">第${'一二三四'[i]}洞</label><select id="card-${k}-${i}" onchange="setCard('${k}', ${i}, this.value)"><option value="">（無）</option>` +
+    list.map(id => `<option value="${id}"${id === cd[i] ? ' selected' : ''}>${CARDS[id].n}</option>`).join('') + `</select></div>`).join('') + `</div>`;
+}
 
 // ===== 附魔 =====
 // GEAR_ENCH（enchant-data.js）：[{ label, test(it), slots: [{ name, parts: { armor: [[最低精煉, [選項…]], …], … } }] }]
@@ -777,6 +815,7 @@ function slotBody(k, res) {
   }
   for (const x of enchOn(k, it, r)) eff += li('on', `附魔・${x.s.name}`, `${x.n}：${x.txt}`);
   for (const x of addonOn(k, it)) eff += li('on', `附加・${x.line}`, fmtEff(x.eff));
+  curRef = r; for (const [i, id] of cardsOn(k, it)) eff += li('on', `卡片・第${'一二三四'[i]}洞`, `${CARDS[id].n}：${fmtEff(CARDS[id].e) || '（沒有可加總的效果）'}`);
   const full = res.setInfo.filter(x => x.full).map(x => x.s);
   // 只列有關的套裝：穿齊的 → 已穿 2 件以上的 → 目前職業能穿的；都沒有就只寫可搭幾組
   const mySets = GEAR_SETS.filter(s => s.items.includes(it.n));
@@ -814,7 +853,7 @@ function slotHtml([k, label, kinds], res) {
   if (typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n]) h += `<img class="coll" src="collection/${GEAR_ICON[it.n]}.png" alt="" width="75" height="100" loading="lazy">`;
   h += `<div class="meta">${b.meta}</div>`;
   if (it.ref) h += `<div class="rf"><span class="rl" aria-hidden="true">精煉</span><input type="range" min="0" max="${maxRef(it)}" value="${cur.r}" oninput="setRef('${k}', this.value)" onchange="render()" aria-label="${label}精煉"><span class="rv">+${cur.r}</span></div>`;
-  h += enchHtml(k, it, cur.r) + addonHtml(k, it);
+  h += enchHtml(k, it, cur.r) + addonHtml(k, it) + cardHtml(k, it);
   return h + `<ul class="eff">${b.eff}</ul></div>`;
 }
 
@@ -896,7 +935,10 @@ function renderResult(res) {
   const comboHtml = combos.filter(({ it, ok }) => ok || (it.w2 || []).length === 1).map(({ it, c, ok, sum }) => `<div class="setc"><span class="nm">${it.n}</span>　＋ ${c.with.join('＋')}　${ok ? '<span class="ok">✓</span>' : `<span class="miss">缺：${c.with.filter(n => !equipped().some(x => x.it.n === n)).join('、')}</span>`}<br>` +
     (Object.keys(c.b).length ? `<span class="${ok ? 'ok' : 'no'}">${fmtEff(c.b)}</span>` : '') + c.sums.map(([n, e]) => { const on = ok && sum >= n;
       return `<br><span class="${on ? 'ok' : 'no'}">精煉總和 ${ok ? `${sum}／${n}` : n}${on ? ' ✓' : ok ? `（再 +${n - sum}）` : ''}：${fmtEff(e)}</span>`; }).join('') + `</div>`);
-  const all = setHtml.concat(comboHtml).map(h => h.replace(/(<br>)+/g, '<br>'));
+  const cardSetHtml = (res.cardSets || []).filter(x => x.ok || x.have.length * 2 >= x.cs.cards.length).map(({ cs, have, ok }) =>
+    `<div class="setc"><span class="nm">套卡</span>　${ok ? `<span class="ok">${cs.cards.length}／${cs.cards.length} 張 ✓</span>` : `<span class="no">${have.length}／${cs.cards.length} 張</span>　<span class="miss">缺：${cs.cards.filter(n => !have.includes(n)).join('、')}</span>`}<br>` +
+    `<span class="${ok ? 'ok' : 'no'}">${cs.cards.join('＋')}：${fmtEff(cs.b)}</span></div>`);
+  const all = setHtml.concat(comboHtml, cardSetHtml).map(h => h.replace(/(<br>)+/g, '<br>'));
   $('sets').innerHTML = all.length ? all.join('') : `<div class="empty">沒有穿到任何套裝或搭配的部件。</div>`;
   const cEnt = Object.entries(cAll).filter(([, v]) => v).sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant'));
   $('cTotals').innerHTML = cEnt.length ? cEnt.map(([a, b]) => `<li><span>${cLabel(a)}</span><b>${cVal(a, b)}</b></li>`).join('') : `<li><span>無</span></li>`;
@@ -1044,9 +1086,10 @@ function infoExtra(k, it, r) {
   const row = (t, body) => `<div><span class="t">${t}</span>${body}</div>`;
   const en = enchOn(k, it, r).map(x => row(x.s.name, `${x.n}${x.txt && x.txt !== x.n ? `：${x.txt}` : ''}`));
   const ad = addonOn(k, it).map(x => row(x.line, fmtEff(x.eff)));
+  const cd = cardsOn(k, it).map(([i, id]) => row(`第${'一二三四'[i]}洞`, CARDS[id].n));
   const stone = k === 'costume' && stoneOf(k) && stoneJobOk(stoneOf(k)) ? [row('附魔石', `${stoneOf(k).n}：${stoneOf(k).t}`)] : [];
   const box = (title, rows) => rows.length ? `<div class="ro-ench"><b>${title}</b>${rows.join('')}</div>` : '';
-  return box('附魔', en.concat(stone)) + box('附加能力', ad);
+  return box('附魔', en.concat(stone)) + box('附加能力', ad) + box('卡片', cd);
 }
 function infoBtn(e, k) { const r = e.currentTarget.getBoundingClientRect(); showInfo(k, r.right - 440, r.bottom - 4); }
 function roCtx(e, k) { const cur = st.slots[k]; if (!cur || !BY_NAME[cur.n]) return true; e.preventDefault(); showInfo(k, e.clientX, e.clientY); return false; }

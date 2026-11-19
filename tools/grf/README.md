@@ -35,3 +35,19 @@ node tools/grf/build-slots.js /tmp/items.json public/gear-data.js public/slot-da
 node -e "eval(require('fs').readFileSync('public/gear-data.js','utf8')+';global.G=GEAR_DB');console.log(JSON.stringify(G.map(x=>x.n)))" > /tmp/gear-names.json
 python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json public/icons public/icon-data.js public/collection public/desc-data.json
 ```
+
+## 卡片
+
+`public/card-data.js`：客戶端說明「系列：卡片」的物品，說明文字用 `tools/lib/effparse.js`（和附魔同一套規則）轉成效果，「和 X 卡片一起裝備時」轉成套卡：
+
+```bash
+node tools/grf/build-cards.js /tmp/items.json public/gear-data.js public/card-data.js
+```
+
+## 技能樹
+
+`public/skill-data.js`、`public/skill-desc.json`、`public/skillicons/`：
+
+```bash
+python -I tools/grf/build-skills.py <data.grf> public/skill-data.js public/skill-desc.json public/skillicons
+```
