@@ -105,7 +105,10 @@
   .bf { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
   .bf label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; }
   .bf-bar { display: flex; flex-wrap: wrap; gap: 4px; }
-  .bf-st { display: inline-flex; padding: 2px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); }
+  .bf-st { position: relative; display: inline-flex; padding: 2px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); cursor: help; }
+  .bf-tip { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: max-content; max-width: min(280px, 80vw); padding: 6px 9px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card); color: var(--text); font-size: .8rem; line-height: 1.5; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+  .bf-tip b { display: block; color: var(--primary); }
+  .bf-st:hover .bf-tip, .bf-st:focus .bf-tip { display: block; }
   .bf-ic { width: 24px; height: 24px; flex-shrink: 0; image-rendering: pixelated; }
   .bf-food label > span { display: flex; align-items: center; gap: 4px; }
   .bf input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; margin: 0; }
@@ -445,10 +448,11 @@ function renderBuff() {
   $('buffToggle').textContent = buffOpen ? '收合' : '展開';
   $('buffWrap').classList.toggle('hidden', !buffOpen);
   // 收合時：像遊戲畫面右上角的狀態圖示，一排列出目前生效的 Buff
-  const bar = st.buff && !buffOpen ? BUFFS.filter(b => st.bf[b.id] && buffShown(b) && !buffNa(b)).map(b => [b.ic ? `icons/${b.ic}` : `skillicons/${b.sk}`, b.n + (b.max ? ` Lv${st.bf[b.id]}` : '')])
-    .concat(BUFF_FOOD.filter(x => st.bf['f' + x]).map(x => [`icons/${BUFF_FOOD_IC[x]}`, `${x} 料理 +${st.bf['f' + x]}`])) : [];
+  // 每個圖示：[圖, 名稱, 效果說明]；滑鼠移上去（或用鍵盤、手機點一下）顯示說明
+  const bar = st.buff && !buffOpen ? BUFFS.filter(b => st.bf[b.id] && buffShown(b) && !buffNa(b)).map(b => [b.ic ? `icons/${b.ic}` : `skillicons/${b.sk}`, b.n + (b.max ? ` Lv${st.bf[b.id]}` : ''), fmtEff(b.e(st.bf[b.id]))])
+    .concat(BUFF_FOOD.filter(x => st.bf['f' + x]).map(x => [`icons/${BUFF_FOOD_IC[x]}`, `${x} 料理`, `${x} +${st.bf['f' + x]}${st.bf.fc ? '（和頂級料理套餐取較高的）' : ''}`])) : [];
   $('buffBar').classList.toggle('hidden', !bar.length && buffOpen);
-  $('buffBar').innerHTML = bar.length ? bar.map(([src, t]) => `<span class="bf-st" title="${t}">${bfIcon(src).replace('alt=""', `alt="${t}"`)}</span>`).join('') : buffOpen ? '' : '<span class="hint">還沒有勾選 Buff</span>';
+  $('buffBar').innerHTML = bar.length ? bar.map(([src, t, d]) => `<span class="bf-st" tabindex="0">${bfIcon(src).replace('alt=""', `alt="${t}"`)}<span class="bf-tip" role="tooltip"><b>${t}</b>${d}</span></span>`).join('') : buffOpen ? '' : '<span class="hint">還沒有勾選 Buff</span>';
   if (!st.buff || !buffOpen) return;
   const opt = (n, cur, fmt) => Array.from({ length: n }, (_, i) => `<option value="${i + 1}"${i + 1 === cur ? ' selected' : ''}>${fmt(i + 1)}</option>`).join('');
   const item = b => {
