@@ -15,5 +15,14 @@
   put('spBoard', '夜歌-繪師典藏板', 0); st.slots.spBoard.r = 10;
   put('spPet', '飼養戒指', 0); st.slots.spPet.e = ['溜溜猴 Lv2', '獸人英雄 Lv2'];
   put('spLucky', '幸運髮飾', 0);
+  // 卡片（啟用卡片）：飾品左右湊「驚駭森靈＋黑暗驚駭森靈」套卡
+  st.card = true;
+  const cid = n => +Object.keys(CARDS).find(k => CARDS[k].n === n);
+  const firstOf = p => +Object.keys(CARDS).find(k => CARDS[k].p === p && !CARDS[k].c && Object.keys(CARDS[k].e).some(x => x !== '_t'));
+  st.slots.weapon.cd = [cid('海葵卡片')]; st.slots.armor.cd = [cid('馬克卡片')]; st.slots.garment.cd = [cid('獸人嬰兒卡片')];
+  st.slots.shoes.cd = [firstOf('shoes')]; st.slots.accR.cd = [cid('驚駭森靈卡片')]; st.slots.accL.cd = [cid('黑暗驚駭森靈卡片')];
+  // 符文石碑（啟用符文）：Ⅳ 廢礦 +12
+  st.rune = true; st.rs = RUNE_SETS.find(x => x.n === '廢礦').id; st.rl = 12;
+  $('useCard').checked = true; $('useRune').checked = true;
   save(); syncInputs(); render();
 })();

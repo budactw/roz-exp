@@ -572,7 +572,7 @@ function splitLabel(label) {
 }
 // 同一種效果在遊戲內有不同寫法，加總時統一成同一個名稱
 const C_ALIAS = { '十字驅魔傷害': '十字驅魔攻擊傷害', '強酸投擲傷害': '強酸攻擊傷害', '對暗屬性攻擊抗性': '暗屬性攻擊抗性' };
-const normLabel = x => { x = x.replace(/的?物理攻擊力$/, '的物理傷害').replace(/(型|族|屬性)(?:魔物|敵人)的(物理|魔法|物理／魔法)?傷害/, '$1的$2傷害').replace(/^對(.+?屬性)(?:攻擊)?的抗性$/, '$1攻擊抗性').replace(/^受(?!到)/, '受到').replace('的所有傷害', '的傷害').replace(/(敵人|魔物)((?:物理|魔法|物理／魔法)?傷害#?)$/, '$1的$2'); return C_ALIAS[x] || x; };
+const normLabel = x => { x = x.replace(/的?物理攻擊力$/, '的物理傷害').replace(/(型|族|屬性)(?:魔物|敵人|怪物)的(物理|魔法|物理／魔法)?傷害/, '$1的$2傷害').replace(/^對(.+?屬性)(?:攻擊)?的抗性$/, '$1攻擊抗性').replace(/^受(?!到)/, '受到').replace('的所有傷害', '的傷害').replace(/(敵人|魔物)((?:物理|魔法|物理／魔法)?傷害#?)$/, '$1的$2'); return C_ALIAS[x] || x; };
 function splitC(c) { const o = {}; for (const [k, v] of Object.entries(c || {})) for (const x of splitLabel(k).map(normLabel)) o[x] = (o[x] || 0) + v; return o; }
 const pfTimes = (it, r) => it.pf ? Math.max(0, r - it.pf[0] + 1) : 0;
 function add(to, eff, notes) {
