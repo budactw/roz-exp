@@ -200,7 +200,7 @@
     <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 設定附魔</label>
     <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 設定技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
-    <div class="btns"><button class="btn-ghost" onclick="clearAll()">🗑️ 全部卸下</button></div>
+    <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button></div>
   </div>
 
   <div class="card" id="statCard">
@@ -1128,7 +1128,12 @@ $('quickSet').addEventListener('change', e => {
   }
   track('gear_quick_set', { set: s.label }); save(); render();
 });
-function clearAll() { for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 }; st.cs = {}; save(); render(); }
+// 全部重置：裝備、精煉、附魔、服飾附魔石、素質、技能、職業與等級都回到預設（角色名單不動）
+async function clearAll() {
+  const who_ = who === 'char' && curChar() ? `「${curChar().name}」的` : '';
+  if (!await dialog({ title: '全部重置？', msg: `${who_}職業、等級、素質、裝備、附魔與技能點都會清空，無法復原。`, okText: '重置' })) return;
+  st = DEFAULT(); fixState(); save(); syncInputs(); render(); track('gear_reset');
+}
 
 // ===== 共用：複製、主題 =====
 function copyText(text, btn) {
