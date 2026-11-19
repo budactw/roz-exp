@@ -329,6 +329,7 @@
 <script src="slot-data.js?v=2"></script>
 <script src="aspd-data.js?v=1"></script>
 <script src="job-bonus.js?v=1"></script>
+<script src="hpsp-data.js?v=1"></script>
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
 <script src="icon-data.js?v=2"></script>
@@ -960,8 +961,15 @@ function statusOf(tot) {
     def: [Math.floor((lv + S.VIT) / 2 + S.AGI / 5), tot.DEF || 0],
     mdef: [Math.floor(S.INT + lv / 4 + (S.VIT + S.DEX) / 5), tot.MDEF || 0],
     flee: [100 + lv + S.AGI + Math.floor(S.LUK / 5) + (tot.FLEE || 0), 1 + Math.floor(S.LUK / 10) + (c['完全迴避#'] || 0)],
-    aspd: null,
+    aspd: null, hp: null, sp: null, hpsure: false,
   };
+  // HP／SP：基礎（hpsp-data.js）×（1 + VIT 或 INT ÷ 100）＋ 裝備加的，再乘裝備的 %
+  const hs = st.job && typeof HPSP !== 'undefined' && HPSP[st.job], li = Math.min(200, Math.max(1, lv)) - 1;
+  if (hs) {
+    out.hp = Math.floor((Math.floor(hs.hp[li] * (100 + S.VIT) / 100) + (tot.MHP || 0)) * (100 + (tot.MHPp || 0)) / 100);
+    out.sp = Math.floor((Math.floor(hs.sp[li] * (100 + S.INT) / 100) + (tot.MSP || 0)) * (100 + (tot.MSPp || 0)) / 100);
+    out.hpsure = !!hs.ok && lv >= hs.ok;
+  }
   // ASPD：和攻速計算頁同一套公式（不含藥水、Buff）
   const ac = st.job && typeof ASPD_DATA !== 'undefined' && ASPD_DATA.classes.find(x => x.name === (ASPD_CLS[st.job] || st.job));
   if (ac) {
@@ -979,7 +987,8 @@ function renderStatus(res) {
   const o = statusOf(res.tot), sgn = n => n >= 0 ? `+ ${n}` : `− ${-n}`;
   for (const s of PS) { const b = o.S[s] - (st.ps[s] || 0); $('sb-' + s).textContent = b ? sgn(b) : ''; }
   const row = (k, v) => `<b>${k}</b><span>${v}</span>`, pair = ([a, b]) => `${a} <small>${sgn(b)}</small>`;
-  $('swR').innerHTML = row('ATK', pair(o.atk)) + row('MATK', pair(o.matk)) + row('HIT', o.hit) + row('CRI', o.cri) +
+  const approx = o.hpsure ? '' : '<small title="這個職業、等級的 HP／SP 還沒和遊戲內對照確認">約 </small>';
+  $('swR').innerHTML = (o.hp != null ? row('HP', approx + o.hp) + row('SP', approx + o.sp) : '') + row('ATK', pair(o.atk)) + row('MATK', pair(o.matk)) + row('HIT', o.hit) + row('CRI', o.cri) +
     row('DEF', pair(o.def)) + row('MDEF', pair(o.mdef)) + row('FLEE', pair(o.flee)) + row('ASPD', o.aspd ?? `<small>${st.job ? '—' : '選職業後顯示'}</small>`);
 }
 function renderResult(res) {

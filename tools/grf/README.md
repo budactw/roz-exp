@@ -59,6 +59,14 @@ python3 -I tools/grf/card-class.py <rathena>/db/re/item_db_etc.yml <rathena>/db/
 node tools/grf/build-runes.js /tmp/rune-sets.json public/gear-data.js public/rune-data.js
 ```
 
+## HP／SP
+
+`public/hpsp-data.js`：基礎 HP／SP，由 rAthena 的 `db/pre-re/job_basepoints.yml`、`db/re/job_basepoints.yml` 換算（規則見 `build-hpsp.py` 開頭）：
+
+```bash
+python3 -I tools/grf/build-hpsp.py <rathena>/db/pre-re/job_basepoints.yml <rathena>/db/re/job_basepoints.yml public/hpsp-data.js
+```
+
 ## 技能樹
 
 `public/skill-data.js`、`public/skill-desc.json`、`public/skillicons/`：
