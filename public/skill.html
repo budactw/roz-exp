@@ -7,7 +7,7 @@
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=28">
 <link rel="stylesheet" href="ro.css?v=29">
-<script>{ // 版面：和配裝頁同一個設定（預設遊戲風格）
+<script>{ // 版面：和配裝頁同一個設定（預設遊戲版面）
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
@@ -215,8 +215,8 @@ function copyText(text, btn) {
   const manual = () => dialog({ title: '請手動複製', input: text.replace(/\n/g, ' '), okText: '關閉', cancel: false });
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(manual); else manual();
 }
-function toggleUi() { const ro = document.documentElement.dataset.ui !== 'ro'; if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui; localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; }
-$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲風格';
+function toggleUi() { const ro = document.documentElement.dataset.ui !== 'ro'; if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui; localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲版面'; }
+$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲版面';
 if ((localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 window.addEventListener('hashchange', () => { if (readHash()) { sync(); render(); } });
 

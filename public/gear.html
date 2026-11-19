@@ -7,7 +7,7 @@
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=28">
 <link rel="stylesheet" href="ro.css?v=29">
-<script>{ // 版面：預設遊戲風格；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
+<script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
 <!-- Google tag (gtag.js) -->
@@ -538,7 +538,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
   ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態、角色、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
-  ['2026/11/19', '新版面：遊戲風格；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
+  ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
 ];
@@ -1065,7 +1065,7 @@ function render() {
     spSlots.filter(s => s[0] !== 'costume').map(s => slotHtml(s, res)).join('');
   renderResult(res); renderEquipWin(res); refreshInfo();
 }
-// ===== 遊戲風格（試作）：裝備視窗 =====
+// ===== 遊戲版面（試作）：裝備視窗 =====
 let roSel = 'weapon';
 const EQ_L = ['headTop', 'headLow', 'weapon', 'garment', 'accR'];
 const EQ_ICO = { weapon: '武', shield: '盾', headTop: '上', headMid: '中', headLow: '下', armor: '甲', garment: '披', shoes: '鞋', accR: '飾', accL: '飾', costume: '服' };
@@ -1186,9 +1186,9 @@ function selSlot(k) {
 function toggleUi() {
   const ro = document.documentElement.dataset.ui !== 'ro';
   if (ro) document.documentElement.dataset.ui = 'ro'; else delete document.documentElement.dataset.ui;
-  localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲風格'; render();
+  localStorage.setItem('gear-ui', ro ? 'ro' : 'std'); $('uiBtn').innerText = ro ? '🖥️ 一般版面' : '🎮 遊戲版面'; render();
 }
-$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲風格';
+$('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ 一般版面' : '🎮 遊戲版面';
 // ===== 搜尋與武器類型 =====
 let gq = '', wtype = '';
 const qMatch = x => !gq || gq.split(/\s+/).every(w => (x.n + ' ' + x.g + ' ' + (x.type || '') + ' ' + (x.j || '')).toLowerCase().includes(w.toLowerCase()));
