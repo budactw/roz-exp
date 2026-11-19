@@ -111,7 +111,7 @@
           <div><label>Base 等級</label>
             <div class="seg" id="capSeg">
               <button type="button" data-v="190" class="active" onclick="setCap(190)">99 以下</button>
-              <button type="button" data-v="193" onclick="setCap(193)">100 以上</button>
+              <button type="button" data-v="191" onclick="setCap(191)">100 以上</button>
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@ function unpackState(code) {
   if (!CLS[o.c]) throw new Error('bad class');
   const s = clone(DEFAULT);
   Object.assign(s, { cls: o.c, main: String(o.m || ''), off: String(o.o || '無'), potion: String(o.p || '無'), buffs: {}, lv: {} });
-  s.eqPct = n(o.e?.[0], 0); s.eqFlat = n(o.e?.[1], 0); s.cap = o.k === 193 ? 193 : 190;
+  s.eqPct = n(o.e?.[0], 0); s.eqFlat = n(o.e?.[1], 0); s.cap = o.k === 191 || o.k === 193 ? 191 : 190;   // 舊連結的 193 改成 191（樂園目前最高 191）
   s.maxJob = !o.j; if (o.j) s.jobLv = n(o.j, 70);
   s.agiBase = n(o.a?.[0], 1); s.agiEq = n(o.a?.[1], 0); s.dexBase = n(o.d?.[0], 1); s.dexEq = n(o.d?.[1], 0);
   if (o.pj != null) s.priestJob = n(o.pj, 70);
@@ -382,6 +382,7 @@ function syncInputs() {
   for (const id of NUMS) $(id).value = st[id];
   $('maxJob').checked = !!st.maxJob;
   if (!c.potions.includes(st.potion)) st.potion = '無';
+  if (st.cap !== 190) st.cap = 191;   // 以前存的 193 → 191
 }
 const NUMS = ['eqPct', 'eqFlat', 'jobLv', 'agiBase', 'agiEq', 'dexBase', 'dexEq', 'priestJob'];
 function onSelect() {   // 下拉選單：職業／武器變動時重建選項
