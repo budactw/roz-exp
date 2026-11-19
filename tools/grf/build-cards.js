@@ -38,6 +38,11 @@ function line(s) {
   if (m) { const e = sentence(m[3]); if (!e._t) return { _ps: [[m[1], +m[2], e]] }; }
   m = norm(s).match(/^(?:自己的|自身)?基礎(STR|AGI|VIT|INT|DEX|LUK)(?:數值)?為?(\d+)以上時，(.+)$/);
   if (m) { const e = sentence(m[3]); if (!e._t) return { _if: [[m[1], +m[2], e]] }; }
+  // 「VIT依據精煉值提升」「根據精煉值來增加LUK和CRI(但CRI增加套用至+10)」：精煉每 +1 加 1（迪靡克、小青；對照 rAthena 的卡片效果）
+  m = norm(s).match(/^(STR|AGI|VIT|INT|DEX|LUK|CRI)依據精煉值提升$/);
+  if (m) return { _rr: [['', 1, { [m[1]]: 1 }, 0]] };
+  m = norm(s).match(/^根據精煉值來增加(STR|AGI|VIT|INT|DEX|LUK|CRI)和(STR|AGI|VIT|INT|DEX|LUK|CRI)(?:[(（]但\2增加套用至\+(\d+)[)）])?$/);
+  if (m) return { _rr: [['', 1, { [m[1]]: 1 }, 0], ['', 1, { [m[2]]: 1 }, m[3] ? +m[3] : 0]] };
   // 「搭配「廢柴魔物蛋Lv.1」或「太子魔物蛋Lv.1」時，…」：寵物戒指的寵物附魔 → _pet: [[[寵物 LvN…], 效果]]
   m = norm(s).match(/^搭配「(.+?)魔物蛋Lv\.?(\d)」(?:或「(.+?)魔物蛋Lv\.?(\d)」)?時，(.+)$/);
   if (m) { const pets = [`${m[1]} Lv${m[2]}`].concat(m[3] ? [`${m[3]} Lv${m[4]}`] : []), e = sentence(m[5]); if (!e._t) return { _pet: [[pets, e]] }; }
