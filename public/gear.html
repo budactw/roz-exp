@@ -1059,7 +1059,8 @@ function renderEquipWin(res) {
   const gearCell = ([k, label], area) => {
     const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
     // 插著的卡片接在部位名稱後面（「武器・米洛斯、土波利」）
-    const cds = it && !occ ? cardsOn(k, it).map(([, id]) => CARDS[id].n.replace(/卡片$/, '')).join('、') : '';
+    const cn = {}; if (it && !occ) for (const [, id] of cardsOn(k, it)) cn[id] = (cn[id] || 0) + 1;   // 同一張插好幾張：「土波利×3」
+    const cds = Object.entries(cn).map(([id, n]) => CARDS[id].n.replace(/卡片$/, '') + (n > 1 ? `×${n}` : '')).join('、');
     return cell(k, label, EQ_L.includes(area || k), it, occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備',
       it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : (EQ_ICO[k] || ''), occ, area, cds);
   };
@@ -1182,7 +1183,7 @@ function gqRender() {
     (ok.length > items.length ? `<div class="gq-note">還有 ${ok.length - items.length} 件，多打幾個字縮小範圍</div>` : '') +
     (all.length > ok.length ? `<div class="gq-note">另有 ${all.length - ok.length} 件目前職業／等級不能穿，沒有列出</div>` : '') +
     (cardHits.length ? `<div class="gq-h">卡片</div>` + cardHits.map((id, j) => { const i = items.length + j, c = CARDS[id], t = cardTarget(id), on = cardWorn(id);
-      return `<div class="gq-it${i === gqAct ? ' act' : ''}${on ? ' on' : ''}${t ? '' : ' off'}" role="option" id="gq-${i}" aria-selected="${i === gqAct}"${t ? '' : ' aria-disabled="true"'} data-i="${i}"><span class="gq-card" aria-hidden="true">🃏</span><span class="nm">${c.n}<span class="sub">${CARD_POS_NAME[c.p]}・${CARD_KIND[c.c || 0]}</span></span><span class="pos">${t ? `${t[2] ? '換掉' : '插到'}${slotName(t[0]).replace(/（.+?）/, '')}第${'一二三四'[t[1]]}洞` : on ? '✓ 已插' : `先穿上有洞的${CARD_POS_NAME[c.p]}`}</span></div>`; }).join('') : '') +
+      return `<div class="gq-it${i === gqAct ? ' act' : ''}${on ? ' on' : ''}${t ? '' : ' off'}" role="option" id="gq-${i}" aria-selected="${i === gqAct}"${t ? '' : ' aria-disabled="true"'} data-i="${i}"><span class="gq-card" aria-hidden="true">🃏</span><span class="nm">${c.n}<span class="sub">${CARD_POS_NAME[c.p]}・${CARD_KIND[c.c || 0]}${on ? `・已插 ${on} 張` : ''}</span></span><span class="pos">${t ? `${t[2] ? '換掉' : '插到'}${slotName(t[0]).replace(/（.+?）/, '')}第${'一二三四'[t[1]]}洞` : on ? '洞都插滿這張了' : `先穿上有洞的${CARD_POS_NAME[c.p]}`}</span></div>`; }).join('') : '') +
     (cards.length > cardHits.length ? `<div class="gq-note">還有 ${cards.length - cardHits.length} 張卡片，多打幾個字縮小範圍</div>` : '') +
     (!ok.length && !cards.length ? `<div class="gq-note">沒有符合「${gq.replace(/[<&]/g, '')}」的裝備或卡片</div>` : '');
   box.hidden = false; inp.setAttribute('aria-expanded', 'true');
@@ -1197,10 +1198,10 @@ function cardTarget(id) {
   for (const [k] of GEAR_SLOTS) { const it = BY_NAME[st.slots[k].n]; if (!it || occupiedBy(k) || cardPos(k, it) !== CARDS[id].p) continue;
     const n = holesOf(it), cd = st.slots[k].cd || []; if (!n) continue;
     for (let i = 0; i < n; i++) if (!CARDS[cd[i]] || CARDS[cd[i]].p !== CARDS[id].p) return [k, i, false];
-    if (!full && !cd.slice(0, n).includes(id)) full = [k, n - 1, true]; }
+    if (!full) for (let i = n - 1; i >= 0; i--) if (cd[i] !== id) { full = [k, i, true]; break; } }   // 同一張卡可以重複插，換掉最後一個不是這張的洞
   return full;
 }
-const cardWorn = id => GEAR_SLOTS.some(([k]) => { const it = BY_NAME[st.slots[k].n]; return it && (st.slots[k].cd || []).slice(0, holesOf(it)).includes(id); });
+const cardWorn = id => GEAR_SLOTS.reduce((a, [k]) => { const it = BY_NAME[st.slots[k].n]; return a + (it && st.card && !occupiedBy(k) ? (st.slots[k].cd || []).slice(0, holesOf(it)).filter(x => x === id).length : 0); }, 0);
 function gqPick(i) {
   const h = gqHits[i]; if (!h) return;
   if (h.card) {
