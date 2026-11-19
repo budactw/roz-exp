@@ -477,7 +477,7 @@ async function share(btn) {
   const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''))
     .concat(COSTUME_POS.filter(([k]) => stoneOf(k)).map(([k, , pos]) => `${st.cs[k]}(${pos})`));
   if (!names.length) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
-  const nm = shareName(), text = `RO樂園配裝${nm ? `｜${nm}` : ''}${st.job ? `（${st.job}）` : ''}：${names.join('、')}`;
+  const nm = shareName(), text = `RO樂園配裝${nm ? `｜${nm}` : ''}${st.job ? `（${st.job}）` : ''}`;   // 只放角色與職業，不列裝備
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
     try { await navigator.share({ title: 'RO樂園配裝模擬器', text, url }); track('gear_share', { method: 'native' }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
