@@ -220,6 +220,29 @@
   @keyframes slotFlash { from { box-shadow: 0 0 0 3px var(--primary); } to { box-shadow: 0 0 0 3px transparent; } }
   @media (prefers-reduced-motion: reduce) { .slot.flash { animation: none; outline: 2px solid var(--primary); } }
   .slot-h select.wtype { flex: 0 0 auto; width: 6.6em; }
+  /* 倉庫 */
+  .stash-add { flex: 0 0 auto; min-height: 38px; padding: 0 8px; font-size: .95rem; white-space: nowrap; }
+  html[data-ui="ro"] .slot-h .stash-add { height: 26px; min-height: 0; padding: 0 6px; font-size: 13px; line-height: 24px; }
+  #stashCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
+  #stashToggle { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; }
+  html[data-ui="ro"] #stashCard > h2::after { margin-left: 6px; }
+  html[data-ui="ro"] #stashToggle { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
+  .stash-n { font-size: .8rem; font-weight: 400; color: var(--dim); }
+  .stash-list { display: grid; gap: 6px; margin-bottom: 8px; }
+  .stash-h { margin-top: 6px; font-size: .78rem; font-weight: 700; color: var(--dim); }
+  .stash-h:first-child { margin-top: 0; }
+  .stash-it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
+  .stash-it.on { border-color: var(--green); }
+  .stash-it.flash { animation: slotFlash 1.2s ease-out; }
+  .stash-it > img, .stash-it > .ph { width: 24px; height: 24px; flex: 0 0 24px; image-rendering: pixelated; }
+  .stash-it .nm { flex: 1; min-width: 0; font-size: .9rem; font-weight: 600; overflow-wrap: anywhere; }
+  .stash-it .sub { display: block; font-size: .78rem; font-weight: 400; color: var(--dim); }
+  .stash-it .sub.bad { color: var(--danger); }
+  .stash-it .ok { font-size: .8rem; color: var(--green); white-space: nowrap; }
+  .stash-it button { flex: 0 0 auto; min-height: 32px; padding: 0 10px; font-size: .82rem; }
+  .stash-it button:disabled { opacity: .45; cursor: default; }
+  .stash-it button.del, html[data-ui] .stash-it button.del { padding: 0 8px; color: var(--danger); }
+  .stash-empty { font-size: .85rem; color: var(--dim); }
   /* 底部加總摘要列 */
   body.has-dock { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   html:has(body.has-dock) { scroll-padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
@@ -339,6 +362,11 @@
     <div class="equip-win" id="equipWin"></div>
     <div class="slots" id="slots"></div>
     <div class="hint">綠色＝已生效，橘色＝下一個精煉門檻。</div>
+  </div>
+  <div class="card" id="stashCard">
+    <h2>📦 倉庫 <span class="stash-n" id="stashN"></span><span class="h2-act"><button type="button" class="btn-ghost" id="stashToggle" onclick="toggleStash()"></button></span></h2>
+    <div id="stashBody"><div class="stash-list" id="stashList"></div>
+    <div class="hint">在裝備欄按 📦 存入設定好的裝備（精煉、附魔、附加能力、卡片），按「套用」穿回原本的部位。所有角色共用，只存在這台裝置。</div></div>
   </div>
   </div><aside class="gear-side">
 
@@ -747,7 +775,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
+  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
@@ -1129,7 +1157,7 @@ function slotHtml([k, label, kinds], res) {
   if (occ) return `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><b>${label}</b><span class="meta" style="margin:0;">被「${occ.n}」佔用</span></div></div>`;
   const tsel = types.length > 1 ? `<select class="wtype" onchange="setWtype(this.value)" aria-label="武器類型"><option value="">全部類型</option>${types.map(t => `<option${t === wtype ? ' selected' : ''}>${t}</option>`).join('')}</select>` : '';
   const none = gq && !list.some(x => x !== it) ? `<option disabled>（沒有符合「${gq}」的裝備）</option>` : '';
-  let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select>${it ? `<button type="button" class="info-btn" aria-label="物品資訊" title="物品資訊" onclick="infoBtn(event, '${k}')">i</button>` : ''}</div>`;
+  let h = `<div class="slot${k === roSel ? ' sel' : ''}" id="slot-${k}"><div class="slot-h"><label for="sel-${k}"><b>${label}</b></label>${tsel}<select id="sel-${k}" onchange="pick('${k}', this.value)">${opts}${none}</select>${it ? `<button type="button" class="info-btn" aria-label="物品資訊" title="物品資訊" onclick="infoBtn(event, '${k}')">i</button><button type="button" class="btn-ghost stash-add" title="存入倉庫" aria-label="存入倉庫" onclick="stashAdd('${k}', this)">📦</button>` : ''}</div>`;
   if (!it) return h + `</div>`;
   const b = slotBody(k, res);
   if (typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n]) h += `<img class="coll" src="collection/${GEAR_ICON[it.n]}.png" alt="" width="75" height="100" loading="lazy">`;
@@ -1294,7 +1322,7 @@ function render() {
   $('slots').innerHTML = GEAR_SLOTS.filter(([k]) => !EQ_SP_KEYS.includes(k)).map(s => slotHtml(s, res)).join('') + `<div class="sec-title sp-title">特殊裝備</div>` +
     slotHtml(spSlots.find(s => s[0] === 'costume'), res).replace(/<\/div>$/, stoneHtml('costume') + '</div>') + COSTUME_POS.slice(1).map(stoneCard).join('') +
     spSlots.filter(s => s[0] !== 'costume').map(s => slotHtml(s, res)).join('');
-  renderResult(res); renderEquipWin(res); refreshInfo();
+  renderResult(res); renderEquipWin(res); refreshInfo(); renderStash();
 }
 // ===== 遊戲版面（試作）：裝備視窗 =====
 let roSel = 'weapon';
@@ -1521,7 +1549,7 @@ function refreshSlots() {
     const rv = el.querySelector('.rv'); if (rv) rv.innerText = '+' + st.slots[k].r;
   }
   for (const [k] of COSTUME_POS) { const el = $('stone-' + k); if (el) el.outerHTML = stoneHtml(k); }
-  renderResult(res); renderEquipWin(res); refreshInfo();
+  renderResult(res); renderEquipWin(res); refreshInfo(); renderStash();
 }
 
 function pick(k, n) {
@@ -1533,6 +1561,83 @@ function pick(k, n) {
   save(); render();
 }
 function setRef(k, v) { st.slots[k].r = +v; save(); refreshSlots(); }
+
+// ===== 倉庫：存下設定好的單件裝備（精煉、附魔、附加能力、卡片），所有角色共用，只存在這台裝置 =====
+// 存的是畫面上看得到的：附魔／附加能力沒開就不存，卡片沒開就不存
+const STASH_KEY = 'roz-gear-stash-v1', STASH_MAX = 300;
+let stashOpen = localStorage.getItem('gear-stash-closed') !== '1';
+function readStash() { try { const x = JSON.parse(localStorage.getItem(STASH_KEY)); return Array.isArray(x) ? x.filter(y => y && typeof y.n === 'string' && typeof y.k === 'string') : []; } catch (e) { return []; } }
+const writeStash = list => localStorage.setItem(STASH_KEY, JSON.stringify(list));
+const stashName = x => GEAR_RENAMED[x.n] || x.n;
+const trimEnd = a => { a = a.slice(); while (a.length && !a[a.length - 1]) a.pop(); return a; };
+function stashOf(k) {
+  const x = st.slots[k], it = BY_NAME[x.n];
+  const a = st.ench && x.a && (x.a.v || []).some(v => v && v[0] >= 0) ? { p: x.a.p || 0, v: x.a.v.map(v => v && v[0] >= 0 ? [v[0], v[1]] : [-1, 0]) } : null;
+  if (a) while (a.v[a.v.length - 1][0] < 0) a.v.pop();
+  return { k, n: x.n, r: it.ref ? x.r || 0 : 0, e: st.ench ? trimEnd((x.e || []).map(v => v || '')) : [], a, cd: st.card ? trimEnd((x.cd || []).slice(0, holesOf(it)).map(v => +v || 0)) : [] };
+}
+const stashSig = x => JSON.stringify([x.k, stashName(x), x.r || 0, x.e || [], x.a || null, x.cd || []]);
+function stashAdd(k, btn) {
+  if (!BY_NAME[st.slots[k].n]) return;
+  const x = stashOf(k), list = readStash(), sig = stashSig(x), had = list.find(y => stashSig(y) === sig);
+  if (!had) { x.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); list.push(x); if (list.length > STASH_MAX) list.splice(0, list.length - STASH_MAX); writeStash(list); }
+  const id = (had || x).id;
+  if (btn) { btn.textContent = had ? '已在倉庫' : '✓ 已存入'; btn.disabled = true; setTimeout(() => { btn.textContent = '📦'; btn.disabled = false; }, 1500); }
+  renderStash();
+  const el = document.querySelector(`.stash-it[data-id="${id}"]`); if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  if (!had) track('gear_stash_add');
+}
+// 這件現在能不能穿（職業、等級；刺客以外不能左手拿武器）
+const stashWhy = (it, k) => !jobOk(it) ? '目前職業不能裝備' : !lvOk(it) ? `要 Base Lv ${it.lv}` : k === 'shield' && it.s === 'weapon' && !leftOk(it) ? '只有刺客能左手拿武器' : '';
+function stashDesc(x, it) {
+  const out = [], e = (x.e || []).filter(Boolean);
+  if (e.length) out.push('附魔：' + e.join('、'));
+  if (x.a) {
+    const pool = addonPools(it)[x.a.p] || addonPools(it)[0];
+    const ad = pool ? x.a.v.map((v, i) => { const o = v && pool.lines[i] && pool.lines[i].opts[v[0]]; return o ? `${o[0].replace(/%$/, '')} ${Math.max(o[3], Math.min(o[4], v[1]))}${/%$/.test(o[0]) ? '%' : ''}` : ''; }).filter(Boolean) : [];
+    if (ad.length) out.push('附加：' + ad.join('、'));
+  }
+  const cd = (x.cd || []).filter(id => CARDS[id]).map(id => CARDS[id].n);
+  if (cd.length) out.push('卡片：' + cd.join('、'));
+  return out.join('　');
+}
+function renderStash() {
+  const list = readStash(), shown = list.filter(x => BY_NAME[stashName(x)] && GEAR_SLOTS.some(([k]) => k === x.k));
+  $('stashN').textContent = shown.length ? `${shown.length} 件` : '';
+  $('stashToggle').textContent = stashOpen ? '收合' : '展開';
+  $('stashBody').classList.toggle('hidden', !stashOpen);
+  if (!stashOpen) return;
+  if (!shown.length) { $('stashList').innerHTML = `<div class="stash-empty">倉庫是空的。</div>`; return; }
+  $('stashList').innerHTML = GEAR_SLOTS.map(([k, label]) => {
+    const xs = shown.filter(x => x.k === k); if (!xs.length) return '';
+    const cur = BY_NAME[st.slots[k].n] && !occupiedBy(k) ? stashSig(stashOf(k)) : '';
+    return `<div class="stash-h">${label}</div>` + xs.map(x => {
+      const n = stashName(x), it = BY_NAME[n], on = cur === stashSig(x), why = stashWhy(it, k), d = stashDesc(x, it), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[n];
+      return `<div class="stash-it${on ? ' on' : ''}" data-id="${x.id}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span class="ph"></span>'}` +
+        `<span class="nm">${it.ref && x.r ? `+${x.r} ` : ''}${n}${d ? `<span class="sub">${d}</span>` : ''}${why && !on ? `<span class="sub bad">${why}</span>` : ''}</span>` +
+        (on ? `<span class="ok">✓ 穿著中</span>` : `<button type="button" class="btn-ghost" onclick="stashUse('${x.id}')"${why ? ' disabled' : ''}>套用</button>`) +
+        `<button type="button" class="btn-ghost del" title="從倉庫刪除" aria-label="從倉庫刪除" onclick="stashDel('${x.id}')">✕</button></div>`;
+    }).join('');
+  }).join('');
+}
+function toggleStash() { stashOpen = !stashOpen; localStorage.setItem('gear-stash-closed', stashOpen ? '' : '1'); renderStash(); }
+function stashUse(id) {
+  const x = readStash().find(y => y.id === id), k = x && x.k, it = x && BY_NAME[stashName(x)];
+  if (!it || !st.slots[k] || stashWhy(it, k)) return;
+  // 要穿的部位被雙手武器之類佔住：先卸下佔住的那件
+  for (const [o] of GEAR_SLOTS) { const oi = BY_NAME[st.slots[o].n]; if (o !== k && oi && (oi.occ || []).includes(k)) st.slots[o] = { n: '', r: 0 }; }
+  st.slots[k] = { n: it.n, r: it.ref ? Math.min(+x.r || 0, maxRef(it)) : 0, e: (x.e || []).slice(), a: x.a ? { p: x.a.p || 0, v: x.a.v.map(v => v.slice()) } : null, cd: (x.cd || []).slice() };
+  for (const o of it.occ || []) st.slots[o] = { n: '', r: 0 };
+  if (((x.e || []).some(Boolean) || x.a) && !st.ench) { st.ench = true; $('useEnch').checked = true; }
+  if ((x.cd || []).some(Boolean) && !st.card) { st.card = true; $('useCard').checked = true; }
+  if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
+  roSel = k; save(); render(); track('gear_stash_use');
+}
+async function stashDel(id) {
+  const list = readStash(), x = list.find(y => y.id === id); if (!x) return;
+  if (!await dialog({ title: '從倉庫刪除？', msg: `${x.r ? `+${x.r} ` : ''}${stashName(x)}`, okText: '刪除' })) return;
+  writeStash(readStash().filter(y => y.id !== id)); renderStash(); track('gear_stash_del');
+}
 $('allRef').addEventListener('input', e => {
   st.all = +e.target.value;
   for (const { slot, it } of equipped()) if (it.ref && !it.sp) st.slots[slot].r = st.all;
