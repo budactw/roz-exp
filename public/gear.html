@@ -132,6 +132,21 @@
   .gsearch { display: flex; gap: 8px; align-items: center; }
   .gsearch input { flex: 1; min-width: 0; padding: 0 12px; min-height: 42px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text); font-size: .95rem; font-family: inherit; }
   .gsearch .cnt { font-size: .8rem; color: var(--dim); white-space: nowrap; }
+  /* 搜尋結果：輸入時在搜尋框下面列出來，點一下就穿上 */
+  .gsearch-wrap { position: relative; }
+  .gq-res { position: absolute; z-index: 30; left: 0; right: 0; min-width: min(340px, 90vw); top: 100%; margin-top: 4px; max-height: min(360px, 60vh); overflow-y: auto; overscroll-behavior: contain;
+    background: linear-gradient(var(--input-bg), var(--input-bg)), var(--bg); border: 1px solid var(--input-border); border-radius: 10px; box-shadow: 0 10px 28px rgba(15,23,42,.18); padding: 4px; }
+  .gq-res[hidden] { display: none; }
+  .gq-it { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+  .gq-it:hover, .gq-it.act { background: var(--row-hover); }
+  .gq-it .nm { font-weight: 600; overflow-wrap: anywhere; }
+  .gq-it .sub { display: block; font-size: .78rem; font-weight: 400; color: var(--dim); }
+  .gq-it .pos { font-size: .78rem; color: var(--dim); white-space: nowrap; }
+  .gq-it.on .pos { color: var(--green); }
+  .gq-note { padding: 6px 8px; font-size: .8rem; color: var(--dim); }
+  .slot.flash { animation: slotFlash 1.2s ease-out; }
+  @keyframes slotFlash { from { box-shadow: 0 0 0 3px var(--primary); } to { box-shadow: 0 0 0 3px transparent; } }
+  @media (prefers-reduced-motion: reduce) { .slot.flash { animation: none; outline: 2px solid var(--primary); } }
   .slot-h select.wtype { flex: 0 0 auto; width: 6.6em; }
   /* 底部加總摘要列 */
   body.has-dock { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
@@ -228,7 +243,8 @@
     <h2>🛡️ 裝備 <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button></h2>
     <div class="eq-tools">
       <search class="field gsearch-wrap"><label for="gq">搜尋裝備</label>
-        <div class="gsearch"><input type="search" id="gq" name="q" placeholder="名稱、分類、類型或職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"><span class="cnt" id="gqCnt" role="status"></span></div></search>
+        <div class="gsearch"><input type="search" id="gq" name="q" placeholder="名稱、分類、類型或職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="gqRes" aria-autocomplete="list"><span class="cnt" id="gqCnt" role="status"></span></div>
+        <div class="gq-res" id="gqRes" role="listbox" aria-label="搜尋結果" hidden></div></search>
       <div class="field"><label for="quickSet">一鍵套裝</label>
         <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
       <div class="field" title="把所有可精煉的裝備改成同一個精煉值，之後還能在各部位個別調"><label for="allRef">整套精煉</label>
@@ -1140,11 +1156,46 @@ $('uiBtn').innerText = document.documentElement.dataset.ui === 'ro' ? '🖥️ �
 let gq = '', wtype = '';
 const qMatch = x => !gq || gq.split(/\s+/).every(w => (x.n + ' ' + x.g + ' ' + (x.type || '') + ' ' + (x.j || '')).toLowerCase().includes(w.toLowerCase()));
 function setWtype(v) { wtype = v; render(); }
-$('gq').addEventListener('input', e => {
-  gq = e.target.value.trim(); render();
-  const n = gq ? GEAR_DB.filter(x => canWear(x) && qMatch(x)).length : 0;
-  $('gqCnt').innerText = gq ? `符合 ${n} 件` : '';
+// 搜尋結果清單：每件列出要放的部位，點一下（或方向鍵＋Enter）就穿上
+const slotOf = it => { const ks = GEAR_SLOTS.filter(([k, , kinds]) => kinds.includes(it.s) || (k === 'shield' && leftOk(it))).map(([k]) => k);
+  return ks.find(k => !st.slots[k].n) || ks[0] || null; };
+const slotName = k => { const s = GEAR_SLOTS.find(([x]) => x === k); return s ? s[1] : ''; };
+let gqHits = [], gqAct = -1;
+function gqRender() {
+  const box = $('gqRes'), inp = $('gq');
+  if (!gq) { box.hidden = true; inp.setAttribute('aria-expanded', 'false'); $('gqCnt').innerText = ''; return; }
+  const all = GEAR_DB.filter(x => qMatch(x) && slotOf(x)), ok = all.filter(canWear);
+  gqHits = ok.slice(0, 60); gqAct = Math.min(gqAct, gqHits.length - 1);
+  $('gqCnt').innerText = `符合 ${ok.length} 件`;
+  const worn = new Set(GEAR_SLOTS.map(([k]) => st.slots[k].n).filter(Boolean));
+  box.innerHTML = gqHits.map((x, i) => { const k = slotOf(x), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[x.n];
+    const sub = [x.type, x.j && x.j.replace(/系列/g, ''), x.lv > 1 ? 'Lv' + x.lv : ''].filter(Boolean).join('・');
+    return `<div class="gq-it${i === gqAct ? ' act' : ''}${worn.has(x.n) ? ' on' : ''}" role="option" id="gq-${i}" aria-selected="${i === gqAct}" data-i="${i}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span></span>'}<span class="nm">${x.n}${sub ? `<span class="sub">${sub}</span>` : ''}</span><span class="pos">${worn.has(x.n) ? '✓ 已裝備' : slotName(k).replace(/（.+?）/, '')}</span></div>`; }).join('') +
+    (ok.length > gqHits.length ? `<div class="gq-note">還有 ${ok.length - gqHits.length} 件，多打幾個字縮小範圍</div>` : '') +
+    (!ok.length ? `<div class="gq-note">沒有符合「${gq.replace(/[<&]/g, '')}」的裝備</div>` : '') +
+    (all.length > ok.length ? `<div class="gq-note">另有 ${all.length - ok.length} 件目前職業／等級不能穿，沒有列出</div>` : '');
+  box.hidden = false; inp.setAttribute('aria-expanded', 'true');
+  if (gqAct >= 0) { inp.setAttribute('aria-activedescendant', 'gq-' + gqAct); $('gq-' + gqAct)?.scrollIntoView({ block: 'nearest' }); } else inp.removeAttribute('aria-activedescendant');
+}
+function gqPick(i) {
+  const it = gqHits[i]; if (!it) return; const k = slotOf(it);
+  gq = ''; $('gq').value = ''; gqAct = -1; gqRender();
+  if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
+  roSel = k; pick(k, it.n);
+  const el = $('slot-' + k); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1200); }
+  track('gear_search_pick');
+}
+$('gq').addEventListener('input', e => { gq = e.target.value.trim(); gqAct = -1; render(); gqRender(); });
+$('gq').addEventListener('focus', () => { if (gq) gqRender(); });
+$('gq').addEventListener('keydown', e => {
+  if ($('gqRes').hidden) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = gqHits.length; if (!n) return; gqAct = e.key === 'ArrowDown' ? (gqAct + 1) % n : (gqAct - 1 + n) % n; gqRender(); }
+  else if (e.key === 'Enter') { e.preventDefault(); gqPick(gqAct >= 0 ? gqAct : 0); }
+  else if (e.key === 'Escape') { e.stopPropagation(); $('gqRes').hidden = true; $('gq').setAttribute('aria-expanded', 'false'); }
 });
+$('gqRes').addEventListener('pointerdown', e => e.preventDefault());   // 點清單時不要讓搜尋框失焦
+$('gqRes').addEventListener('click', e => { const x = e.target.closest('.gq-it'); if (x) gqPick(+x.dataset.i); });
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.gsearch-wrap')) { $('gqRes').hidden = true; $('gq').setAttribute('aria-expanded', 'false'); } });
 
 // ===== 底部加總摘要列 =====
 let dockPrev = {};
