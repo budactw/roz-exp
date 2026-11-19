@@ -122,10 +122,11 @@
   .addon-h { font-size: .78rem; font-weight: 700; color: var(--dim); }
   .ench-row input[type=number] { inline-size: 4.6em; flex: 0 0 auto; padding: 0 6px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   /* 裝備上方的工具列：搜尋｜一鍵套裝｜整套精煉 */
-  .eq-tools { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(170px, .8fr); gap: 10px; align-items: start; margin-bottom: 12px; }
+  .eq-tools { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(170px, .8fr) auto; gap: 10px; align-items: end; margin-bottom: 12px; }
   .eq-tools .gsearch-wrap { margin-bottom: 0; }
+  .eq-tools .eq-reset { white-space: nowrap; }
   .eq-tools .rf { min-height: 42px; }
-  @media (max-width: 760px) { .eq-tools { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .eq-tools { grid-template-columns: 1fr; } .eq-tools .eq-reset { justify-self: start; } }
   /* 搜尋 */
   .gsearch-wrap { display: block; margin-bottom: 12px; }
   .gsearch { display: flex; gap: 8px; align-items: center; }
@@ -214,7 +215,7 @@
   </div>
 
   <div class="card st-card hidden" id="stCard">
-    <h2>🌳 技能樹</h2>
+    <h2>🌳 技能樹 <button type="button" class="btn-ghost" id="stToggle" onclick="toggleTree()"></button></h2>
     <div id="stBody">
       <div class="hint st-hint">點圖示或＋加點、右鍵或－減點（按住 Shift 一次加滿／歸零）；點名稱看說明。配裝裡「技能每 Lv」「習得技能時」的效果照這裡的點數計算。也可以在<a href="skill.html">技能樹頁</a>設定。</div>
       <div id="stTree"></div>
@@ -231,6 +232,7 @@
         <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
       <div class="field" title="把所有可精煉的裝備改成同一個精煉值，之後還能在各部位個別調"><label for="allRef">整套精煉</label>
         <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
+      <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button>
     </div>
     <div class="equip-win" id="equipWin"></div>
     <div class="slots" id="slots"></div>
@@ -281,6 +283,10 @@
 <dialog class="ro-info" id="roInfo" popover="manual" aria-labelledby="roInfoName">
   <div class="ro-info-h" id="roInfoH"><span id="roInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo()">×</button></div>
   <div class="ro-info-b" id="roInfoBody"></div>
+</dialog>
+<dialog class="ro-info" id="skInfo" popover="manual" aria-labelledby="skInfoName">
+  <div class="ro-info-h" id="skInfoH"><span id="skInfoName"></span><button type="button" class="ro-x" aria-label="關閉" onclick="hideInfo('skInfo')">×</button></div>
+  <div class="ro-info-b" id="skInfoBody"></div>
 </dialog>
 
 <script src="gear-data.js?v=34"></script>
@@ -917,21 +923,27 @@ function renderSkillBox() {
 }
 // ===== 技能樹（skill-tree.js）=====
 let SKDESC = null;
+let treeOpen = localStorage.getItem('gear-tree-closed') !== '1';   // 預設展開，收合後記住
+function toggleTree() { treeOpen = !treeOpen; localStorage.setItem('gear-tree-closed', treeOpen ? '' : '1'); render(); }
+let infoSkill = null;
 async function showSkillInfo(sid, x, y) {
+  infoSkill = sid;
   if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } }
-  const el = $('roInfo'), s = SKILLS[sid], lv = SkillTree.lvOf(st.skt, sid);
-  $('roInfoName').textContent = `${s.n}　Lv ${lv} / ${s.m}`;
-  $('roInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SKDESC[sid]) : '（沒有說明）'}</div>`;
-  if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
-  const r = el.getBoundingClientRect();
-  el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
-  el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+  const s = SKILLS[sid], lv = SkillTree.lvOf(st.skt, sid);
+  $('skInfoName').textContent = `${s.n}　Lv ${lv} / ${s.m}`;
+  $('skInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SKDESC[sid]) : '（沒有說明）'}</div>`;
+  $('skInfo').querySelector('.ro-info-b').scrollTop = 0;
+  openInfo('skInfo', x, y);
 }
 function renderTree() {
   // 「設定技能樹」開啟才顯示技能樹，技能相關效果也才加總
   $('stCard').classList.toggle('hidden', !st.sk);
-  if (!st.sk) return;
+  $('stToggle').textContent = treeOpen ? '收合' : '展開';
+  $('stBody').classList.toggle('hidden', !treeOpen);
+  if (!st.sk || !treeOpen) return;
   SkillTree.render($('stTree'), { cls: st.job, jl: st.jl, state: st.skt, onChange: () => { save(); render(); }, onInfo: showSkillInfo });
+  // 技能視窗開著時，標題的等級跟著更新
+  if (infoSkill && SKILLS[infoSkill]) $('skInfoName').textContent = `${SKILLS[infoSkill].n}　Lv ${SkillTree.lvOf(st.skt, infoSkill)} / ${SKILLS[infoSkill].m}`;
 }
 function render() {
   renderTree();
@@ -942,7 +954,7 @@ function render() {
   $('slots').innerHTML = GEAR_SLOTS.filter(([k]) => !EQ_SP_KEYS.includes(k)).map(s => slotHtml(s, res)).join('') + `<div class="sec-title sp-title">特殊裝備</div>` +
     slotHtml(spSlots.find(s => s[0] === 'costume'), res).replace(/<\/div>$/, stoneHtml('costume') + '</div>') + COSTUME_POS.slice(1).map(stoneCard).join('') +
     spSlots.filter(s => s[0] !== 'costume').map(s => slotHtml(s, res)).join('');
-  renderResult(res); renderEquipWin(res);
+  renderResult(res); renderEquipWin(res); refreshInfo();
 }
 // ===== 遊戲風格（試作）：裝備視窗 =====
 let roSel = 'weapon';
@@ -996,19 +1008,37 @@ function descHtml(lines) {
 }
 const infoPop = 'popover' in HTMLElement.prototype;
 // 不支援 popover 的舊瀏覽器：退回一般的非強制回應 dialog，另外自己處理點外面／Esc 關閉
-function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else if (el.open) el.close(); }
+function hideInfo(id = 'roInfo') { const el = $(id); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else if (el.open) el.close(); }
+// 開視窗並放在點擊位置旁邊（已經開著就只換內容、不移動）
+function openInfo(id, x, y) {
+  const el = $(id), was = infoPop ? el.matches(':popover-open') : el.open;
+  if (!was) { if (infoPop) el.showPopover(); else el.show(); }
+  else return;
+  const r = el.getBoundingClientRect();
+  el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
+  el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+}
+let infoSlot = null;
+// 物品資訊視窗開著時，配裝一改就更新內容（不移動位置）
+function refreshInfo() { if (infoSlot && DESC && (infoPop ? $('roInfo').matches(':popover-open') : $('roInfo').open)) fillInfo(infoSlot); }
 async function showInfo(k, x, y) {
-  const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) return;
   if (!DESC) { try { DESC = await (await fetch('desc-data.json?v=2')).json(); } catch (e) { DESC = {}; } }
-  const el = $('roInfo'), id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
-  $('roInfoName').textContent = `${it.ref && cur.r ? `+${cur.r} ` : ''}${it.n}${holes ? ` [${holes}]` : ''}`;
-  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` + infoExtra(k, it, cur.r) +
-    // 這件裝備目前實際給的能力（含精煉、附魔、附加能力）
-    ((slotBody(k, compute()).eff.match(/<li class="sum">.*?<\/li>/) || [''])[0].replace(/^<li class="sum">/, '<div class="ro-sum">').replace(/<\/li>$/, '</div>'));
+  if (!fillInfo(k)) return;
+  const el = $('roInfo');
   if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
   const r = el.getBoundingClientRect();
   el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
   el.style.top = Math.max(8, Math.min(y + 12, innerHeight - r.height - 8)) + 'px';
+}
+function fillInfo(k) {
+  const cur = st.slots[k], it = cur && BY_NAME[cur.n]; if (!it) { hideInfo(); return false; }
+  infoSlot = k;
+  const id = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n], holes = typeof GEAR_HOLES !== 'undefined' ? GEAR_HOLES[it.n] : 0;
+  $('roInfoName').textContent = `${it.ref && cur.r ? `+${cur.r} ` : ''}${it.n}${holes ? ` [${holes}]` : ''}`;
+  $('roInfoBody').innerHTML = (id ? `<img class="coll" src="collection/${id}.png" alt="" width="75" height="100">` : '') + `<div class="ro-desc">${DESC[it.n] ? descHtml(DESC[it.n]) : '（沒有說明）'}</div>` + infoExtra(k, it, cur.r) +
+    // 這件裝備目前實際給的能力（含精煉、附魔、附加能力）
+    ((slotBody(k, compute()).eff.match(/<li class="sum">.*?<\/li>/) || [''])[0].replace(/^<li class="sum">/, '<div class="ro-sum">').replace(/<\/li>$/, '</div>'));
+  return true;
 }
 // 這件裝備上的附魔、附加能力、服飾附魔石（遊戲裡是顯示在物品資訊下方的插槽）
 function infoExtra(k, it, r) {
@@ -1022,16 +1052,17 @@ function infoExtra(k, it, r) {
 function infoBtn(e, k) { const r = e.currentTarget.getBoundingClientRect(); showInfo(k, r.right - 440, r.bottom - 4); }
 function roCtx(e, k) { const cur = st.slots[k]; if (!cur || !BY_NAME[cur.n]) return true; e.preventDefault(); showInfo(k, e.clientX, e.clientY); return false; }
 // 拖曳標題列移動視窗
-$('roInfoH').addEventListener('pointerdown', e => {
+for (const id of ['roInfo', 'skInfo']) $(id + 'H').addEventListener('pointerdown', e => {
   if (e.target.closest('button')) return;
-  const el = $('roInfo'), r = el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+  const el = $(id), r = el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
   const move = ev => { el.style.left = Math.max(0, Math.min(ev.clientX - dx, innerWidth - 40)) + 'px'; el.style.top = Math.max(0, Math.min(ev.clientY - dy, innerHeight - 24)) + 'px'; };
   const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
   addEventListener('pointermove', move); addEventListener('pointerup', up); e.preventDefault();
 });
 // 用 manual popover 自己管關閉：瀏覽器內建的「點外面關閉」會把放開右鍵也算進去，視窗一開就被關掉
-document.addEventListener('pointerdown', e => { if (!e.target.closest('#roInfo')) hideInfo(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hideInfo(); });
+// 點資訊視窗、技能樹、裝備格裡面不關；點其他地方才關（兩個視窗可以同時開著）
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.ro-info, #stTree, .equip-win, .info-btn')) { hideInfo(); hideInfo('skInfo'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { hideInfo(); hideInfo('skInfo'); } });
 function setEqTab(t) { eqTab = t; roSel = t === 'sp' ? 'costume' : 'weapon'; render(); }
 function selSlot(k) {
   roSel = k;
@@ -1083,7 +1114,7 @@ function refreshSlots() {
     const rv = el.querySelector('.rv'); if (rv) rv.innerText = '+' + st.slots[k].r;
   }
   for (const [k] of COSTUME_POS) { const el = $('stone-' + k); if (el) el.outerHTML = stoneHtml(k); }
-  renderResult(res); renderEquipWin(res);
+  renderResult(res); renderEquipWin(res); refreshInfo();
 }
 
 function pick(k, n) {
@@ -1128,6 +1159,11 @@ $('quickSet').addEventListener('change', e => {
   }
   track('gear_quick_set', { set: s.label }); save(); render();
 });
+// 重置裝備：只清空裝備（含特殊裝備、精煉、附魔、服飾附魔石），職業、等級、素質、技能點不動
+async function resetGear() {
+  if (!await dialog({ title: '重置裝備？', msg: '目前穿的裝備（含特殊裝備、精煉、附魔、服飾附魔石）都會卸下。', okText: '重置' })) return;
+  for (const [k] of GEAR_SLOTS) st.slots[k] = { n: '', r: 0 }; st.cs = {}; st.all = 0; save(); render(); track('gear_reset_equip');
+}
 // 全部重置：裝備、精煉、附魔、服飾附魔石、素質、技能、職業與等級都回到預設（角色名單不動）
 async function clearAll() {
   const who_ = who === 'char' && curChar() ? `「${curChar().name}」的` : '';
