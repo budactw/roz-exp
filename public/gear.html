@@ -605,7 +605,7 @@ function renderChars() {
   $('chars').innerHTML = chip(who === 'free', 'switchFree()', '不分角色') +
     Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, escHtml(c.name), c.gear && c.gear.job)).join('') +
     `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` +
-    (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>` : '');
+    (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="copyChar()">📋 複製角色</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>` : '');
 }
 function useNow() { clearHash(); shared = false; load(); syncInputs(); render(); }
 function switchFree() { localStorage.setItem(WHO_KEY, 'free'); useNow(); }
@@ -617,6 +617,15 @@ async function addChar() {
   x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
   track('add_char', { chars: Object.keys(x.chars).length, from: 'gear' });
+}
+// 複製角色：用目前角色的整份配裝（職業、等級、素質、裝備、附魔、卡片、符文、Buff、技能樹）建一個新角色
+async function copyChar() {
+  const c = curChar(); if (!c) return;
+  const name = (await dialog({ title: '複製角色：輸入新角色的名稱', msg: `會用「${c.name}」目前的配裝建立新角色。`, input: `${c.name} 的複本` }) || '').trim(); if (!name) return;
+  const x = readChars(), id = 'c' + Date.now().toString(36);
+  x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
+  localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
+  track('copy_char', { chars: Object.keys(x.chars).length });
 }
 async function renameChar() {
   const n = (await dialog({ title: '角色改名', input: curChar().name }) || '').trim(); if (!n) return;
@@ -650,7 +659,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
+  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
