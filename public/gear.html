@@ -6,7 +6,7 @@
 <title>RO樂園配裝模擬器 Beta｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=28">
-<link rel="stylesheet" href="ro.css?v=28">
+<link rel="stylesheet" href="ro.css?v=29">
 <script>{ // 版面：預設遊戲風格；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -1054,12 +1054,14 @@ function renderEquipWin(res) {
   const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
   const sp = eqTab === 'sp';
-  const cell = (k, label, left, has, nm, ico, occ, area) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${area || k}" onclick="selSlot('${k}')" oncontextmenu="return roCtx(event, '${k}')" aria-pressed="${k === roSel}">
-      <span class="ico" aria-hidden="true">${ico}</span><span class="tx"><small>${label}</small><b>${nm}</b></span></button>`;
+  const cell = (k, label, left, has, nm, ico, occ, area, cds) => `<button type="button" class="eq${left ? ' l' : ''}${has ? ' has' : ''}${occ ? ' occ' : ''}${k === roSel ? ' sel' : ''}" data-k="${k}" style="grid-area:${area || k}"${cds ? ` title="卡片：${cds}"` : ''} onclick="selSlot('${k}')" oncontextmenu="return roCtx(event, '${k}')" aria-pressed="${k === roSel}">
+      <span class="ico" aria-hidden="true">${ico}</span><span class="tx"><small>${label}${cds ? `<span class="cd">・${cds}</span>` : ''}</small><b>${nm}</b></span></button>`;
   const gearCell = ([k, label], area) => {
     const cur = st.slots[k], it = BY_NAME[cur.n], occ = occupiedBy(k);
+    // 插著的卡片接在部位名稱後面（「武器・米洛斯、土波利」）
+    const cds = it && !occ ? cardsOn(k, it).map(([, id]) => CARDS[id].n.replace(/卡片$/, '')).join('、') : '';
     return cell(k, label, EQ_L.includes(area || k), it, occ ? `（${occ.n}）` : it ? (it.ref && cur.r ? `+${cur.r} ` : '') + it.n : '未裝備',
-      it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : (EQ_ICO[k] || ''), occ, area);
+      it && !occ && typeof GEAR_ICON !== 'undefined' && GEAR_ICON[it.n] ? `<img src="icons/${GEAR_ICON[it.n]}.png" alt="" width="24" height="24" loading="lazy">` : (EQ_ICO[k] || ''), occ, area, cds);
   };
   $('equipWin').classList.toggle('sp', sp);
   $('equipWin').innerHTML = tabs + ch + (sp ? COSTUME_POS.map(([k, label, pos]) => {
