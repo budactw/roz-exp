@@ -94,6 +94,8 @@
   .rune-lv button { white-space: nowrap; padding: 0 10px; }
   .rune-eff { margin-top: 6px; font-size: .85rem; color: var(--dim); }
   .rune-eff b { color: var(--text); font-weight: 600; }
+  .rune-up { margin: 4px 0 0; padding-left: 1.2em; }
+  .rune-up li.on { color: var(--text); }
   .sk-ico { float: left; margin: 2px 10px 6px 0; image-rendering: pixelated; }
   .ps-grid input { width: 100%; padding: 0 8px; min-height: 38px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .9rem; }
   .notes { margin: 0; padding-left: 18px; font-size: .84rem; line-height: 1.65; }
@@ -369,8 +371,10 @@ function renderRune() {
   if (!$('runeSet').options.length) $('runeSet').innerHTML = `<option value="0">（未裝備）</option>` + [1, 2, 3, 4].map(t => `<optgroup label="符文石碑 ${RUNE_TIER[t]}">` +
     RUNE_SETS.filter(x => x.t === t).map(x => `<option value="${x.id}">${RUNE_TIER[t]} ${x.n}（${fmtEff(x.e)}）</option>`).join('') + `</optgroup>`).join('');
   $('runeSet').value = String(st.rs || 0); $('runeLv').value = st.rl;
-  const ru = runeOn(), nx = ru && ru.x.up.find(([n]) => n > st.rl);
-  $('runeEff').innerHTML = ru ? `目前效果：<b>${fmtEff(ru.e)}</b>${nx ? `<br>強化 +${nx[0]} 時再加：${fmtEff(nx[1])}` : ''}` : '';
+  // 目前效果＋完整強化說明（已達到的打勾）
+  const ru = runeOn();
+  $('runeEff').innerHTML = ru ? `目前效果：<b>${fmtEff(ru.e)}</b><ul class="rune-up"><li class="on">基本：${fmtEff(ru.x.e)}</li>` +
+    ru.x.up.map(([n, u]) => `<li${st.rl >= n ? ' class="on"' : ''}>強化 +${n} 時再加：${fmtEff(u)}${st.rl >= n ? ' ✓' : ''}</li>`).join('') + `</ul>` : '';
 }
 function fixState() {
   st.skt = st.skt && typeof st.skt === 'object' ? st.skt : {};
