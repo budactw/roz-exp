@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RO樂園技能樹模擬器｜凌雲閣－師爺</title>
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=28">
 <link rel="stylesheet" href="ro.css?v=28">
 <script>{ // 版面：和配裝頁同一個設定（預設遊戲風格）
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
@@ -70,8 +70,8 @@
 
   <div class="card">
     <h2>🌳 技能樹</h2>
+    <div class="hint st-hint">點圖示或＋加點、右鍵或－減點（按住 Shift 一次加滿／歸零），前置技能會自動補上；點名稱看說明。技能點上限：一轉 49、二轉為 Job 等級 − 1。</div>
     <div id="stTree"></div>
-    <div class="hint">點圖示或＋加點、右鍵或－減點（按住 Shift 一次加滿／歸零），前置技能會自動補上；點名稱看說明。技能點上限：一轉 49、二轉為 Job 等級 − 1。</div>
   </div>
 
   <div class="foot">

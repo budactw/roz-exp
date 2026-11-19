@@ -315,3 +315,4 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 .st-cell .st-lv button { width: 18px; height: 18px; line-height: 16px; border-radius: 50%; border: 1px solid var(--input-border); font-size: .75rem; }
 .st-empty { padding: 16px; text-align: center; color: var(--dim); }
 @media (max-width: 560px) { .st-grid { gap: 3px; } .st-name { font-size: .62rem; } .st-lv small { display: none; } }
+.st-hint { margin: 0 0 10px; }
