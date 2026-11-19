@@ -14,8 +14,8 @@ function frag(t) {
   let m;
   if ((m = t.match(/^(STR|AGI|VIT|INT|DEX|LUK|HIT|FLEE|CRI|DEF|MDEF|ATK|MATK)([+-])(\d+)$/))) return { [m[1]]: (m[2] === '-' ? -1 : 1) * m[3] };
   if ((m = t.match(/^(ATK|MATK)\+(\d+)%$/))) return { [m[1] + 'p']: +m[2] };
-  if ((m = t.match(/^M?HP\+?(\d+)(%?)$/))) return { [m[2] ? 'MHPp' : 'MHP']: +m[1] };
-  if ((m = t.match(/^M?SP\+?(\d+)(%?)$/))) return { [m[2] ? 'MSPp' : 'MSP']: +m[1] };
+  if ((m = t.match(/^M?HP([+-]?)(\d+)(%?)$/))) return { [m[3] ? 'MHPp' : 'MHP']: (m[1] === '-' ? -1 : 1) * m[2] };
+  if ((m = t.match(/^M?SP([+-]?)(\d+)(%?)$/))) return { [m[3] ? 'MSPp' : 'MSP']: (m[1] === '-' ? -1 : 1) * m[2] };
   if ((m = t.match(/^(AllState|全能力)\+(\d+)$/i))) return Object.fromEntries(STATS.map(s => [s, +m[2]]));
   if ((m = t.match(/^攻擊後延遲-(\d+)%$/))) return { aspd: +m[1] };
   if ((m = t.match(/^ASPD\+(\d+)$/))) return { aspdFlat: +m[1] };
@@ -33,7 +33,7 @@ function frag(t) {
   if ((m = t.match(/^(.+?)SP消耗(?:量)?([+-]\d+)(%?)$/))) return { _c: { [`${m[1]} SP 消耗量${m[3] ? '' : '#'}`]: +m[2] } };
   return null;
 }
-const merge = (a, b) => { for (const [k, v] of Object.entries(b)) { if (k === '_c') { a._c = a._c || {}; for (const [x, y] of Object.entries(v)) a._c[x] = (a._c[x] || 0) + y; } else if (k === '_t') a._t = a._t ? a._t + '；' + v : v; else if (k === '_pr' || k === '_job' || k === '_sl' || k === '_rq') a[k] = [...(a[k] || []), ...v]; else if (k === '_lv') a[k] = v; else a[k] = (a[k] || 0) + v; } return a; };
+const merge = (a, b) => { for (const [k, v] of Object.entries(b)) { if (k === '_c') { a._c = a._c || {}; for (const [x, y] of Object.entries(v)) a._c[x] = (a._c[x] || 0) + y; } else if (k === '_t') a._t = a._t ? a._t + '；' + v : v; else if (k === '_pr' || k === '_job' || k === '_sl' || k === '_rq' || k === '_rr' || k === '_wt') a[k] = [...(a[k] || []), ...v]; else if (k === '_lv') a[k] = v; else a[k] = (a[k] || 0) + v; } return a; };
 // 一句話 → 效果；全部片段都能解析才算，否則交給 gearParseText（技能傷害等）或列文字
 // 一句裡能算的部分算、不能算的留文字：回傳 [效果, 剩下的文字]
 function partial(text) {

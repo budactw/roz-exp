@@ -6,9 +6,12 @@ global.window = global;
 eval(fs.readFileSync(gearPath, 'utf8') + ';global.gearParseText=gearParseText;');
 const { norm, merge, sentence } = require('../lib/effparse')(gearParseText);
 const items = JSON.parse(fs.readFileSync(itemsPath, 'utf8'));
+// 一般／Boss／MVP：card-class.py 產生的 card-class.json（{ 編號: 1 Boss／2 MVP }）
+const CLS = JSON.parse(fs.readFileSync(require('path').join(__dirname, 'card-class.json'), 'utf8'));
 
 // 可插的部位 → 配裝的部位代號
 const POS = { 武器: 'weapon', 盾牌: 'shield', 頭具: 'head', 頭盔: 'head', 鎧甲: 'armor', 盔甲: 'armor', 披肩: 'garment', 鞋子: 'shoes', 靴子: 'shoes', 飾品: 'acc' };
+const REF_POS = { 盾牌: 'shield', 防盾: 'shield', 鎧甲: 'armor', 盔甲: 'armor', 武器: 'weapon', 披肩: 'garment', 鞋子: 'shoes', 靴子: 'shoes', 頭盔: 'headTop' };
 const clean = t => t.replace(/<NAVI>.*?<\/NAVI>|<ITEM>|<\/ITEM>|<INFO>.*?<\/INFO>/g, '');
 
 // 一行說明 → 效果（先處理卡片常見寫法，其餘交給附魔的轉換規則）
@@ -16,13 +19,30 @@ function line(s) {
   s = s.trim().replace(/[。.]$/, '').replace(/系列(?:角色|職業)?裝備(?:時|狀態下)/g, '系列裝備時').replace(/(?<!完全)迴避率?(再)?\s*\+/g, 'FLEE$1+').replace(/,/g, '，').replace(/命中率?\s*\+/g, 'HIT+').replace(/(?:套裝效果|套組|若套裝)?裝備者(?:為|如果是)/g, '當裝備職業為').replace(/MAXHP|MaxHP/g, 'MHP').replace(/MAXSP|MaxSP/g, 'MSP').replace(/\s+/g, ' ');
   let m = norm(s).match(/^(?:裝備的?)?精煉(?:值|度)?(?:為)?\+?(\d+)以上時，?(.+)$/);
   if (m) { const e = sentence(m[2]); if (!e._t) return { _rq: [[+m[1], e]] }; }
+  // 「精煉每+1，…」「盾牌精煉度每提高1點，…」：依精煉值（沒寫部位＝插著的這件；最後的「精煉上限為+10」是最多算到幾）
+  m = norm(s).match(/^(盾牌|防盾|鎧甲|盔甲|武器|披肩|鞋子|靴子|頭盔)?精煉(?:值|度)?每(?:提高)?\+?(\d+)(?:點)?時?，(.+?)(?:[(（]但.*?精煉上限為\+?(\d+)[)）])?$/);
+  if (m) { const e = sentence(m[3]); if (!e._t) return { _rr: [[REF_POS[m[1]] || '', +m[2], e, m[4] ? +m[4] : 0]] }; }
   m = norm(s).match(/^每BaseLv\.?(\d+)(?:級)?，(.+)$/i);
   if (m) { const e = sentence(m[2]); if (!e._t) return { _lv: [+m[1], e] }; }
   // 「…，當盜賊系列裝備時，…」：前後拆開
   const k = s.search(/[，,]\s*當/); if (k > 0) return merge(line(s.slice(0, k)), line(s.slice(k + 1)));
   return sentence(s);
 }
-const effOf = lines => lines.reduce((e, l) => merge(e, line(l)), {});
+// 「武器為鈍器時，…」：接下來幾行（到下一個「武器為」為止）只在那種武器時算 → _wt: [[武器種類, 效果]]
+function effOf(lines) {
+  const e = {}; let wt = null, we = null;
+  const flush = () => { if (wt) merge(e, Object.keys(we).length ? { _wt: [[wt, we]] } : {}); };
+  for (let l of lines) {
+    const m = norm(l).match(/^武器(?:為|是)(.+?)時，?(.*)$/);
+    if (m) { flush(); wt = m[1]; we = {}; l = m[2]; }
+    l = l.replace(/[，,]$/, ''); if (!l) continue;
+    merge(wt ? we : e, line(l));
+  }
+  flush();
+  // _wt 裡留下的文字搬回外面，加上條件
+  for (const w of e._wt || []) if (w[1]._t) { merge(e, { _t: `武器為${w[0]}時：${w[1]._t}` }); delete w[1]._t; }
+  return e;
+}
 
 const cards = {}, byName = {}, raw = [];
 for (const [id, v] of Object.entries(items)) {
@@ -30,9 +50,9 @@ for (const [id, v] of Object.entries(items)) {
   if (!/系列\s*[:：]\s*卡片/.test(d)) continue;
   const pm = d.match(/裝備\s*[:：]\s*([^/\s]+)/), pos = pm && POS[pm[1].trim()];
   if (!pos) continue;   // 全欄位（附魔）、特效道具等不收
-  const lines = d.split(' / ').flatMap(x => x.split(/。(?=\S)/)).map(x => x.trim()).filter(x => x && x !== '_' && !/^(系列|裝備|重量)\s*[:：]/.test(x) && !/^\[.*\]$/.test(x));
+  const lines = d.split(' / ').flatMap(x => x.split(/。(?=\S)|(?<=[^\s，,。/])(?=(?:和|與|同時與|搭配)「?[^，,。]{1,20}?卡片」?(?:一起|同時)?裝備)/)).map(x => x.trim()).filter(x => x && x !== '_' && !/^(系列|裝備|重量)\s*[:：]/.test(x) && !/^\[.*\]$/.test(x));
   raw.push({ id: +id, n: v.n.trim(), pos, lines });
-  byName[v.n.trim()] = +id;
+  byName[v.n.replace(/\s/g, '')] = v.n.trim();   // 說明裡提到別的卡片時常常少了空格
 }
 // 套卡：「和 A、B 卡片一起裝備時」「同時與 A 卡片…一起裝備」「搭配「A卡片」時」之後的效果
 const COMBO = /(?:和|與|同時與|同時裝備|搭配)\s*「?(.+?)」?\s*(?:卡片)?\s*(?:一起裝備|同時裝備|時)/;
@@ -45,6 +65,7 @@ for (const c of raw) {
     const l = c.lines[i], m = l.match(COMBO);
     const names = m ? m[1].split(/[、，,和與及]|卡片」?、?「?/).map(x => x.replace(/[「」\s]/g, '')).filter(Boolean).map(x => x.endsWith('卡片') ? x : x + '卡片') : [];
     const ok = names.length && names.every(n => byName[n]);
+    names.forEach((n, j) => { names[j] = byName[n] || n; });
     const after = l.replace(/^.*?(?:一起裝備|同時裝備|搭配)[^，,]*?時[，,]?/, '').replace(/^\s*(?:獲得以下的效果|套組效果)[。，,]?\s*/, '');
     const rest = [after, ...c.lines.slice(i + 1)].filter(Boolean);
     if (ok) {
@@ -52,11 +73,11 @@ for (const c of raw) {
       if (!sets.has(key)) sets.set(key, { cards: [c.n, ...names].sort(), b: effOf(rest) });
     } else merge(e, { _t: c.lines.slice(i).join(' ') });
   }
-  cards[c.id] = { n: c.n, p: c.pos, e };
+  cards[c.id] = { n: c.n, p: c.pos, e, ...(CLS[c.id] ? { c: CLS[c.id] } : {}) };
 }
 // 只有文字（_t）的地方換回原句，比較好讀
 const out = `// 由 tools/grf/build-cards.js 產生：卡片（取自樂園客戶端 iteminfo_new.lub，說明自動轉成效果；轉不了的留 _t 文字）
-// CARDS[編號] = { n 名稱, p 部位（weapon／shield／head／armor／garment／shoes／acc）, e 效果 }；CARD_SETS = [{ cards: [名稱…], b 效果 }]
+// CARDS[編號] = { n 名稱, p 部位（weapon／shield／head／armor／garment／shoes／acc）, e 效果, c 1 Boss／2 MVP（一般卡沒有）}；CARD_SETS = [{ cards: [名稱…], b 效果 }]
 const CARDS = ${JSON.stringify(cards, null, 0)};
 const CARD_SETS = ${JSON.stringify([...sets.values()], null, 0)};
 `;

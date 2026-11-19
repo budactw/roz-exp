@@ -44,6 +44,12 @@ python -I tools/grf/build-icons.py <data.grf> /tmp/ii64.lub /tmp/gear-names.json
 node tools/grf/build-cards.js /tmp/items.json public/gear-data.js public/card-data.js
 ```
 
+卡片分類（一般／Boss／MVP）在 `tools/grf/card-class.json`，由 `card-class.py` 對照 rAthena 的怪物資料庫產生（掉這張卡的怪物是 MVP／Boss），樂園自己編號的卡片在程式裡的 `MANUAL` 補：
+
+```bash
+python3 -I tools/grf/card-class.py <rathena>/db/re/item_db_etc.yml <rathena>/db/re/mob_db.yml,<rathena>/db/pre-re/mob_db.yml public/card-data.js tools/grf/card-class.json
+```
+
 ## 技能樹
 
 `public/skill-data.js`、`public/skill-desc.json`、`public/skillicons/`：

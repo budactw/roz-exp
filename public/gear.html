@@ -198,8 +198,9 @@
       <div class="field"><label>Base 等級（只列出等級夠的裝備）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
       <div class="field"><label>Job 等級</label><input type="number" id="jobLv" min="1" max="70" value="70" inputmode="numeric"></div>
     </div>
-    <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 設定附魔</label>
-    <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 設定技能樹</label>
+    <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 啟用附魔</label>
+    <label class="sw"><input type="checkbox" id="useCard" switch role="switch"> 啟用卡片</label>
+    <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 啟用技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button></div>
   </div>
@@ -297,7 +298,7 @@
 <script src="skill-tree.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
-<script src="card-data.js?v=1"></script>
+<script src="card-data.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -318,7 +319,7 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, cs: {}, sk: false, skl: {} });
+const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, cs: {}, sk: false, skl: {} });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 const maxRef = it => (it && it.maxRef) || 20;   // 精煉上限（典藏板是 +10）
 // 服飾附魔石：st.cs[部位] = 石頭名稱
@@ -373,7 +374,7 @@ function packState() {
     const x = st.slots[k], it = BY_NAME[x.n]; if (!it) continue;
     o.s[k] = [itemCode(x.n), x.r];
     const e = (x.e || []).map((nm, i) => nm ? enchList(it, i).indexOf(nm) + 1 : 0);
-    const cd = (x.cd || []).slice(0, holesOf(it)).map(v => +v || 0);
+    const cd = st.card ? (x.cd || []).slice(0, holesOf(it)).map(v => +v || 0) : [];
     if (st.ench && (e.some(Boolean) || x.a) || cd.some(Boolean)) o.s[k].push(st.ench ? e : [], st.ench ? x.a || 0 : 0);
     if (cd.some(Boolean)) o.s[k].push(cd.join('.').replace(/(\.0)+$/, ''));
   }
@@ -399,6 +400,7 @@ function unpackState(code) {
     const cd = typeof v[4] === 'string' ? v[4].split('.').map(x => CARDS[x] ? +x : 0) : [];
     s.slots[k] = { n: nm, r: it.ref ? n(v[1], 0, 0, maxRef(it)) : 0, e, a, cd };
   }
+  if (Object.values(s.slots).some(x => x.cd && x.cd.some(Boolean))) s.card = true;
   if (Array.isArray(o.c)) COSTUME_POS.forEach(([k, , pos], i) => { const x = o.c[i]; s.cs[k] = typeof x === 'number' ? (COSTUME_STONE[pos][x - 1] || {}).n || '' : typeof x === 'string' ? x : ''; });
   s.sk = !!o.k;
   if (typeof o.t === 'string' && s.job) treeIds(s.job).forEach((sid, i) => { const lv = parseInt(o.t[i] || '0', 36) || 0; if (lv) s.skt[sid] = Math.min(SKILLS[sid].m, lv); });
@@ -459,7 +461,7 @@ async function deleteChar() {
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, x.cur ? 'char' : 'free'); useNow();
 }
 function syncInputs() {
-  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useSkill').checked = !!st.sk; skKey = null;
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useSkill').checked = !!st.sk; skKey = null;
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -481,7 +483,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/20', '新增卡片：依洞數插卡（388 張，取自遊戲客戶端），效果與套卡自動加總'],
+  ['2026/11/20', '新增卡片（設定裡開啟）：依洞數插卡，分一般、Boss、MVP（388 張，取自遊戲客戶端），效果與套卡自動加總'],
   ['2026/11/20', '新增技能樹（設定裡開啟，也有獨立頁面）；技能相關效果照技能樹點數計算；分享連結縮短'],
   ['2026/11/20', '新增人物狀態面板、角色（和每日任務共用）、Job 等級；一鍵套裝與整套精煉移到裝備上方'],
   ['2026/11/19', '附魔「精髓」的技能等級、盔甲精煉加成改為自動計算；新增使用說明'],
@@ -534,9 +536,12 @@ function add(to, eff, notes) {
     // _rf: [每 N 精煉, 能力, 上限]＝依「這件裝備」的精煉值（例如放在 _job 裡的職業限定效果）
     else if (k === '_rq') { for (const [n_, e] of v) if (curRef >= n_) add(to, e, notes); }
     else if (k === '_rf') { const t = Math.floor(Math.min(curRef, v[2] || 99) / v[0]); if (t) add(to, mul(v[1], t), notes); }
+    // _rr: [[部位, 每 N 精煉, 能力, 上限], …]＝依某個部位的精煉值（部位空白＝這件；卡片的「盾牌精煉每+1」）；_wt: [[武器種類, 能力], …]
+    else if (k === '_rr') { for (const [p, n_, e, mx] of v) { const t = rrTimes(p, n_, mx); if (t) add(to, mul(e, t), notes); } }
+    else if (k === '_wt') { for (const [w, e] of v) if (wType() === w) add(to, e, notes); }
     // _sk: [[習得條件, 能力], …]＝開啟「技能已習得」才加總；_sl: [[技能, 每 N 級, 能力], …]＝依設定的技能等級
-    else if (k === '_sk') { for (const [c, e] of v) { if (!skMet(c)) notes && notes.push(`${c}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '開啟「設定技能樹」後加總'}）`); else { const nt = []; add(to, e, nt); nt.forEach(x => notes && notes.push(`${c}：${x}`)); } } }
-    else if (k === '_sl') { for (const [sk, per, e] of v) { const t = Math.floor(skLv(sk) / per); if (t) add(to, mul(e, t), notes); else notes && notes.push(`${slText(sk, per)}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '開啟「設定技能樹」後加總'}）`); } }
+    else if (k === '_sk') { for (const [c, e] of v) { if (!skMet(c)) notes && notes.push(`${c}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '打開「啟用技能樹」後加總'}）`); else { const nt = []; add(to, e, nt); nt.forEach(x => notes && notes.push(`${c}：${x}`)); } } }
+    else if (k === '_sl') { for (const [sk, per, e] of v) { const t = Math.floor(skLv(sk) / per); if (t) add(to, mul(e, t), notes); else notes && notes.push(`${slText(sk, per)}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '打開「啟用技能樹」後加總'}）`); } }
     else if (k === '_if') { for (const [s, n, e] of v) if ((st.ps[s] || 0) >= n) add(to, e, notes); }
     else if (k === '_ps') for (const [s, n, e, max] of v) { const t = Math.min(Math.floor((st.ps[s] || 0) / n), max || Infinity); if (t) add(to, mul(e, t), notes); if (e._t && t) notes && notes.push(`${e._t}（×${t}）`); }
     else to[k] = (to[k] || 0) + v;
@@ -544,6 +549,10 @@ function add(to, eff, notes) {
   return to;
 }
 let curRef = 0;   // 目前在算／顯示的那件裝備的精煉值（_rf 用）
+const slotRef = p => !p ? curRef : st.slots[p] && BY_NAME[st.slots[p].n] ? +st.slots[p].r || 0 : 0;
+const rrTimes = (p, n_, mx) => Math.floor(Math.min(slotRef(p), mx || 99) / n_);
+const RR_POS = { shield: '盾牌', armor: '鎧甲', weapon: '武器', garment: '披肩', shoes: '鞋子', headTop: '頭盔' };
+const wType = () => { const w = st.slots.weapon && BY_NAME[st.slots.weapon.n]; return w ? w.type : ''; };
 // 技能等級：目前職業的技能樹有這個技能就讀技能樹，沒有才用手填的
 const treeLv = sk => st.job && typeof SkillTree !== 'undefined' ? SkillTree.lvByName(st.job, st.skt, sk) : null;
 const skLv = sk => !st.sk ? 0 : treeLv(sk) ?? Math.max(0, +st.skl[sk] || 0);
@@ -563,6 +572,8 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_lv' ? `BaseLv 每 ${v[0]} 級：${fmtEff(v[1])}（目前 ×${Math.floor(st.lv / v[0])}）` :
   k === '_rq' ? v.map(([n_, e]) => `精煉 +${n_} 以上：${fmtEff(e)}${curRef >= n_ ? ' ✓' : ''}`).join('；') :
   k === '_rf' ? `精煉每 +${v[0]}：${fmtEff(v[1])}${v[2] ? `（最多算到 +${v[2]}）` : ''}（目前 ×${Math.floor(Math.min(curRef, v[2] || 99) / v[0])}）` :
+  k === '_rr' ? v.map(([p, n_, e, mx]) => `${RR_POS[p] || ''}精煉每 +${n_}：${fmtEff(e)}${mx ? `（最多算到 +${mx}）` : ''}（目前 ×${rrTimes(p, n_, mx)}）`).join('；') :
+  k === '_wt' ? v.map(([w, e]) => `武器為${w}時${wType() === w ? '（目前）' : ''}：${fmtEff(e)}`).join('；') :
   k === '_sk' ? v.map(([c, e]) => `${c}：${fmtEff(e)}${skMet(c) ? ' ✓' : ''}`).join('；') :
   k === '_sl' ? v.map(([sk, per, e]) => `${slText(sk, per)}：${fmtEff(e)}（目前 Lv ${skLv(sk)}）`).join('；') :
   k === '_ps' ? v.map(([s, n, e, max]) => `每 ${n} 點純 ${s}：${fmtEff(e)}${max ? `（最多 ${max} 次）` : ''}（目前 ×${Math.min(Math.floor((st.ps[s] || 0) / n), max || Infinity)}）`).join('、') :
@@ -670,16 +681,17 @@ for (const [id, c] of Object.entries(typeof CARDS !== 'undefined' ? CARDS : {}))
 for (const l of Object.values(CARD_LIST)) l.sort((a, b) => CARDS[a].n.localeCompare(CARDS[b].n, 'zh-Hant'));
 // 這件裝備插了哪些卡：[[第幾洞, 卡片編號]]
 function cardsOn(k, it) {
-  const p = cardPos(k, it), n = holesOf(it); if (!p || !n) return [];
+  const p = cardPos(k, it), n = holesOf(it); if (!st.card || !p || !n) return [];
   return (st.slots[k].cd || []).slice(0, n).map((id, i) => [i, id]).filter(([, id]) => CARDS[id] && CARDS[id].p === p);
 }
 function setCard(k, i, v) { const cd = st.slots[k].cd = (st.slots[k].cd || []).slice(); cd[i] = +v || 0; save(); render(); }
+const CARD_KIND = ['一般卡片', 'Boss 卡片', 'MVP 卡片'];   // CARDS[id].c：沒有＝一般、1 Boss、2 MVP
 function cardHtml(k, it) {
-  const p = cardPos(k, it), n = holesOf(it); if (!p || !n) return '';
+  const p = cardPos(k, it), n = holesOf(it); if (!st.card || !p || !n) return '';
   const cd = st.slots[k].cd || [], list = CARD_LIST[p] || [];
   return `<div class="addon"><div class="addon-h">卡片</div>` + Array.from({ length: n }, (_, i) =>
     `<div class="ench-row"><label for="card-${k}-${i}">第${'一二三四'[i]}洞</label><select id="card-${k}-${i}" onchange="setCard('${k}', ${i}, this.value)"><option value="">（無）</option>` +
-    list.map(id => `<option value="${id}"${id === cd[i] ? ' selected' : ''}>${CARDS[id].n}</option>`).join('') + `</select></div>`).join('') + `</div>`;
+    CARD_KIND.map((g, c) => { const ids = list.filter(id => (CARDS[id].c || 0) === c); return ids.length ? `<optgroup label="${g}">` + ids.map(id => `<option value="${id}"${id === cd[i] ? ' selected' : ''}>${CARDS[id].n}</option>`).join('') + `</optgroup>` : ''; }).join('') + `</select></div>`).join('') + `</div>`;
 }
 
 // ===== 附魔 =====
@@ -977,7 +989,7 @@ async function showSkillInfo(sid, x, y) {
   openInfo('skInfo', x, y);
 }
 function renderTree() {
-  // 「設定技能樹」開啟才顯示技能樹，技能相關效果也才加總
+  // 「啟用技能樹」開啟才顯示技能樹，技能相關效果也才加總
   $('stCard').classList.toggle('hidden', !st.sk);
   $('stToggle').textContent = treeOpen ? '收合' : '展開';
   $('stBody').classList.toggle('hidden', !treeOpen);
@@ -1176,12 +1188,14 @@ $('allRef').addEventListener('input', e => {
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
 $('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
-if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
+if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
 $('useSkill').checked = !!st.sk;
 $('useSkill').addEventListener('change', e => { st.sk = e.target.checked; save(); render(); track('gear_skill', { on: st.sk }); });
 $('skGrid').addEventListener('input', e => { const k = e.target.dataset.sk; if (!k) return; st.skl[k] = Math.max(0, Math.min(99, parseInt(e.target.value) || 0)); save(); refreshSlots(); });
 $('useEnch').checked = !!st.ench;
 $('useEnch').addEventListener('change', e => { st.ench = e.target.checked; save(); render(); track('gear_ench', { on: st.ench }); });
+$('useCard').checked = !!st.card;
+$('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
 $('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('');

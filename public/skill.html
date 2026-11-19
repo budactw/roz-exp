@@ -65,7 +65,7 @@
       <div class="field"><label for="jobLv">Job 等級</label><input type="number" id="jobLv" min="1" max="70" value="70" inputmode="numeric"></div>
     </div>
     <div class="btns"><button class="btn-ghost" onclick="share(this)">🔗 分享這組技能</button><button class="btn-ghost" onclick="resetTree()">↺ 全部重置</button><a class="btn-ghost" style="display:inline-flex;align-items:center;text-decoration:none;" href="gear.html">🧩 到配裝</a></div>
-    <div class="hint">技能點和配裝頁是同一份：在這裡點的技能，配裝頁會自動開啟「設定技能樹」並照著計算。</div>
+    <div class="hint">技能點和配裝頁是同一份：在這裡點的技能，配裝頁會自動打開「啟用技能樹」並照著計算。</div>
   </div>
 
   <div class="card">
@@ -120,7 +120,7 @@ function load() {
 function save() {
   if (shared) return;
   localStorage.setItem(WHO_KEY, who);
-  // 只寫回技能相關欄位，其他配裝內容以存檔裡最新的為準；順便開啟配裝頁的「設定技能樹」
+  // 只寫回技能相關欄位，其他配裝內容以存檔裡最新的為準；順便開啟配裝頁的「啟用技能樹」
   if (who !== 'char') { let x = {}; try { x = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {} Object.assign(x, { job: g.job, jl: g.jl, skt: g.skt, sk: true }); if (!x.slots) x.slots = {}; localStorage.setItem(KEY, JSON.stringify(x)); return; }
   const c = readChars(); if (!c.chars[S.cur]) return;
   c.chars[S.cur].gear = Object.assign(c.chars[S.cur].gear || { slots: {} }, { job: g.job, jl: g.jl, skt: g.skt, sk: true }); c.cur = S.cur;
