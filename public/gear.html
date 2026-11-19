@@ -104,6 +104,8 @@
   .bf-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
   .bf { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--input-bg); }
   .bf label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; }
+  .bf-bar { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bf-st { display: inline-flex; padding: 2px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); }
   .bf-ic { width: 24px; height: 24px; flex-shrink: 0; image-rendering: pixelated; }
   .bf-food label > span { display: flex; align-items: center; gap: 4px; }
   .bf input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; margin: 0; }
@@ -270,6 +272,7 @@
 
   <div class="card hidden" id="buffCard">
     <h2>✨ Buff <button type="button" class="btn-ghost" id="buffToggle" onclick="toggleBuffCard()"></button></h2>
+    <div class="bf-bar hidden" id="buffBar" aria-label="目前的 Buff"></div>
     <div id="buffWrap"><div id="buffBody"></div>
     <div class="hint">勾選的 Buff 會算進人物狀態和能力加總。料理和頂級料理套餐取較高的；攻速藥水三選一；天使之賜福與慈悲術、加速術與純白百合花擇一。</div></div>
   </div>
@@ -441,6 +444,11 @@ function renderBuff() {
   $('buffCard').classList.toggle('hidden', !st.buff);
   $('buffToggle').textContent = buffOpen ? '收合' : '展開';
   $('buffWrap').classList.toggle('hidden', !buffOpen);
+  // 收合時：像遊戲畫面右上角的狀態圖示，一排列出目前生效的 Buff
+  const bar = st.buff && !buffOpen ? BUFFS.filter(b => st.bf[b.id] && buffShown(b) && !buffNa(b)).map(b => [b.ic ? `icons/${b.ic}` : `skillicons/${b.sk}`, b.n + (b.max ? ` Lv${st.bf[b.id]}` : '')])
+    .concat(BUFF_FOOD.filter(x => st.bf['f' + x]).map(x => [`icons/${BUFF_FOOD_IC[x]}`, `${x} 料理 +${st.bf['f' + x]}`])) : [];
+  $('buffBar').classList.toggle('hidden', !bar.length && buffOpen);
+  $('buffBar').innerHTML = bar.length ? bar.map(([src, t]) => `<span class="bf-st" title="${t}">${bfIcon(src).replace('alt=""', `alt="${t}"`)}</span>`).join('') : buffOpen ? '' : '<span class="hint">還沒有勾選 Buff</span>';
   if (!st.buff || !buffOpen) return;
   const opt = (n, cur, fmt) => Array.from({ length: n }, (_, i) => `<option value="${i + 1}"${i + 1 === cur ? ' selected' : ''}>${fmt(i + 1)}</option>`).join('');
   const item = b => {
