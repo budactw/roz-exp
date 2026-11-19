@@ -67,7 +67,13 @@
   details.ps { margin-top: 12px; border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 12px; background: var(--tile-bg); }
   details.ps summary { cursor: pointer; font-size: .85rem; font-weight: 700; }
   /* 角色 */
-  .chars { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+  .char-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chars .chip-add { border-style: dashed; color: var(--dim); background: transparent; }
+  .chars .chip-add:hover { color: var(--primary); border-color: var(--primary); }
+  .char-acts { display: flex; gap: 6px; margin-left: auto; }
+  .char-acts button { font-size: .82rem; padding: 4px 10px; }
+  .char-acts .danger, html[data-ui] .char-acts button.danger { color: var(--danger); }
   .chars .chip { cursor: pointer; font-size: .85rem; padding: 4px 12px; min-height: 0; font-family: inherit; }
   .chars .chip small { margin-left: 6px; color: var(--dim); font-size: .75rem; }
   .chars .chip.cur { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; box-shadow: 0 0 0 1px var(--primary) inset; }
@@ -602,10 +608,11 @@ function syncShared() {
 function renderChars() {
   $('charCard').classList.toggle('hidden', shared);
   const chip = (on, click, name, sub) => `<button type="button" class="chip${on ? ' cur' : ''}" onclick="${click}">${name}${sub ? `<small>${sub}</small>` : ''}</button>`;
-  $('chars').innerHTML = chip(who === 'free', 'switchFree()', '不分角色') +
+  // 左邊：角色清單＋新增（虛線）；右邊：對「目前角色」的操作，刪除用紅字
+  $('chars').innerHTML = `<div class="char-list">` + chip(who === 'free', 'switchFree()', '不分角色') +
     Object.entries(S.chars).map(([id, c]) => chip(who === 'char' && id === S.cur, `switchChar('${id}')`, escHtml(c.name), c.gear && c.gear.job)).join('') +
-    `<button class="btn-ghost" onclick="addChar()">＋ 新增角色</button>` +
-    (who === 'char' ? `<button class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button class="btn-ghost" onclick="copyChar()">📋 複製角色</button><button class="btn-ghost" onclick="deleteChar()">🗑 刪除</button>` : '');
+    `<button type="button" class="chip chip-add" onclick="addChar()">＋ 新增角色</button></div>` +
+    (who === 'char' ? `<div class="char-acts" role="group" aria-label="目前角色「${escHtml(curChar().name)}」"><button type="button" class="btn-ghost" onclick="renameChar()">✏️ 改名</button><button type="button" class="btn-ghost" onclick="copyChar()">📋 複製</button><button type="button" class="btn-ghost danger" onclick="deleteChar()">🗑 刪除</button></div>` : '');
 }
 function useNow() { clearHash(); shared = false; load(); syncInputs(); render(); }
 function switchFree() { localStorage.setItem(WHO_KEY, 'free'); useNow(); }
