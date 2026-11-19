@@ -88,7 +88,10 @@
   @media (max-width: 640px) { .ps-grid { grid-template-columns: repeat(3, 1fr); } }
   .sk-box { margin-top: 10px; }
   .rune-box { margin: 4px 0 10px; }
-  .rune-row { display: grid; grid-template-columns: minmax(0, 1fr) 6em; gap: 8px; }
+  .rune-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .rune-lv { display: flex; gap: 6px; align-items: stretch; }
+  .rune-lv input { width: 4.5em; }
+  .rune-lv button { white-space: nowrap; padding: 0 10px; }
   .rune-eff { margin-top: 6px; font-size: .85rem; color: var(--dim); }
   .rune-eff b { color: var(--text); font-weight: 600; }
   .sk-ico { float: left; margin: 2px 10px 6px 0; image-rendering: pixelated; }
@@ -226,7 +229,7 @@
     <label class="sw"><input type="checkbox" id="useRune" switch role="switch"> 啟用符文</label>
     <div class="rune-box hidden" id="runeBox"><div class="rune-row">
       <div class="field"><label for="runeSet">符文石碑</label><select id="runeSet"></select></div>
-      <div class="field"><label for="runeLv">強化</label><input type="number" id="runeLv" min="0" max="15" inputmode="numeric" value="0"></div>
+      <div class="field"><label for="runeLv">強化</label><div class="rune-lv"><input type="number" id="runeLv" min="0" max="15" inputmode="numeric" value="0"><button type="button" class="btn-ghost" id="runeMax">最高</button></div></div>
     </div><div class="rune-eff" id="runeEff"></div></div>
     <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 啟用技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
@@ -1313,6 +1316,7 @@ $('useCard').checked = !!st.card;
 $('useRune').checked = !!st.rune;
 $('useRune').addEventListener('change', e => { st.rune = e.target.checked; save(); render(); track('gear_rune', { on: st.rune }); });
 $('runeSet').addEventListener('change', e => { st.rs = +e.target.value || 0; save(); render(); });
+$('runeMax').addEventListener('click', () => { st.rl = 15; save(); render(); });
 $('runeLv').addEventListener('change', e => { st.rl = Math.max(0, Math.min(15, parseInt(e.target.value) || 0)); save(); render(); });
 $('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
