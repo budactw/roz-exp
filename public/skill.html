@@ -103,11 +103,12 @@
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
 <script src="short-link.js?v=1"></script>
+<script src="gear-chars.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
-// ===== 存檔：和配裝頁同一份（不分角色存 roz-gear-v1；角色存在 roz-daily-v1 的 chars[id].gear），這頁只改 job、jl、skt =====
-const KEY = 'roz-gear-v1', CHAR_KEY = 'roz-daily-v1', WHO_KEY = 'roz-gear-who';
+// ===== 存檔：和配裝頁同一份（不分角色存 roz-gear-v1；角色存在 gear-chars.js 名單的 chars[id].gear），這頁只改 job、jl、skt =====
+const KEY = 'roz-gear-v1', CHAR_KEY = GEAR_CHAR_KEY, WHO_KEY = 'roz-gear-who';
 let S = { cur: null, chars: {} }, who = 'free', g = {}, shared = false;
 function readChars() { try { const x = JSON.parse(localStorage.getItem(CHAR_KEY)); if (x && x.chars) return x; } catch (e) {} return { cur: null, chars: {} }; }
 const curChar = () => S.chars[S.cur];
@@ -127,7 +128,7 @@ function save() {
   c.chars[S.cur].gear = Object.assign(c.chars[S.cur].gear || { slots: {} }, { job: g.job, jl: g.jl, skt: g.skt, sk: true }); c.cur = S.cur;
   localStorage.setItem(CHAR_KEY, JSON.stringify(c)); S = c;
 }
-// ===== 角色（和配裝、每日任務共用）=====
+// ===== 角色（和配裝頁共用；和每日任務等頁的角色分開）=====
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function renderChars() {
   $('charCard').classList.toggle('hidden', shared); $('shareBar').classList.toggle('hidden', !shared);
@@ -142,7 +143,7 @@ function switchChar(id) { const x = readChars(); if (!x.chars[id]) return; x.cur
 async function addChar() {
   const name = (await dialog({ title: '新增角色：輸入角色名稱', input: '' }) || '').trim(); if (!name) return;
   const x = readChars(), id = 'c' + Date.now().toString(36);
-  x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: { slots: {}, job: g.job, jl: g.jl, skt: JSON.parse(JSON.stringify(g.skt)) } }; x.cur = id;
+  x.chars[id] = { name, gear: { slots: {}, job: g.job, jl: g.jl, skt: JSON.parse(JSON.stringify(g.skt)) } }; x.cur = id;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
 }
 async function renameChar() { const n = (await dialog({ title: '角色改名', input: curChar().name }) || '').trim(); if (!n) return; const x = readChars(); if (x.chars[S.cur]) { x.chars[S.cur].name = n; localStorage.setItem(CHAR_KEY, JSON.stringify(x)); } useNow(); }

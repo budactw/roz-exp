@@ -448,6 +448,7 @@
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
 <script src="short-link.js?v=1"></script>
+<script src="gear-chars.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=7"></script>
@@ -575,8 +576,8 @@ function fixState() {
     if (st.slots[k].r > maxRef(BY_NAME[st.slots[k].n])) st.slots[k].r = maxRef(BY_NAME[st.slots[k].n]);
   }
 }
-// ===== 角色（選用；和每日任務、期間活動、攻速計算共用角色名單，每個角色各存一份配裝在 chars[id].gear）=====
-const CHAR_KEY = 'roz-daily-v1', WHO_KEY = 'roz-gear-who';   // who：'free' 不分角色（存在 KEY）／'char' 目前角色
+// ===== 角色（選用；和技能樹頁共用 gear-chars.js 的名單，每個角色各存一份配裝在 chars[id].gear；和每日任務等頁的角色分開）=====
+const CHAR_KEY = GEAR_CHAR_KEY, WHO_KEY = 'roz-gear-who';   // who：'free' 不分角色（存在 KEY）／'char' 目前角色
 let S = { cur: null, chars: {} }, who = 'free';
 function readChars() { try { const x = JSON.parse(localStorage.getItem(CHAR_KEY)); if (x && x.chars) return x; } catch (e) {} return { cur: null, chars: {} }; }
 const curChar = () => S.chars[S.cur];
@@ -593,7 +594,7 @@ function save() {
   if (shared) return;
   localStorage.setItem(WHO_KEY, who);
   if (who !== 'char') { localStorage.setItem(KEY, JSON.stringify(st)); return; }
-  // 重新讀一次再寫，避免蓋掉其他分頁（每日任務等）剛存的進度
+  // 重新讀一次再寫，避免蓋掉其他分頁（技能樹頁）剛存的進度
   const x = readChars(); if (!x.chars[S.cur]) return;
   x.chars[S.cur].gear = st; x.cur = S.cur; localStorage.setItem(CHAR_KEY, JSON.stringify(x)); S = x;
 }
@@ -700,12 +701,12 @@ function switchChar(id) { const x = readChars(); if (!x.chars[id]) return; x.cur
 async function addChar() {
   const name = (await dialog({ title: '新增角色：輸入角色名稱', input: '' }) || '').trim(); if (!name) return;
   const x = readChars(), id = 'c' + Date.now().toString(36);
-  // 和每日任務同一份角色；新角色的配裝先複製目前畫面上的
-  x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
+  // 新角色的配裝先複製目前畫面上的
+  x.chars[id] = { name, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
   track('add_char', { chars: Object.keys(x.chars).length, from: 'gear' });
 }
-// 移動角色順序：角色名單的順序就是物件的鍵順序（和每日任務、期間活動、攻速計算共用，順序會一起變）
+// 移動角色順序：角色名單的順序就是物件的鍵順序（技能樹頁的順序會一起變）
 function setCharOrder(ids) {
   const x = readChars(); ids = ids.filter(k => x.chars[k]).concat(Object.keys(x.chars).filter(k => !ids.includes(k)));
   x.chars = Object.fromEntries(ids.map(k => [k, x.chars[k]]));
@@ -757,7 +758,7 @@ async function copyChar() {
   const c = curChar(); if (!c) return;
   const name = (await dialog({ title: '複製角色：輸入新角色的名稱', msg: `會用「${c.name}」目前的配裝建立新角色。`, input: `${c.name} 的複本` }) || '').trim(); if (!name) return;
   const x = readChars(), id = 'c' + Date.now().toString(36);
-  x.chars[id] = { name, sel: [], st: {}, mats: {}, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
+  x.chars[id] = { name, gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
   track('copy_char', { chars: Object.keys(x.chars).length });
 }
@@ -766,7 +767,7 @@ async function renameChar() {
   const x = readChars(); if (x.chars[S.cur]) { x.chars[S.cur].name = n; localStorage.setItem(CHAR_KEY, JSON.stringify(x)); } useNow();
 }
 async function deleteChar() {
-  if (!await dialog({ title: `刪除「${curChar().name}」？`, msg: '這個角色在每日任務、期間活動、攻速計算與配裝的紀錄會一併刪除。' })) return;
+  if (!await dialog({ title: `刪除「${curChar().name}」？`, msg: '這個角色的配裝與技能點會刪除（每日任務等頁的角色不受影響）。' })) return;
   const x = readChars(); delete x.chars[S.cur]; x.cur = Object.keys(x.chars)[0] || null;
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, x.cur ? 'char' : 'free'); useNow();
 }
