@@ -215,6 +215,10 @@
   .gq-it .nm { font-weight: 600; overflow-wrap: anywhere; }
   .gq-it .sub { display: block; font-size: .78rem; font-weight: 400; color: var(--dim); }
   .gq-it .pos { font-size: .78rem; color: var(--dim); white-space: nowrap; }
+  /* 可以放好幾個部位（飾品左右等）：每個部位一顆按鈕 */
+  .gq-ts { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+  .gq-t, html[data-ui] .gq-t { min-height: 28px; padding: 0 10px; font-size: .78rem; font-weight: 400; border-radius: 999px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); cursor: pointer; white-space: nowrap; }
+  .gq-t:hover, html[data-ui] .gq-t:hover { border-color: var(--primary); color: var(--primary); }
   .gq-it.on .pos { color: var(--green); }
   .gq-note { padding: 6px 8px; font-size: .8rem; color: var(--dim); }
   .gq-h { padding: 8px 8px 4px; font-size: .78rem; font-weight: 700; color: var(--dim); border-top: 1px solid var(--input-border); margin-top: 4px; }
@@ -1495,11 +1499,12 @@ function gqRender() {
   const worn = new Set(GEAR_SLOTS.map(([k]) => st.slots[k].n).filter(Boolean));
   box.innerHTML = items.map((x, i) => { const k = slotOf(x), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[x.n];
     const sub = [x.type, x.j && x.j.replace(/系列/g, ''), x.lv > 1 ? 'Lv' + x.lv : ''].filter(Boolean).join('・');
-    return `<div class="gq-it${i === gqAct ? ' act' : ''}${worn.has(x.n) ? ' on' : ''}" role="option" id="gq-${i}" aria-selected="${i === gqAct}" data-i="${i}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span></span>'}<span class="nm">${x.n}${sub ? `<span class="sub">${sub}</span>` : ''}</span><span class="pos">${worn.has(x.n) ? '✓ 已裝備' : slotName(k).replace(/（.+?）/, '')}</span></div>`; }).join('') +
+    return `<div class="gq-it${i === gqAct ? ' act' : ''}${worn.has(x.n) ? ' on' : ''}" role="option" id="gq-${i}" aria-selected="${i === gqAct}" data-i="${i}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span></span>'}<span class="nm">${x.n}${sub ? `<span class="sub">${sub}</span>` : ''}</span>${worn.has(x.n) ? '<span class="pos">✓ 已裝備</span>' : gqTs(slotsOf(x).length > 1 ? slotsOf(x).map(s => [s, (st.slots[s].n ? '換掉' : '穿到') + slotName(s)]) : [[k, slotName(k)]])}</div>`; }).join('') +
     (ok.length > items.length ? `<div class="gq-note">還有 ${ok.length - items.length} 件，多打幾個字縮小範圍</div>` : '') +
     (all.length > ok.length ? `<div class="gq-note">另有 ${all.length - ok.length} 件目前職業／等級不能穿，沒有列出</div>` : '') +
-    (cardHits.length ? `<div class="gq-h">卡片</div>` + cardHits.map((id, j) => { const i = items.length + j, c = CARDS[id], t = cardTarget(id), on = cardWorn(id);
-      return `<div class="gq-it${i === gqAct ? ' act' : ''}${on ? ' on' : ''}${t ? '' : ' off'}" role="option" id="gq-${i}" aria-selected="${i === gqAct}"${t ? '' : ' aria-disabled="true"'} data-i="${i}"><span class="gq-card" aria-hidden="true">🃏</span><span class="nm">${c.n}<span class="sub">${CARD_POS_NAME[c.p]}・${CARD_KIND[c.c || 0]}${on ? `・已插 ${on} 張` : ''}</span></span><span class="pos">${t ? `${t[2] ? '換掉' : '插到'}${slotName(t[0]).replace(/（.+?）/, '')}第${'一二三四'[t[1]]}洞` : on ? '洞都插滿這張了' : `先穿上有洞的${CARD_POS_NAME[c.p]}`}</span></div>`; }).join('') : '') +
+    (cardHits.length ? `<div class="gq-h">卡片</div>` + cardHits.map((id, j) => { const i = items.length + j, c = CARDS[id], ts = cardTargets(id), t = ts[0], on = cardWorn(id);
+      const tTxt = ([k, h, rp]) => `${rp ? '換掉' : '插到'}${slotName(k)}第${'一二三四'[h]}洞`;   // 部位名稱保留（右）（左）
+      return `<div class="gq-it${i === gqAct ? ' act' : ''}${on ? ' on' : ''}${t ? '' : ' off'}" role="option" id="gq-${i}" aria-selected="${i === gqAct}"${t ? '' : ' aria-disabled="true"'} data-i="${i}"><span class="gq-card" aria-hidden="true">🃏</span><span class="nm">${c.n}<span class="sub">${CARD_POS_NAME[c.p]}・${CARD_KIND[c.c || 0]}${on ? `・已插 ${on} 張` : ''}</span></span>${ts.length > 1 ? gqTs(ts.map(x => [x[0], tTxt(x)])) : `<span class="pos">${t ? tTxt(t) : on ? '洞都插滿這張了' : `先穿上有洞的${CARD_POS_NAME[c.p]}`}</span>`}</div>`; }).join('') : '') +
     (cards.length > cardHits.length ? `<div class="gq-note">還有 ${cards.length - cardHits.length} 張卡片，多打幾個字縮小範圍</div>` : '') +
     (!ok.length && !cards.length ? `<div class="gq-note">沒有符合「${gq.replace(/[<&]/g, '')}」的裝備或卡片</div>` : '');
   box.hidden = false; inp.setAttribute('aria-expanded', 'true');
@@ -1508,20 +1513,28 @@ function gqRender() {
 // 卡片：插到第一件「部位對、還有空洞」的已穿裝備（飾品先右後左）
 const CARD_POS_NAME = { weapon: '武器', shield: '盾牌', head: '頭飾', armor: '鎧甲', garment: '披肩', shoes: '鞋子', acc: '飾品' };
 const cardMatch = c => gq.split(/\s+/).every(w => (c.n + ' ' + CARD_POS_NAME[c.p] + ' ' + CARD_KIND[c.c || 0] + ' 卡片').toLowerCase().includes(w.toLowerCase()));
-// 洞都插滿了就換掉第一件的最後一洞（[部位, 第幾洞, 是否替換]）
-function cardTarget(id) {
-  let full = null;
+// 每件能插這張卡的已穿裝備各給一個位置：有空洞插第一個空洞，插滿了換掉最後一個不是這張的洞（[部位, 第幾洞, 是否替換]）
+// 有空洞的排前面；第一個是預設（點整列、按 Enter）
+function cardTargets(id) {
+  const out = [];
   for (const [k] of GEAR_SLOTS) { const it = BY_NAME[st.slots[k].n]; if (!it || occupiedBy(k) || cardPos(k, it) !== CARDS[id].p) continue;
     const n = holesOf(it), cd = st.slots[k].cd || []; if (!n) continue;
-    for (let i = 0; i < n; i++) if (!CARDS[cd[i]] || CARDS[cd[i]].p !== CARDS[id].p) return [k, i, false];
-    if (!full) for (let i = n - 1; i >= 0; i--) if (cd[i] !== id) { full = [k, i, true]; break; } }   // 同一張卡可以重複插，換掉最後一個不是這張的洞
-  return full;
+    let t = null;
+    for (let i = 0; i < n && !t; i++) if (!CARDS[cd[i]] || CARDS[cd[i]].p !== CARDS[id].p) t = [k, i, false];
+    for (let i = n - 1; i >= 0 && !t; i--) if (cd[i] !== id) t = [k, i, true];   // 同一張卡可以重複插
+    if (t) out.push(t); }
+  return out.sort((a, b) => a[2] - b[2]);
 }
+const cardTarget = id => cardTargets(id)[0] || null;
+// 裝備可以放的部位（飾品左右、刺客左手武器）
+const slotsOf = it => GEAR_SLOTS.filter(([k, , kinds]) => kinds.includes(it.s) || (k === 'shield' && leftOk(it))).map(([k]) => k);
+// 搜尋結果右邊：只有一個位置就寫字，好幾個就每個位置一顆按鈕
+const gqTs = list => list.length > 1 ? `<span class="pos gq-ts">${list.map(([k, txt]) => `<button type="button" class="gq-t" data-k="${k}">${txt}</button>`).join('')}</span>` : `<span class="pos">${list.length ? list[0][1] : ''}</span>`;
 const cardWorn = id => GEAR_SLOTS.reduce((a, [k]) => { const it = BY_NAME[st.slots[k].n]; return a + (it && st.card && !occupiedBy(k) ? (st.slots[k].cd || []).slice(0, holesOf(it)).filter(x => x === id).length : 0); }, 0);
-function gqPick(i) {
+function gqPick(i, to) {
   const h = gqHits[i]; if (!h) return;
   if (h.card) {
-    const t = cardTarget(h.card); if (!t) return; const [k, j] = t;
+    const ts = cardTargets(h.card), t = (to && ts.find(x => x[0] === to)) || ts[0]; if (!t) return; const [k, j] = t;
     gq = ''; $('gq').value = ''; gqAct = -1; gqRender();
     if (!st.card) { st.card = true; $('useCard').checked = true; }
     if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
@@ -1529,7 +1542,7 @@ function gqPick(i) {
     const el = $('slot-' + k); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1200); }
     track('gear_search_card'); return;
   }
-  const it = h; const k = slotOf(it);
+  const it = h; const k = to && slotsOf(it).includes(to) ? to : slotOf(it);
   gq = ''; $('gq').value = ''; gqAct = -1; gqRender();
   if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
   roSel = k; pick(k, it.n);
@@ -1545,7 +1558,7 @@ $('gq').addEventListener('keydown', e => {
   else if (e.key === 'Escape') { e.stopPropagation(); $('gqRes').hidden = true; $('gq').setAttribute('aria-expanded', 'false'); }
 });
 $('gqRes').addEventListener('pointerdown', e => e.preventDefault());   // 點清單時不要讓搜尋框失焦
-$('gqRes').addEventListener('click', e => { const x = e.target.closest('.gq-it'); if (x) gqPick(+x.dataset.i); });
+$('gqRes').addEventListener('click', e => { const x = e.target.closest('.gq-it'); if (x) gqPick(+x.dataset.i, e.target.closest('.gq-t')?.dataset.k); });
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.gsearch-wrap')) { $('gqRes').hidden = true; $('gq').setAttribute('aria-expanded', 'false'); } });
 
 // ===== 底部加總摘要列 =====
