@@ -1627,8 +1627,9 @@ function stashDesc(x, it) {
   const out = [], e = (x.e || []).filter(Boolean);
   if (e.length) out.push('附魔：' + e.join('、'));
   if (x.a) {
+    // 名稱本身就寫了增加／減少，數值一律寫 +
     const pool = addonPools(it)[x.a.p] || addonPools(it)[0];
-    const ad = pool ? x.a.v.map((v, i) => { const o = v && pool.lines[i] && pool.lines[i].opts[v[0]]; return o ? `${o[0].replace(/%$/, '')} ${Math.max(o[3], Math.min(o[4], v[1]))}${/%$/.test(o[0]) ? '%' : ''}` : ''; }).filter(Boolean) : [];
+    const ad = pool ? x.a.v.map((v, i) => { const o = v && pool.lines[i] && pool.lines[i].opts[v[0]]; if (!o) return ''; const n = Math.max(o[3], Math.min(o[4], v[1])); return `${o[0].replace(/%$/, '')} +${n}${/%$/.test(o[0]) ? '%' : ''}`; }).filter(Boolean) : [];
     if (ad.length) out.push('附加：' + ad.join('、'));
   }
   // 卡片名稱去掉「卡片」兩個字，同一張插好幾張寫 ×N
