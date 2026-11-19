@@ -298,7 +298,7 @@
 <script src="skill-tree.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
-<script src="card-data.js?v=4"></script>
+<script src="card-data.js?v=5"></script>
 <script>
 const $ = id => document.getElementById(id);
 const BY_NAME = Object.fromEntries(GEAR_DB.map(it => [it.n, it]));
@@ -539,6 +539,9 @@ function add(to, eff, notes) {
     // _rr: [[部位, 每 N 精煉, 能力, 上限], …]＝依某個部位的精煉值（部位空白＝這件；卡片的「盾牌精煉每+1」）；_wt: [[武器種類, 能力], …]
     else if (k === '_rr') { for (const [p, n_, e, mx] of v) { const t = rrTimes(p, n_, mx); if (t) add(to, mul(e, t), notes); } }
     else if (k === '_wt') { for (const [w, e] of v) if (wType() === w) add(to, e, notes); }
+    // _rl: [[精煉上限, 能力], …]＝精煉 +N 以下時；_pet: [[[寵物 LvN…], 能力], …]＝寵物戒指的寵物附魔是其中之一時
+    else if (k === '_rl') { for (const [n_, e] of v) if (curRef <= n_) add(to, e, notes); }
+    else if (k === '_pet') { for (const [ps, e] of v) if (ps.some(p => petsOn().includes(p))) add(to, e, notes); }
     // _sk: [[習得條件, 能力], …]＝開啟「技能已習得」才加總；_sl: [[技能, 每 N 級, 能力], …]＝依設定的技能等級
     else if (k === '_sk') { for (const [c, e] of v) { if (!skMet(c)) notes && notes.push(`${c}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '打開「啟用技能樹」後加總'}）`); else { const nt = []; add(to, e, nt); nt.forEach(x => notes && notes.push(`${c}：${x}`)); } } }
     else if (k === '_sl') { for (const [sk, per, e] of v) { const t = Math.floor(skLv(sk) / per); if (t) add(to, mul(e, t), notes); else notes && notes.push(`${slText(sk, per)}：${fmtEff(e)}（${st.sk ? '技能樹點數不足' : '打開「啟用技能樹」後加總'}）`); } }
@@ -552,6 +555,7 @@ let curRef = 0;   // 目前在算／顯示的那件裝備的精煉值（_rf 用�
 const slotRef = p => !p ? curRef : st.slots[p] && BY_NAME[st.slots[p].n] ? +st.slots[p].r || 0 : 0;
 const rrTimes = (p, n_, mx) => Math.floor(Math.min(slotRef(p), mx || 99) / n_);
 const RR_POS = { shield: '盾牌', armor: '鎧甲', weapon: '武器', garment: '披肩', shoes: '鞋子', headTop: '頭盔' };
+const petsOn = () => { const x = st.slots.spPet; return st.ench && x && BY_NAME[x.n] ? (x.e || []).filter(Boolean) : []; };
 const wType = () => { const w = st.slots.weapon && BY_NAME[st.slots.weapon.n]; return w ? w.type : ''; };
 // 技能等級：目前職業的技能樹有這個技能就讀技能樹，沒有才用手填的
 const treeLv = sk => st.job && typeof SkillTree !== 'undefined' ? SkillTree.lvByName(st.job, st.skt, sk) : null;
@@ -573,6 +577,8 @@ const fmtEff = eff => Object.entries(eff).map(([k, v]) =>
   k === '_rq' ? v.map(([n_, e]) => `精煉 +${n_} 以上：${fmtEff(e)}${curRef >= n_ ? ' ✓' : ''}`).join('；') :
   k === '_rf' ? `精煉每 +${v[0]}：${fmtEff(v[1])}${v[2] ? `（最多算到 +${v[2]}）` : ''}（目前 ×${Math.floor(Math.min(curRef, v[2] || 99) / v[0])}）` :
   k === '_rr' ? v.map(([p, n_, e, mx]) => `${RR_POS[p] || ''}精煉每 +${n_}：${fmtEff(e)}${mx ? `（最多算到 +${mx}）` : ''}（目前 ×${rrTimes(p, n_, mx)}）`).join('；') :
+  k === '_rl' ? v.map(([n_, e]) => `精煉 +${n_} 以下：${fmtEff(e)}${curRef <= n_ ? ' ✓' : ''}`).join('；') :
+  k === '_pet' ? v.map(([ps, e]) => `寵物戒指附魔 ${ps.join('／')}：${fmtEff(e)}${ps.some(p => petsOn().includes(p)) ? ' ✓' : ''}`).join('；') :
   k === '_wt' ? v.map(([w, e]) => `武器為${w}時${wType() === w ? '（目前）' : ''}：${fmtEff(e)}`).join('；') :
   k === '_sk' ? v.map(([c, e]) => `${c}：${fmtEff(e)}${skMet(c) ? ' ✓' : ''}`).join('；') :
   k === '_sl' ? v.map(([sk, per, e]) => `${slText(sk, per)}：${fmtEff(e)}（目前 Lv ${skLv(sk)}）`).join('；') :
