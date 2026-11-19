@@ -122,11 +122,11 @@
   .addon-h { font-size: .78rem; font-weight: 700; color: var(--dim); }
   .ench-row input[type=number] { inline-size: 4.6em; flex: 0 0 auto; padding: 0 6px; min-height: 34px; border: 1px solid var(--input-border); border-radius: 9px; background: var(--input-bg); color: var(--text); font-size: .85rem; font-family: inherit; }
   /* 裝備上方的工具列：搜尋｜一鍵套裝｜整套精煉 */
-  .eq-tools { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(170px, .8fr) auto; gap: 10px; align-items: end; margin-bottom: 12px; }
+  .eq-tools { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(170px, .8fr); gap: 10px; align-items: start; margin-bottom: 12px; }
   .eq-tools .gsearch-wrap { margin-bottom: 0; }
-  .eq-tools .eq-reset { white-space: nowrap; }
+  .eq-reset { margin-left: auto; white-space: nowrap; min-height: 32px; font-size: .82rem; font-weight: 400; }
   .eq-tools .rf { min-height: 42px; }
-  @media (max-width: 760px) { .eq-tools { grid-template-columns: 1fr; } .eq-tools .eq-reset { justify-self: start; } }
+  @media (max-width: 760px) { .eq-tools { grid-template-columns: 1fr; } }
   /* 搜尋 */
   .gsearch-wrap { display: block; margin-bottom: 12px; }
   .gsearch { display: flex; gap: 8px; align-items: center; }
@@ -224,7 +224,7 @@
 
   <div class="gear-layout"><div class="gear-main">
   <div class="card">
-    <h2>🛡️ 裝備</h2>
+    <h2>🛡️ 裝備 <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button></h2>
     <div class="eq-tools">
       <search class="field gsearch-wrap"><label for="gq">搜尋裝備</label>
         <div class="gsearch"><input type="search" id="gq" name="q" placeholder="名稱、分類、類型或職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"><span class="cnt" id="gqCnt" role="status"></span></div></search>
@@ -232,7 +232,6 @@
         <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
       <div class="field" title="把所有可精煉的裝備改成同一個精煉值，之後還能在各部位個別調"><label for="allRef">整套精煉</label>
         <div class="rf"><input type="range" id="allRef" min="0" max="20" value="0"><span class="rv" id="allRefV">+0</span></div></div>
-      <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button>
     </div>
     <div class="equip-win" id="equipWin"></div>
     <div class="slots" id="slots"></div>
