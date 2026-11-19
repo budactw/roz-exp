@@ -144,6 +144,10 @@
   .gq-it .pos { font-size: .78rem; color: var(--dim); white-space: nowrap; }
   .gq-it.on .pos { color: var(--green); }
   .gq-note { padding: 6px 8px; font-size: .8rem; color: var(--dim); }
+  .gq-h { padding: 8px 8px 4px; font-size: .78rem; font-weight: 700; color: var(--dim); border-top: 1px solid var(--input-border); margin-top: 4px; }
+  .gq-h:first-child { border-top: 0; margin-top: 0; }
+  .gq-card { font-size: 18px; line-height: 24px; text-align: center; }
+  .gq-it.off { cursor: default; opacity: .6; }
   .slot.flash { animation: slotFlash 1.2s ease-out; }
   @keyframes slotFlash { from { box-shadow: 0 0 0 3px var(--primary); } to { box-shadow: 0 0 0 3px transparent; } }
   @media (prefers-reduced-motion: reduce) { .slot.flash { animation: none; outline: 2px solid var(--primary); } }
@@ -242,8 +246,8 @@
   <div class="card">
     <h2>🛡️ 裝備 <button type="button" class="btn-ghost eq-reset" onclick="resetGear()">↺ 重置裝備</button></h2>
     <div class="eq-tools">
-      <search class="field gsearch-wrap"><label for="gq">搜尋裝備</label>
-        <div class="gsearch"><input type="search" id="gq" name="q" placeholder="名稱、分類、類型或職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="gqRes" aria-autocomplete="list"><span class="cnt" id="gqCnt" role="status"></span></div>
+      <search class="field gsearch-wrap"><label for="gq">搜尋裝備／卡片</label>
+        <div class="gsearch"><input type="search" id="gq" name="q" placeholder="裝備或卡片名稱、分類、職業" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="gqRes" aria-autocomplete="list"><span class="cnt" id="gqCnt" role="status"></span></div>
         <div class="gq-res" id="gqRes" role="listbox" aria-label="搜尋結果" hidden></div></search>
       <div class="field"><label for="quickSet">一鍵套裝</label>
         <select id="quickSet"><option value="">選一組套裝，一次換上整套…</option></select></div>
@@ -1165,20 +1169,48 @@ function gqRender() {
   const box = $('gqRes'), inp = $('gq');
   if (!gq) { box.hidden = true; inp.setAttribute('aria-expanded', 'false'); $('gqCnt').innerText = ''; return; }
   const all = GEAR_DB.filter(x => qMatch(x) && slotOf(x)), ok = all.filter(canWear);
-  gqHits = ok.slice(0, 60); gqAct = Math.min(gqAct, gqHits.length - 1);
-  $('gqCnt').innerText = `符合 ${ok.length} 件`;
+  const cards = typeof CARDS === 'undefined' ? [] : Object.keys(CARDS).map(Number).filter(id => cardMatch(CARDS[id])).sort((a, b) => (CARDS[a].c || 0) - (CARDS[b].c || 0) || CARDS[a].n.localeCompare(CARDS[b].n, 'zh-Hant'));
+  const items = ok.slice(0, 60), cardHits = cards.slice(0, 40);
+  gqHits = items.concat(cardHits.map(id => ({ card: id }))); gqAct = Math.min(gqAct, gqHits.length - 1);
+  $('gqCnt').innerText = `符合 ${ok.length + cards.length} 件`;
   const worn = new Set(GEAR_SLOTS.map(([k]) => st.slots[k].n).filter(Boolean));
-  box.innerHTML = gqHits.map((x, i) => { const k = slotOf(x), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[x.n];
+  box.innerHTML = items.map((x, i) => { const k = slotOf(x), ico = typeof GEAR_ICON !== 'undefined' && GEAR_ICON[x.n];
     const sub = [x.type, x.j && x.j.replace(/系列/g, ''), x.lv > 1 ? 'Lv' + x.lv : ''].filter(Boolean).join('・');
     return `<div class="gq-it${i === gqAct ? ' act' : ''}${worn.has(x.n) ? ' on' : ''}" role="option" id="gq-${i}" aria-selected="${i === gqAct}" data-i="${i}">${ico ? `<img src="icons/${ico}.png" alt="" width="24" height="24" loading="lazy">` : '<span></span>'}<span class="nm">${x.n}${sub ? `<span class="sub">${sub}</span>` : ''}</span><span class="pos">${worn.has(x.n) ? '✓ 已裝備' : slotName(k).replace(/（.+?）/, '')}</span></div>`; }).join('') +
-    (ok.length > gqHits.length ? `<div class="gq-note">還有 ${ok.length - gqHits.length} 件，多打幾個字縮小範圍</div>` : '') +
-    (!ok.length ? `<div class="gq-note">沒有符合「${gq.replace(/[<&]/g, '')}」的裝備</div>` : '') +
-    (all.length > ok.length ? `<div class="gq-note">另有 ${all.length - ok.length} 件目前職業／等級不能穿，沒有列出</div>` : '');
+    (ok.length > items.length ? `<div class="gq-note">還有 ${ok.length - items.length} 件，多打幾個字縮小範圍</div>` : '') +
+    (all.length > ok.length ? `<div class="gq-note">另有 ${all.length - ok.length} 件目前職業／等級不能穿，沒有列出</div>` : '') +
+    (cardHits.length ? `<div class="gq-h">卡片</div>` + cardHits.map((id, j) => { const i = items.length + j, c = CARDS[id], t = cardTarget(id), on = cardWorn(id);
+      return `<div class="gq-it${i === gqAct ? ' act' : ''}${on ? ' on' : ''}${t ? '' : ' off'}" role="option" id="gq-${i}" aria-selected="${i === gqAct}"${t ? '' : ' aria-disabled="true"'} data-i="${i}"><span class="gq-card" aria-hidden="true">🃏</span><span class="nm">${c.n}<span class="sub">${CARD_POS_NAME[c.p]}・${CARD_KIND[c.c || 0]}</span></span><span class="pos">${t ? `${t[2] ? '換掉' : '插到'}${slotName(t[0]).replace(/（.+?）/, '')}第${'一二三四'[t[1]]}洞` : on ? '✓ 已插' : `先穿上有洞的${CARD_POS_NAME[c.p]}`}</span></div>`; }).join('') : '') +
+    (cards.length > cardHits.length ? `<div class="gq-note">還有 ${cards.length - cardHits.length} 張卡片，多打幾個字縮小範圍</div>` : '') +
+    (!ok.length && !cards.length ? `<div class="gq-note">沒有符合「${gq.replace(/[<&]/g, '')}」的裝備或卡片</div>` : '');
   box.hidden = false; inp.setAttribute('aria-expanded', 'true');
   if (gqAct >= 0) { inp.setAttribute('aria-activedescendant', 'gq-' + gqAct); $('gq-' + gqAct)?.scrollIntoView({ block: 'nearest' }); } else inp.removeAttribute('aria-activedescendant');
 }
+// 卡片：插到第一件「部位對、還有空洞」的已穿裝備（飾品先右後左）
+const CARD_POS_NAME = { weapon: '武器', shield: '盾牌', head: '頭飾', armor: '鎧甲', garment: '披肩', shoes: '鞋子', acc: '飾品' };
+const cardMatch = c => gq.split(/\s+/).every(w => (c.n + ' ' + CARD_POS_NAME[c.p] + ' ' + CARD_KIND[c.c || 0] + ' 卡片').toLowerCase().includes(w.toLowerCase()));
+// 洞都插滿了就換掉第一件的最後一洞（[部位, 第幾洞, 是否替換]）
+function cardTarget(id) {
+  let full = null;
+  for (const [k] of GEAR_SLOTS) { const it = BY_NAME[st.slots[k].n]; if (!it || occupiedBy(k) || cardPos(k, it) !== CARDS[id].p) continue;
+    const n = holesOf(it), cd = st.slots[k].cd || []; if (!n) continue;
+    for (let i = 0; i < n; i++) if (!CARDS[cd[i]] || CARDS[cd[i]].p !== CARDS[id].p) return [k, i, false];
+    if (!full && !cd.slice(0, n).includes(id)) full = [k, n - 1, true]; }
+  return full;
+}
+const cardWorn = id => GEAR_SLOTS.some(([k]) => { const it = BY_NAME[st.slots[k].n]; return it && (st.slots[k].cd || []).slice(0, holesOf(it)).includes(id); });
 function gqPick(i) {
-  const it = gqHits[i]; if (!it) return; const k = slotOf(it);
+  const h = gqHits[i]; if (!h) return;
+  if (h.card) {
+    const t = cardTarget(h.card); if (!t) return; const [k, j] = t;
+    gq = ''; $('gq').value = ''; gqAct = -1; gqRender();
+    if (!st.card) { st.card = true; $('useCard').checked = true; }
+    if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
+    roSel = k; setCard(k, j, h.card);
+    const el = $('slot-' + k); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1200); }
+    track('gear_search_card'); return;
+  }
+  const it = h; const k = slotOf(it);
   gq = ''; $('gq').value = ''; gqAct = -1; gqRender();
   if (EQ_SP_KEYS.includes(k)) eqTab = 'sp'; else if (eqTab === 'sp') eqTab = 'main';
   roSel = k; pick(k, it.n);
