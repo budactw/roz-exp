@@ -229,6 +229,8 @@
   @keyframes slotFlash { from { box-shadow: 0 0 0 3px var(--primary); } to { box-shadow: 0 0 0 3px transparent; } }
   @media (prefers-reduced-motion: reduce) { .slot.flash { animation: none; outline: 2px solid var(--primary); } }
   .slot-h select.wtype { flex: 0 0 auto; width: 6.6em; }
+  .note-field { margin-top: 10px; }
+  .note-field textarea { min-height: 4.5em; line-height: 1.6; }
   /* 倉庫 */
   .stash-add { flex: 0 0 auto; min-height: 38px; padding: 0 8px; font-size: .95rem; white-space: nowrap; }
   html[data-ui="ro"] .slot-h .stash-add { height: 26px; min-height: 0; padding: 0 6px; font-size: 13px; line-height: 24px; }
@@ -339,6 +341,7 @@
     <label class="sw"><input type="checkbox" id="useBuff" switch role="switch"> 啟用 Buff</label>
     <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 啟用技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
+    <div class="field note-field"><label for="buildNote">配置說明</label><textarea id="buildNote" rows="3" maxlength="300" placeholder="例如：打 MVP 用、還缺哪件、技能怎麼點⋯（分享時會一起帶上）"></textarea></div>
     <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button></div>
   </div>
 
@@ -478,7 +481,7 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, rune: false, rs: 0, rl: 0, buff: false, bf: {}, cs: {}, sk: false, skl: {} });
+const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, rune: false, rs: 0, rl: 0, buff: false, bf: {}, cs: {}, sk: false, skl: {}, note: '' });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 const maxRef = it => (it && it.maxRef) || 20;   // 精煉上限（典藏板是 +10）
 // 服飾附魔石：st.cs[部位] = 石頭名稱
@@ -574,6 +577,7 @@ function fixState() {
   for (const [k] of COSTUME_POS) if (!stoneOf(k)) st.cs[k] = '';
   if (!runeSet(st.rs)) st.rs = 0; st.rl = Math.max(0, Math.min(15, +st.rl || 0));
   st.bf = cleanBuff(st.bf);
+  st.note = typeof st.note === 'string' ? st.note.slice(0, 300) : '';   // 配置說明（自己寫的文字）
   for (const [k] of GEAR_SLOTS) {
     if (st.slots[k] && GEAR_RENAMED[st.slots[k].n]) st.slots[k].n = GEAR_RENAMED[st.slots[k].n];
     if (!st.slots[k] || (st.slots[k].n && !BY_NAME[st.slots[k].n])) st.slots[k] = { n: '', r: 0 };
@@ -627,6 +631,7 @@ function packState() {
   if (st.buff) o.b = st.bf;
   if (COSTUME_POS.some(([k]) => st.cs[k])) o.c = COSTUME_POS.map(([k, , pos]) => st.cs[k] ? COSTUME_STONE[pos].findIndex(x => x.n === st.cs[k]) + 1 : 0);
   if (st.sk) o.k = 1;
+  if (st.note) o.d = st.note;
   if (st.job) { const t = treeIds(st.job).map(sid => SkillTree.lvOf(st.skt, sid).toString(36)).join('').replace(/0+$/, ''); if (t) o.t = t; }
   const kl = Object.fromEntries(Object.entries(st.skl).filter(([, v]) => v)); if (Object.keys(kl).length) o.kl = kl;
   return b64e(JSON.stringify(o));
@@ -656,6 +661,7 @@ function unpackState(code) {
   if (Array.isArray(o.c)) COSTUME_POS.forEach(([k, , pos], i) => { const x = o.c[i]; s.cs[k] = typeof x === 'number' ? (COSTUME_STONE[pos][x - 1] || {}).n || '' : typeof x === 'string' ? x : ''; });
   if (o.b && typeof o.b === 'object') { s.buff = true; s.bf = cleanBuff(o.b); }
   s.sk = !!o.k;
+  s.note = typeof o.d === 'string' ? o.d.slice(0, 300) : '';
   if (typeof o.t === 'string' && s.job) treeIds(s.job).forEach((sid, i) => { const lv = parseInt(o.t[i] || '0', 36) || 0; if (lv) s.skt[sid] = Math.min(SKILLS[sid].m, lv); });
   else if (o.t && typeof o.t === 'object') for (const [sid, v] of Object.entries(o.t)) if (SKILLS[sid]) s.skt[sid] = n(v, 0, 0, SKILLS[sid].m);
   if (o.kl && typeof o.kl === 'object') for (const [k, v] of Object.entries(o.kl)) s.skl[k] = n(v, 0, 0, 99);
@@ -776,7 +782,7 @@ async function deleteChar() {
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, x.cur ? 'char' : 'free'); useNow();
 }
 function syncInputs() {
-  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useRune').checked = !!st.rune; $('useBuff').checked = !!st.buff; $('useSkill').checked = !!st.sk; skKey = null;
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useRune').checked = !!st.rune; $('useBuff').checked = !!st.buff; $('useSkill').checked = !!st.sk; skKey = null; $('buildNote').value = st.note || '';
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -1763,6 +1769,8 @@ $('job').addEventListener('change', e => { st.job = e.target.value; save(); buil
 $('baseLv').value = st.lv;
 if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useRune').classList.add('sw-fb'); $('useBuff').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
 $('useSkill').checked = !!st.sk;
+$('buildNote').value = st.note || '';
+$('buildNote').addEventListener('input', e => { st.note = e.target.value.slice(0, 300); save(); });
 $('useSkill').addEventListener('change', e => { st.sk = e.target.checked; save(); render(); track('gear_skill', { on: st.sk }); });
 $('skGrid').addEventListener('input', e => { const k = e.target.dataset.sk; if (!k) return; st.skl[k] = Math.max(0, Math.min(99, parseInt(e.target.value) || 0)); save(); refreshSlots(); });
 $('useEnch').checked = !!st.ench;
