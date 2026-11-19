@@ -4,8 +4,9 @@ rAthena：https://github.com/rathena/rathena（db/re、db/pre-re）。樂園自�
 輸出 { 卡片編號: 1 Boss／2 MVP }（一般卡不列）
 """
 import json, re, sys
-# rAthena 對不到的（樂園／台服自己的編號）：MVP 卡；其餘當一般卡
+# rAthena 對不到的（樂園／台服自己的編號）：1 Boss、2 MVP；其餘當一般卡
 MANUAL = {27153: 2, 27154: 2, 27206: 2, 27207: 2, 27208: 2, 27267: 2, 27268: 2, 27269: 2, 300021: 2,
+          27270: 1, 27271: 1, 27272: 1, 27273: 1, 27274: 1, 27275: 1,   # 超異小丑、伊莉莎白、珍妮佛、獸人將軍、吉克勞斯甲蟲、血腥騎士：Boss
           300985: 2, 300986: 2, 300987: 2, 300988: 2, 300989: 2, 300990: 2}   # 生體研究所 3 樓 MVP（凱特莉娜、瑪嘉雷特…）
 item_f, mob_fs, cards_js, out = sys.argv[1], sys.argv[2].split(','), sys.argv[3], sys.argv[4]
 def blocks(path):
