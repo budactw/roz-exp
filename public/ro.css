@@ -246,3 +246,16 @@ html[data-ui="ro"] :is(.card, .result) > h2:has(> .row, > button)::after { conte
 html[data-ui="ro"] :is(.card, .result) > h2 > .row, html[data-ui="ro"] :is(.card, .result) > h2 > button { order: 2; margin: 6px 0 !important; flex-wrap: wrap; row-gap: 6px; font-weight: 400; }
 /* 沒有標題列的視窗（例如韓服資料的搜尋列）：上方補回內距 */
 html[data-ui="ro"] .card:not(:has(> h2)) { padding-top: 10px; }
+/* 人物狀態視窗（仿 Alt+A）：左欄素質、右欄能力，深藍標籤、黑字數值 */
+html[data-ui="ro"] .stat-win { gap: 0; border: 1px solid #b4b4bc; background: #fff; }
+html[data-ui="ro"] .sw-l, html[data-ui="ro"] .sw-r { padding: 6px 8px; gap: 3px 6px; }
+html[data-ui="ro"] .sw-l { border-right: 1px solid #b4b4bc; background: #f6f7fa; }
+html[data-ui="ro"] .sw-l b, html[data-ui="ro"] .sw-r b { color: var(--ro-navy); font-size: 13.5px; }
+html[data-ui="ro"] .sw-l input { min-height: 24px; height: 24px; font-size: 13.5px; }
+html[data-ui="ro"] .sw-l .sb { color: #15171c; font-size: 13.5px; }
+html[data-ui="ro"] .sw-r span { color: #15171c; font-weight: 400; font-size: 13.5px; }
+html[data-ui="ro"] .sw-r small { color: #15171c; font-size: 13.5px; }
+@media (max-width: 340px) { html[data-ui="ro"] .sw-l { border-right: 0; border-bottom: 1px solid #b4b4bc; } }
+html[data-ui="ro"] .eq-tools { gap: 8px; }
+html[data-ui="ro"] .eq-tools .rf { min-height: 28px; max-width: none; }
+html[data-ui="ro"] .eq-tools .field select, html[data-ui="ro"] .eq-tools .gsearch input { min-height: 28px; }
