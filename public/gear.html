@@ -244,7 +244,7 @@
       <div class="sw-l" id="psGrid"></div>
       <div class="sw-r" id="swR"></div>
     </div>
-    <div class="hint">左邊填純素質；Job 加成目前只有 AGI、DEX。右邊依 Renewal 公式，不含 Buff、藥水、料理。</div>
+    <div class="hint">左邊填純素質，旁邊是 Job 加成＋裝備加成。右邊依 Renewal 公式，不含 Buff、藥水、料理。</div>
   </div>
   </div>
 
@@ -328,6 +328,7 @@
 <script src="addon-data.js?v=5"></script>
 <script src="slot-data.js?v=2"></script>
 <script src="aspd-data.js?v=1"></script>
+<script src="job-bonus.js?v=1"></script>
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
 <script src="icon-data.js?v=2"></script>
@@ -939,11 +940,10 @@ const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破
 const ASPD_CLS = { 吟遊詩人: '詩人', 武道家: '武僧', 鍊金術師: '煉金' };
 const ASPD_WT = { 風魔飛鏢: '手裏劍', '短劍（左手）': '短劍', 盾牌: '盾' };
 const DEX_ATK_TYPES = ['弓', '樂器', '鞭子', '手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍'];   // 素質 ATK 的 STR 與 DEX 對調
+// Job 素質加成：job-bonus.js（韓服 Ragnarok Zero 官方表；二轉用進階二轉的表，Job 1～70）
 function jobStat(s) {
-  const c = st.job && typeof ASPD_DATA !== 'undefined' && ASPD_DATA.classes.find(x => x.name === (ASPD_CLS[st.job] || st.job));
-  if (!c) return 0;
-  const t = s === 'AGI' ? c.jobAgi : s === 'DEX' ? c.jobDex : null;   // 只有 AGI、DEX 有資料
-  return t ? t[Math.min(t.length, Math.max(1, st.jl || 70)) - 1] || 0 : 0;   // 超過該職業上限時取最高等級
+  const t = st.job && typeof JOB_BONUS !== 'undefined' && JOB_BONUS[st.job] && JOB_BONUS[st.job][s];
+  return t ? t[Math.min(70, Math.max(1, st.jl || 70)) - 1] || 0 : 0;
 }
 function statusOf(tot) {
   const S = Object.fromEntries(PS.map(s => [s, (st.ps[s] || 0) + jobStat(s) + (tot[s] || 0)]));
