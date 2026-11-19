@@ -332,6 +332,7 @@
 <script src="hpsp-data.js?v=2"></script>
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
+<script src="short-link.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
 <script src="costume-data.js?v=4"></script>
 <script src="card-data.js?v=7"></script>
@@ -475,10 +476,8 @@ function readHash() {
 }
 function clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
 async function share(btn) {
-  const url = `${location.origin}${location.pathname}#s=${packState()}`;
-  const names = GEAR_SLOTS.map(([k]) => st.slots[k]).filter(x => x.n).map(x => x.n + (BY_NAME[x.n].ref && x.r ? ` +${x.r}` : ''))
-    .concat(COSTUME_POS.filter(([k]) => stoneOf(k)).map(([k, , pos]) => `${st.cs[k]}(${pos})`));
-  if (!names.length) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
+  if (!GEAR_SLOTS.some(([k]) => st.slots[k].n) && !COSTUME_POS.some(([k]) => stoneOf(k))) { await dialog({ title: '還沒有裝備', msg: '先選幾件裝備再分享。', okText: '好', cancel: false }); return; }
+  const code = packState(), url = await shortUrl('gear', code, `${location.origin}${location.pathname}#s=${code}`);   // 短網址（失敗就用長連結）
   const nm = shareName(), text = `RO樂園配裝${nm ? `｜${nm}` : ''}${st.job ? `（${st.job}）` : ''}`;   // 只放角色與職業，不列裝備
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
     try { await navigator.share({ title: 'RO樂園配裝模擬器', text, url }); track('gear_share', { method: 'native' }); return; }

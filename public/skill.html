@@ -102,6 +102,7 @@
 
 <script src="skill-data.js?v=1"></script>
 <script src="skill-tree.js?v=2"></script>
+<script src="short-link.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
@@ -159,7 +160,7 @@ function readHash() {
 }
 async function share(btn) {
   if (!g.job) { await dialog({ title: '先選職業', okText: '好', cancel: false }); return; }
-  const url = `${location.origin}${location.pathname}#k=${pack()}`;
+  const code = pack(), url = await shortUrl('skill', code, `${location.origin}${location.pathname}#k=${code}`);   // 短網址（失敗就用長連結）
   if (navigator.share && matchMedia('(pointer: coarse)').matches) { try { await navigator.share({ title: 'RO樂園技能樹', text: `RO樂園技能樹（${g.job}）`, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
   copyText(`RO樂園技能樹（${g.job}）\n${url}`, btn); track('skill_share');
 }
