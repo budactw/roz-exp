@@ -442,7 +442,7 @@
   <div class="ro-info-b" id="skInfoBody"></div>
 </dialog>
 
-<script src="gear-data.js?v=36"></script>
+<script src="gear-data.js?v=37"></script>
 <script src="enchant-data.js?v=5"></script>
 <script src="addon-data.js?v=5"></script>
 <script src="slot-data.js?v=2"></script>
@@ -909,6 +909,7 @@ const refOf = n => { const e = equipped().find(x => x.it.n === n); return e && e
 function compute() {
   const cardNames = [];
   const all = {}, notes = [], names = equipped().map(x => x.it.n), combos = [], per = {}, over = [0, 0];
+  const wornCards = equipped().flatMap(({ slot, it }) => cardsOn(slot, it).map(([, id]) => CARDS[id].n));   // 身上所有部位插著的卡片
   for (const { slot, it, r } of equipped()) {
     curRef = r;
     const nt = [], tot = per[slot] = {};
@@ -923,6 +924,8 @@ function compute() {
     for (const [, id] of cardsOn(slot, it)) { const cn = []; curRef = r; add(tot, CARDS[id].e, cn); cn.forEach(x => notes.push(`${CARDS[id].n}：${x}`)); cardNames.push(CARDS[id].n); }
     // 裝備本身「插 X 卡片時」的效果（ci: [[卡片名稱, 效果]]，例如鯊魚寶寶背包）
     for (const [cname, e] of it.ci || []) if (cardsOn(slot, it).some(([, id]) => CARDS[id].n === cname)) { const cn = []; add(tot, e, cn); cn.forEach(x => notes.push(`${it.n}：${x}`)); }
+    // 「與 X 卡片同時裝備」：卡片插在身上任何部位都算（cw: [[卡片名稱, 效果]]，例如鐘塔守護者耳機、懷錶髮飾）
+    for (const [cname, e] of it.cw || []) if (wornCards.includes(cname)) { const cn = []; add(tot, e, cn); cn.forEach(x => notes.push(`${it.n}：${x}`)); }
     if (it.w) { tot.wATK = (tot.wATK || 0) + it.w; if (it.ref) { tot.refATK = (tot.refATK || 0) + refAtk(it.wl, r); const ov = overRange(it.wl, r); if (ov) { over[0] += ov[0]; over[1] += ov[1]; } } }
     tot.DEF = (tot.DEF || 0) + (it.def || 0) + (it.ref && DEF_SLOTS.includes(slot) && it.def != null ? refDef(r) : 0);
     for (const c of it.w2 || []) {
