@@ -293,6 +293,9 @@
   .dmg-tag { font-size: .72rem; font-weight: 400; color: var(--dim); }
   #dmgCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
   #dmgCard.floating { position: fixed; z-index: 44; width: min(400px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
+  #dmgCard.floating { resize: both; min-width: 300px; min-height: 160px; }
+  #dmgMax { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; margin-right: 6px; }
+  html[data-ui="ro"] #dmgMax { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   #dmgCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
   #dmgBtn[aria-expanded="true"], html[data-ui] #dmgBtn[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
   .dmg-sk { margin: -2px 0 10px; }
@@ -422,7 +425,7 @@
 
   <!-- 傷害試算：設定區「💥 傷害試算」按鈕開關的漂浮視窗（目前賢者：魔力拳、崩裂術） -->
   <div class="card hidden" id="dmgCard">
-    <h2>💥 傷害試算 <small class="dmg-tag" id="dmgTag"></small><span class="h2-act"><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
+    <h2>💥 傷害試算 <small class="dmg-tag" id="dmgTag"></small><span class="h2-act"><button type="button" class="btn-ghost" id="dmgMax" onclick="toggleDmgMax()" aria-pressed="false"></button><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
     <div class="stash-tabs dmg-sk" id="dmgSk" role="tablist" aria-label="技能"></div>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
@@ -1448,13 +1451,27 @@ function toggleDmgWin(on = !dmgOpen) {
   if (on) { $('dmgIn').innerHTML = ''; for (const o of ['statCard', 'stashCard']) $(o).style.zIndex = ''; $('dmgCard').style.zIndex = 46; }
   renderDmg(compute()); track('gear_dmg_open', { on });
 }
+// 視窗大小：右下角拖曳或按「展開」，存在 gear-dmg-size；沒存＝預設大小
+let dmgSize = (() => { try { const p = JSON.parse(localStorage.getItem('gear-dmg-size')); return p && p.w > 0 && p.h > 0 ? p : null; } catch (e) { return null; } })();
+function toggleDmgMax() {
+  const c = $('dmgCard');
+  if (dmgSize) { dmgSize = null; localStorage.removeItem('gear-dmg-size'); c.style.width = c.style.height = ''; }
+  else {
+    dmgSize = { w: Math.min(640, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
+    dmgPos = { x: Math.min(dmgPos ? dmgPos.x : innerWidth, innerWidth - dmgSize.w - 8), y: 8 }; localStorage.setItem('gear-dmg-float', JSON.stringify(dmgPos));
+  }
+  placeDmg(); track('gear_dmg_max', { on: !!dmgSize });
+}
 function placeDmg() {
   const c = $('dmgCard'); c.classList.add('floating');
+  if (dmgSize) c.style.width = Math.min(dmgSize.w, innerWidth - 16) + 'px';
+  $('dmgMax').textContent = dmgSize ? '⤡ 還原' : '⤢ 展開'; $('dmgMax').setAttribute('aria-pressed', String(!!dmgSize));
   const m = 8, w = c.offsetWidth || 400;
   if (!dmgPos) dmgPos = { x: innerWidth - w - 16, y: 72 };
   dmgPos.x = Math.round(Math.max(m, Math.min(innerWidth - w - m, dmgPos.x)));
   dmgPos.y = Math.round(Math.max(m, Math.min(innerHeight - 60, dmgPos.y)));
   c.style.left = dmgPos.x + 'px'; c.style.top = dmgPos.y + 'px'; c.style.maxHeight = (innerHeight - dmgPos.y - m) + 'px';
+  if (dmgSize) c.style.height = Math.min(dmgSize.h, innerHeight - dmgPos.y - m) + 'px';
 }
 function renderDmg(res) {
   const show = st.job === '賢者';
@@ -2243,6 +2260,14 @@ $('dmgCard').querySelector('h2').addEventListener('pointerdown', e => {
   h2.addEventListener('pointermove', mv); h2.addEventListener('pointerup', up); h2.addEventListener('pointercancel', up);
 });
 addEventListener('resize', () => { if (dmgOpen && !$('dmgCard').classList.contains('hidden')) placeDmg(); });
+// 右下角拖曳改大小：放開時記下來
+$('dmgCard').addEventListener('pointerdown', e => {
+  const c = e.currentTarget, w0 = c.offsetWidth, h0 = c.offsetHeight;
+  addEventListener('pointerup', () => {
+    if (!c.style.height || (c.offsetWidth === w0 && c.offsetHeight === h0)) return;
+    dmgSize = { w: c.offsetWidth, h: c.offsetHeight }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize)); placeDmg();
+  }, { once: true });
+});
 function buildQuickSet() {
   const groups = [...new Set(GEAR_SETS.map(x => x.g))];
   $('quickSet').innerHTML = `<option value="">選一組套裝，一次換上整套…</option>` + groups.map(g => `<optgroup label="${g}">` +
