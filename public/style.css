@@ -284,6 +284,12 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 /* 頁首下方的頁面說明 */
 .page-note { font-size: .82rem; line-height: 1.6; color: var(--dim); padding: 8px 14px; margin: -6px 0 16px; border-radius: 10px; background: var(--soft); border: 1px solid var(--card-border); }
 .page-note a { color: var(--primary); }
+/* 更新紀錄（頁首下方，可展開）*/
+details.log summary { cursor: pointer; font-weight: 700; color: var(--text); }
+details.log summary span { font-weight: 400; color: var(--dim); }
+details.log ul { margin: 6px 0 0; padding-left: 18px; }
+details.log li b { color: var(--text); margin-right: 6px; }
+details.log .log-note { margin-top: 6px; }
 
 /* 頁面分頁：不換行；窄螢幕排成 4 欄兩列，全部一次看得到 */
 .tabs a { white-space: nowrap; }

@@ -7,7 +7,7 @@
 <meta name="application-name" content="RO樂園工具箱">
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="ro.css?v=30">
 <script src="ro-ui.js?v=3"></script>
 <!-- Google tag (gtag.js) -->
@@ -87,7 +87,7 @@
     </div>
   </div>
 
-  <div class="page-note">ℹ️ 公式與資料來源：巴哈姆特 <a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=1159" target="_blank" rel="noopener" style="color:var(--primary)">RO樂園攻速計算機</a>（原作者、青楓、折本 2026/09/07 版）</div>
+  <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul><div class="log-note">ℹ️ 公式與資料來源：巴哈姆特 <a href="https://forum.gamer.com.tw/C.php?bsn=83142&snA=1159" target="_blank" rel="noopener">RO樂園攻速計算機</a>（原作者、青楓、折本 2026/09/07 版）</div></details></div>
 
   <div class="share-bar hidden" id="shareBar">
     <span class="t">👀 正在檢視分享的配置，修改不會儲存</span>
@@ -238,6 +238,15 @@ const BUFFS = [
   { id: 'spq', name: '長矛加速', cls: ['十字軍'], wpn: ['單手矛', '雙手矛'], eff: () => ({ mod: 7, pct: 10 }), txt: () => '修正 +7、攻速 +10%' },
 ];
 const fmtN = n => String(+(+n).toFixed(2));
+// 更新紀錄（新的放最上面）
+const ASPD_LOG = [
+  ['2026/11/21', '新增神槍手（基礎攻速、五種槍都和遊戲內實測對過）；Buff 加單槍射擊、瘋狂凱斯樂、格林狂熱'],
+  ['2026/11/19', 'Base 100 以上的 ASPD 上限改成 191；分享連結改用短網址'],
+  ['2026/10/23', '攻速計算上線（依巴哈「RO樂園攻速計算機」20260907 版）：分角色、分享連結、挑戰藥水、裝備能力值對照圖'],
+];
+document.getElementById('logLatest').innerText = ASPD_LOG[0][0] + '　' + ASPD_LOG[0][1];
+document.getElementById('logList').innerHTML = ASPD_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');
+
 
 // ===== 狀態（預設為試算表範例：流氓、最終 ASPD 188）=====
 const KEY = 'roz-daily-v1';          // 與每日任務、期間活動共用角色

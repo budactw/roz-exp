@@ -7,7 +7,7 @@
 <meta name="application-name" content="RO樂園工具箱">
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="stylesheet" href="style.css?v=29">
 <link rel="stylesheet" href="ro.css?v=30">
 <script src="ro-ui.js?v=3"></script>
 <!-- Google tag (gtag.js) -->
@@ -39,6 +39,8 @@
       <button class="btn-ghost" onclick="resetAll()" title="輸入會自動儲存在此瀏覽器，按此全部清除">🗑 清除資料</button>
     </div>
   </div>
+
+  <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
 
   <div class="layout">
     <!-- ===== 左欄：輸入 ===== -->
@@ -1103,6 +1105,17 @@ function toggleTheme() {
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 load();
 renderQuests();
+// 更新紀錄（新的放最上面）
+const EXP_LOG = [
+  ['2026/11/17', '每日任務加 115 級（巨神蟒之森）和斐揚蛇林'],
+  ['2026/11/06', '新增主線任務（依區域勾選，不吃經驗加成；還沒到任務等級時，先算練到該等級）'],
+  ['2026/10/20', '伺服器切換（西格倫／限時活動伺服器）、隱士加成；加成期間分段推估'],
+  ['2026/10/15', '每日任務加 90 級六區（龜島、崑崙、泰國、天津、洛陽、死都）'],
+  ['2026/10/13', '每天掛機時數；消耗品（單價可填 Zeny 或台幣，算每小時和到目標的花費）；任務表類型篩選'],
+  ['2026/10/10', '經驗試算上線：掛機經驗推算、每日任務、經驗加成、大數字縮寫'],
+];
+document.getElementById('logLatest').innerText = EXP_LOG[0][0] + '　' + EXP_LOG[0][1];
+document.getElementById('logList').innerHTML = EXP_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');
 </script>
 <script src="report.js?v=5"></script>
 </body>
