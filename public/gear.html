@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=32">
+<link rel="stylesheet" href="ro.css?v=33">
 <script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -1517,8 +1517,9 @@ const EQ_SP_KEYS = ['costume', 'spBoard', 'spPet', 'spLucky'];   // 放在特殊
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
   const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
-  const tabs = `<div class="eq-tabs" role="tablist">` + [['main', '一般裝備'], ['sp', '特殊裝備']].map(([t, l]) =>
-    `<button type="button" role="tab" aria-selected="${eqTab === t}" onclick="setEqTab('${t}')">${l}</button>`).join('') + `</div>`;
+  const tabs = `<div class="eq-tabs"><span class="eq-tl" role="tablist">` + [['main', '一般裝備'], ['sp', '特殊裝備']].map(([t, l]) =>
+    `<button type="button" role="tab" aria-selected="${eqTab === t}" onclick="setEqTab('${t}')">${l}</button>`).join('') +
+    `</span><button type="button" class="eq-save" onclick="outfitAdd()" title="把身上整套裝備存進倉庫的「套裝」">＋ 存成套裝</button></div>`;
   const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
   const sp = eqTab === 'sp';

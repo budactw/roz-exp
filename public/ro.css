@@ -70,6 +70,8 @@ html[data-ui="ro"] .equip-win {
 html[data-ui="ro"] .eq-tabs { grid-area: tabs; display: flex; gap: 1px; padding: 3px 4px 0; background: #eef1f8; border-bottom: 1px solid var(--card-border); }
 html[data-ui="ro"] .eq-tabs button { border-bottom: 0; border-radius: 5px 5px 0 0; background: var(--ro-tab); color: #2d3550; min-height: 26px; padding: 0 14px; font-size: 13.5px; box-shadow: none; }
 html[data-ui="ro"] .eq-tabs button[aria-selected="true"] { background: #fff; color: var(--ro-navy); font-weight: 700; }
+html[data-ui="ro"] .eq-tabs .eq-tl { display: flex; gap: 1px; }
+html[data-ui="ro"] .eq-tabs button.eq-save { margin: 0 0 3px auto; align-self: center; border-bottom: 1px solid var(--input-border); border-radius: 5px; min-height: 22px; padding: 0 10px; font-size: 12.5px; background: linear-gradient(#fdfdfe, #e4e9f3); }
 html[data-ui="ro"] .equip-win .eq {
   display: flex; align-items: center; gap: 7px; min-height: 40px; margin: 0 6px; padding: 2px 2px; text-align: right; flex-direction: row-reverse;
   background: transparent; border: 0; border-bottom: 1px solid #b4b4bc; border-radius: 0; box-shadow: none; min-width: 0;
