@@ -84,6 +84,7 @@
     </div>
   </div>
 
+  <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
   <div class="page-note">ℹ️ 整理韓服已開放、台服還沒有的內容（裝備與任務為主）。中文名稱採用台服 RO 正式譯名；RO樂園獨有的物品為暫譯，台服實裝時可能不同。</div>
 
   <div class="card">
@@ -218,6 +219,13 @@ function toggleTheme() { const t = document.documentElement.getAttribute('data-t
 applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
 render();
+// 更新紀錄（新的放最上面）
+const KR_LOG = [
+  ['2026/11/17', '驚駭森靈巢穴：標示台服 2026/11/17 已開放，加上台韓差異對照表，裝備改用台服名稱'],
+  ['2026/10/28', '韓服資料上線：舊古城、英雄的痕跡、塔納托斯、夢羅克、幻影系列、Episode 1～4、狂熱副本等 39 篇；附魔表、材料、取得方式'],
+];
+document.getElementById('logLatest').innerText = KR_LOG[0][0] + '　' + KR_LOG[0][1].replace(/<[^>]+>/g, '');
+document.getElementById('logList').innerHTML = KR_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');
 </script>
 <script src="report.js?v=5"></script>
 </body>
