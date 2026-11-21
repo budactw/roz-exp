@@ -434,7 +434,7 @@
     <h2>💥 傷害試算 <small class="dmg-tag">賢者・魔力拳（Beta）</small></h2>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
-    <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），浮動只有武器本身的 MATK。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0，結果會偏高一點。實際數字歡迎回報。</div>
+    <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），武器 MATK（含精煉）會浮動，過度精煉另外隨機加。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0，結果會偏高一點。實際數字歡迎回報。</div>
   </div>
   </aside></div>
 
@@ -1347,10 +1347,10 @@ function dmgCalc(res) {
   const tot = res.tot, o = statusOf(tot), w = wornItem('weapon');
   const lv = Math.min(10, dmg.lv || skLv('魔力拳') || 10), [boltName, boltEl] = DMG_BOLTS[dmg.bolt] || DMG_BOLTS[0];
   const bl = Math.min(10, dmg.bl || skLv(boltName) || 10), times = lv + bl;   // 倍數＝魔力拳 Lv＋箭術 Lv
-  // 武器 MATK 浮動：武器本身的 MATK × 武器等級 × 10%（精煉的 MATK 不浮動；過度精煉的隨機值只加 ATK，不加 MATK）
-  // 實測：+12 魔法經典（MATK 160、4 級）打出來的範圍寬度約 ±64，和這個算法一致
-  const wm = w ? ((w.b && w.b.MATK) || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
-  const base = o.matk[0] + o.matk[1], ov = [0, 0];
+  // 武器 MATK 浮動：(武器 MATK＋精煉 MATK) × 武器等級 × 10%，過度精煉另外隨機加（同 ROCalculator）
+  // 實測 20 下（+12 魔法經典）最高打到 75,800：只算武器本身 MATK、不加過度精煉的話打不到這麼高
+  const wm = w ? ((w.b && w.b.MATK) || 0) + (tot.refATK || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
+  const base = o.matk[0] + o.matk[1], ov = res.over || [0, 0];
   const g = dmgBonus(tot, boltName, boltEl), sum = k => g[k].reduce((a, [, v]) => a + v, 0);
   const em = DMG_ELEM_TBL[dmg.tl] ? DMG_ELEM_TBL[dmg.tl][boltEl][dmg.te] : 100;
   const h = dmg.mdef, mdefMul = (1000 + h) / (1000 + 10 * h);
@@ -1361,7 +1361,7 @@ function dmgCalc(res) {
     d = Math.floor(d * em / 100);
     return Math.floor(d * (100 + sum('skill')) / 100) * times;
   };
-  const lo = hit(base - vr), hi = hit(base + vr);
+  const lo = hit(base - vr + (ov[1] ? ov[0] : 0)), hi = hit(base + vr + ov[1]);
   return { o, lv, bl, times, boltName, boltEl, wm, vr, ov, g, sum, em, mdefMul, lo, hi, rate: lv * 5 };
 }
 function renderDmg(res) {
