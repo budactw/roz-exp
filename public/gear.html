@@ -305,6 +305,10 @@
   .dmg-res small { color: var(--dim); }
   #dmgCard .tot-list { columns: 1; }
   .dmg-h3 { font-size: .9rem; margin: 12px 0 6px; }
+  .dmg-t { position: relative; cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+  #dmgCard .dmg-tip { display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 5; width: max-content; max-width: min(260px, 70vw); padding: 6px 9px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card); color: var(--text); font-size: .78rem; font-weight: 400; line-height: 1.5; white-space: normal; text-align: start; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+  #dmgCard .dmg-t:hover .dmg-tip, #dmgCard .dmg-t:focus .dmg-tip { display: block; }
+  .dmg-tag .dmg-tip { left: auto; right: auto; }
   .dmg-flow { width: 100%; border-collapse: collapse; font-size: .82rem; font-variant-numeric: tabular-nums; }
   .dmg-flow th, .dmg-flow td { padding: 3px 4px; border-bottom: 1px solid var(--card-border); text-align: end; white-space: nowrap; }
   .dmg-flow tbody th { text-align: start; font-weight: 600; }
@@ -413,11 +417,10 @@
 
   <!-- 傷害試算：設定區「💥 傷害試算」按鈕開關的漂浮視窗（目前賢者：魔力拳、崩裂術） -->
   <div class="card hidden" id="dmgCard">
-    <h2>💥 傷害試算 <small class="dmg-tag">Beta</small><span class="h2-act"><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
+    <h2>💥 傷害試算 <small class="dmg-tag" id="dmgTag"></small><span class="h2-act"><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
     <div class="stash-tabs dmg-sk" id="dmgSk" role="tablist" aria-label="技能"></div>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
-    <div class="hint" id="dmgHint"></div>
   </div>
 
   <div class="gear-layout"><div class="gear-main">
@@ -1332,11 +1335,14 @@ const dmgPreset = () => DMG_PRESETS.findIndex(p => DMG_TGT.every(k => p[k] === d
 function setDmgPreset(i) { const p = DMG_PRESETS[+i - 1]; if (!p) return; for (const k of DMG_TGT) dmg[k] = p[k]; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} $('dmgIn').innerHTML = ''; renderDmg(compute()); }
 const DMG_KEY = 'roz-gear-dmg-v1';
 // 可以試算的技能（照職業列出；之後加技能就加在這裡）
-const DMG_SKILLS = { 賢者: [['sf', '魔力拳'], ['hd', '崩裂術']] };
-// 崩裂術（WZ_HEAVENDRIVE）：每下 MATK 200%、地屬性，打 Lv 下（技能說明）
-// 詠唱／延遲遊戲說明沒寫，先用國際服資料：詠唱 Lv 秒（變動 80%＋固定 20%）、技能後延遲 1 秒（待實測）
-const DMG_HD = { ratio: 200, el: 4, cast: l => l, acd: 1 };
-const DMG_DEF = { sk: 'sf', hl: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
+const DMG_SKILLS = { 賢者: [['sf', '魔力拳'], ['as', '自動念咒'], ['hd', '崩裂術']] };
+// 自動念咒（SA_AUTOSPELL）：普攻時 Lv × 2% 機率自動施放選的魔法，等級＝自動念咒 Lv 的一半（技能說明）
+// [名稱, 屬性, 每下倍率(INT), 自動念咒要幾級才能選]；倍率同 ROCalculator（箭術 100＋INT÷2、地震術／崩裂術 200＋INT），每下 × 施放等級
+const DMG_AS = [['火箭術', 1, i => 100 + Math.floor(i / 2), 1], ['冰箭術', 2, i => 100 + Math.floor(i / 2), 1], ['雷擊術', 3, i => 100 + Math.floor(i / 2), 1], ['地震術', 4, i => 200 + i, 7], ['崩裂術', 4, i => 200 + i, 10]];
+// 崩裂術（WZ_HEAVENDRIVE）：每下 MATK (200＋INT)%、地屬性，打 Lv 下（技能說明「按照自身的 INT 額外造成傷害」）
+// 詠唱／延遲照 ROCalculator（RO Zero）：變動 0.6 秒、固定 0.4 秒、冷卻 0.5 秒、技能後延遲 0.3 秒（Lv5 的值，其他等級沒資料先共用）
+const DMG_HD = { el: 4, vct: 0.6, fct: 0.4, cd: 0.5, gcd: 0.3 };
+const DMG_DEF = { sk: 'sf', hl: 0, asl: 0, asp: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
 function setDmg(k, v) { dmg[k] = k === 'sk' ? String(v) : Math.max(0, Math.floor(+v || 0)); if (k === 'sk') $('dmgIn').innerHTML = ''; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
 // 技能／條件加成 → 這一下會套到的 % 加成（分組；每組各自相乘）
@@ -1351,7 +1357,7 @@ function dmgBonus(tot, names, boltEl) {
   if (!dmg.boss) put('cls', '對一般敵人魔法傷害', tot.normalM);
   for (const [l, v] of Object.entries(splitC(tot._c))) {
     if (l.endsWith('#')) continue;
-    let m = l.match(/^(魔力拳|火箭術|冰箭術|雷擊術|崩裂術)的?傷害$/);
+    let m = l.match(/^(魔力拳|火箭術|冰箭術|雷擊術|崩裂術|地震術)的?傷害$/);
     if (m) { if (names.includes(m[1])) put('skill', l, v); continue; }
     m = l.match(/^(.+?)屬性魔法(?:傷害|攻擊力)$/);
     if (m) { if (m[1].replace('暗', '闇') === E[boltEl]) put('my', l, v); continue; }
@@ -1369,12 +1375,18 @@ function dmgBonus(tot, names, boltEl) {
   return g;
 }
 function dmgCalc(res) {
-  const tot = res.tot, o = statusOf(tot), w = wornItem('weapon'), sf = dmg.sk !== 'hd';
-  let lv, bl = 0, times, ratio, el, names, boltName = '';
-  if (sf) {
+  const tot = res.tot, o = statusOf(tot), w = wornItem('weapon'), sk = dmg.sk, sf = sk === 'sf', as = sk === 'as', proc = sf || as;
+  let lv, bl = 0, times, ratio, el, names, boltName = '', rate = 0, asl = 0, asSp = null, rTxt = '';
+  if (as) {
+    asl = Math.min(10, dmg.asl || skLv('自動念咒') || 10); rate = asl * 2;
+    asSp = DMG_AS[dmg.asp] && DMG_AS[dmg.asp][3] <= asl ? DMG_AS[dmg.asp] : DMG_AS[0];
+    lv = Math.max(1, Math.floor(asl / 2)); if (asSp[0] === '地震術' || asSp[0] === '崩裂術') lv = Math.min(5, lv);
+    times = lv; ratio = asSp[2](o.S.INT); el = asSp[1]; names = [asSp[0]]; boltName = asSp[0];
+    rTxt = `(${asSp[2](0)} + INT ${o.S.INT}${asSp[2](2) - asSp[2](0) === 1 ? ' ÷ 2' : ''})% × ${lv} 下`;
+  } else if (sf) {
     lv = Math.min(10, dmg.lv || skLv('魔力拳') || 10); let b; [boltName, b] = DMG_BOLTS[dmg.bolt] || DMG_BOLTS[0]; el = b;
-    bl = Math.min(10, dmg.bl || skLv(boltName) || 10); times = lv + bl; ratio = 100; names = ['魔力拳', boltName];   // 倍數＝魔力拳 Lv＋箭術 Lv
-  } else { lv = Math.min(5, dmg.hl || skLv('崩裂術') || 5); times = lv; ratio = DMG_HD.ratio; el = DMG_HD.el; names = ['崩裂術']; }
+    bl = Math.min(10, dmg.bl || skLv(boltName) || 10); times = lv + bl; ratio = 100; names = ['魔力拳', boltName]; rate = lv * 5;   // 倍數＝魔力拳 Lv＋箭術 Lv
+  } else { lv = Math.min(5, dmg.hl || skLv('崩裂術') || 5); times = lv; ratio = 200 + o.S.INT; el = DMG_HD.el; names = ['崩裂術']; rTxt = `(200 + INT ${o.S.INT})% × ${lv} 下`; }
   // 武器 MATK 浮動：(武器 MATK＋精煉 MATK) × 武器等級 × 10%，過度精煉另外隨機加（同 ROCalculator）
   // 實測 20 下（+12 魔法經典）最高打到 75,800：只算武器本身 MATK、不加過度精煉的話打不到這麼高
   const wm = w ? ((w.b && w.b.MATK) || 0) + (tot.refATK || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
@@ -1393,20 +1405,28 @@ function dmgCalc(res) {
     if (dmg.smdef) { d -= dmg.smdef; x('前 MDEF', `− ${dmg.smdef}`, d); }
     if (em !== 100) { d = Math.floor(d * em / 100); x('屬性倍率', `× ${em / 100}`, d); }
     if (sum('skill')) { d = Math.floor(d * (100 + sum('skill')) / 100); x('技能增傷', `× ${(100 + sum('skill')) / 100}`, d); }
-    d *= times; x(sf ? '次數' : '次數', sf ? `× (${lv} + ${bl})` : `× ${lv}`, d);
+    d *= times; x('次數', sf ? `× (${lv} + ${bl})` : `× ${lv}`, d);
     return { d, steps };
   };
   const L = hit(base - vr + (ov[1] ? ov[0] : 0)), H = hit(base + vr + ov[1]), lo = L.d, hi = H.d, avg = (lo + hi) / 2;
-  // DPS（對單一目標）
-  let dps = 0, cyc = null;
-  if (sf) { const aps = o.aspd ? 50 / (200 - o.aspd) : 0; dps = aps * lv * 5 / 100 * avg; cyc = { aps }; }
+  // DPS（對單一目標），照 ROCalculator：每秒次數＝1 ÷ max(詠唱＋延遲, (200 − ASPD) ÷ 50)，上限 7.14
+  // 詠唱＝變動 × (1 − √(min(530, DEX×2＋INT) ÷ 530)) × (1 − 裝備變詠%) × (1 − Buff 變詠%) × (1 − 指定技能變詠%)＋固定 × (1 − 固詠%)
+  // 延遲＝max(技能後延遲 × (1 − 延遲%), 冷卻)
+  const ad0 = o.aspd ? Math.floor((200 - o.aspd) / 50 * 100) / 100 : 0;
+  let cyc;
+  if (proc) cyc = { ad0, t: ad0 };
   else {
-    const C = splitC(tot._c), S = o.S, k = Math.sqrt((S.DEX * 2 + S.INT) / 530);
-    const vp = Math.min(100, (tot.vct || 0) - (C['崩裂術變動詠唱'] || 0)), fp = Math.min(100, (tot.fct || 0) - (C['崩裂術固定詠唱'] || 0)), dp = Math.min(100, -(C['技能後延遲'] || 0));
-    const c0 = DMG_HD.cast(lv), v = Math.max(0, c0 * .8 * (1 - Math.min(1, k)) * (1 - vp / 100)), fx = c0 * .2 * (1 - fp / 100), ad = DMG_HD.acd * (1 - dp / 100);
-    cyc = { c0, k, vp, fp, dp, v, fx, ad, t: v + fx + ad }; dps = cyc.t > 0 ? avg / cyc.t : 0;
+    const C = splitC(tot._c), S = o.S, di = Math.min(530, S.DEX * 2 + S.INT), k = Math.sqrt(di / 530);
+    const bv = st.buff ? ['su', 'br'].reduce((a, id) => { const b = BUFF_BY[id], l = st.bf[id]; return a + (b && l && buffShown(b) && !buffNa(b) ? b.e(l).vct || 0 : 0); }, 0) : 0;
+    const cl = n => Math.max(0, Math.min(100, n));
+    const ep = cl((tot.vct || 0) - bv), bp = cl(bv), sp = cl(-(C['崩裂術變動詠唱'] || 0)), fp = cl((tot.fct || 0) - (C['崩裂術固定詠唱'] || 0)), dp = cl(-(C['技能後延遲'] || 0));
+    const v = DMG_HD.vct * (1 - k) * (1 - ep / 100) * (1 - bp / 100) * (1 - sp / 100), fx = DMG_HD.fct * (1 - fp / 100);
+    const cast = Math.floor((v + fx) * 10000) / 10000, gcd = Math.floor(DMG_HD.gcd * (100 - dp)) / 100, delay = Math.max(gcd, DMG_HD.cd);
+    cyc = { di, ep, bp, sp, fp, dp, v, fx, cast, gcd, delay, ad0, t: Math.max(cast + delay, ad0) };
   }
-  return { o, sf, lv, bl, times, ratio, boltName, el, wm, vr, ov, g, sum, em, mdefMul, lo, hi, L, H, avg, dps, cyc, rate: lv * 5 };
+  cyc.hps = cyc.t > 0 ? Math.min(7.14, Math.floor(1 / cyc.t * 100) / 100) : 0;
+  const dps = cyc.hps * (proc ? rate / 100 : 1) * avg;
+  return { o, sf, as, proc, asl, asSp, rTxt, lv, bl, times, ratio, boltName, el, wm, vr, ov, g, sum, em, mdefMul, lo, hi, L, H, avg, dps, cyc, rate };
 }
 // 漂浮視窗：開關、位置存在 localStorage；拖標題列移動
 let dmgOpen = localStorage.getItem('gear-dmg-open') === '1';
@@ -1436,49 +1456,64 @@ function renderDmg(res) {
   const r = dmgCalc(res), opt = (list, cur) => list.map((x, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${x}</option>`).join('');
   const sel = (k, label, list, cur) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><select id="dmg-${k}" onchange="setDmg('${k}', this.value)">${opt(list, cur)}</select></div>`;
   const num = (k, label) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><input type="number" id="dmg-${k}" min="0" max="9999" value="${dmg[k]}" onchange="setDmg('${k}', this.value)"></div>`;
+  $('dmgTag').innerHTML = dmgTip('Beta', 'beta');
   const lvs = n => ['', ...[...Array(n)].map((_, i) => `Lv ${i + 1}`)];
   // 輸入框正在打字時不要整個重畫（會跳掉游標）
   const pi = dmgPreset();
   if (!$('dmgIn').contains(document.activeElement) || document.activeElement.tagName !== 'INPUT') $('dmgIn').innerHTML =
     `<div class="ench-row dmg-pre"><label for="dmg-pre">目標</label><select id="dmg-pre" onchange="setDmgPreset(this.value)"><option value="0">自訂</option>${DMG_PRESETS.map((p, i) => `<option value="${i + 1}"${i === pi ? ' selected' : ''}>${p.n}</option>`).join('')}</select></div>` +
-    (r.sf ? sel('lv', '魔力拳', lvs(10), r.lv).replace('<option value="0">', '<option value="0" hidden>') +
+    (r.as ? sel('asl', '自動念咒', lvs(10), r.asl).replace('<option value="0">', '<option value="0" hidden>') +
+      `<div class="ench-row"><label for="dmg-asp">念咒技能</label><select id="dmg-asp" onchange="setDmg('asp', this.value)">${DMG_AS.map(([n, , , m], i) => `<option value="${i}"${n === r.asSp[0] ? ' selected' : ''}${m > r.asl ? ' disabled' : ''}>${n} Lv ${n === '地震術' || n === '崩裂術' ? Math.min(5, r.lv) : Math.max(1, Math.floor(r.asl / 2))}${m > r.asl ? `（Lv ${m} 起）` : ''}</option>`).join('')}</select></div>`
+    : r.sf ? sel('lv', '魔力拳', lvs(10), r.lv).replace('<option value="0">', '<option value="0" hidden>') +
     sel('bolt', '箭術', DMG_BOLTS.map(([n]) => n), dmg.bolt) +
     sel('bl', '箭術等級', lvs(10), r.bl).replace('<option value="0">', '<option value="0" hidden>')
     : sel('hl', '崩裂術', lvs(5), r.lv).replace('<option value="0">', '<option value="0" hidden>')) +
     sel('te', '目標屬性', DMG_ELEMS, dmg.te) + sel('tl', '屬性等級', ['', 'Lv 1', 'Lv 2', 'Lv 3', 'Lv 4'], dmg.tl).replace('<option value="0">', '<option value="0" hidden>') +
     sel('race', '種族', DMG_RACES, dmg.race) + sel('size', '體型', DMG_SIZES.map(x => x + '型'), dmg.size) +
-    sel('boss', '階級', ['一般', '首領'], dmg.boss) + num('mdef', '後 MDEF') + num('smdef', '前 MDEF');
+    sel('boss', '階級', ['一般', '首領'], dmg.boss) + num('mdef', '後 MDEF') + num('smdef', dmgTip('前 MDEF', 'smdef'));
   const pct = n => `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`, f = n => n.toLocaleString();
   const grp = (k, label) => { const n = r.sum(k); return `<li><span>${label}</span><b>${pct(n)}${r.g[k].length ? `<small>${r.g[k].map(([l, v]) => `${l} ${pct(v)}`).join('、')}</small>` : ''}</b></li>`; };
   const sec = n => `${n.toFixed(2)} 秒`, c = r.cyc, E = DMG_ELEMS;
-  const dpsRows = r.sf
-    ? `<li><span>每秒攻擊</span><b>${c.aps ? `${c.aps.toFixed(2)} 次<small>50 ÷ (200 − ASPD ${r.o.aspd})</small>` : '—'}</b></li>` +
-      `<li><span>DPS</span><b>${f(Math.round(r.dps))}<small>${c.aps.toFixed(2)} 次 × 發動 ${r.rate}% × 平均 ${f(Math.round(r.avg))}</small></b></li>`
-    : `<li><span>變動詠唱</span><b>${sec(c.v)}<small>${c.c0} 秒 × 80% × (1 − √((DEX ${r.o.S.DEX} × 2 + INT ${r.o.S.INT}) ÷ 530)) × (1 − ${c.vp}%)</small></b></li>` +
-      `<li><span>固定詠唱</span><b>${sec(c.fx)}<small>${c.c0} 秒 × 20% × (1 − ${c.fp}%)</small></b></li>` +
-      `<li><span>技能後延遲</span><b>${sec(c.ad)}<small>${DMG_HD.acd} 秒 × (1 − ${c.dp}%)</small></b></li>` +
-      `<li><span>DPS</span><b>${f(Math.round(r.dps))}<small>平均 ${f(Math.round(r.avg))} ÷ (${c.v.toFixed(2)} + ${c.fx.toFixed(2)} + ${c.ad.toFixed(2)}) 秒</small></b></li>`;
+  const pctm = n => n ? ` × (1 − ${n}%)` : '';
+  const hpsRow = `<li><span>${dmgTip('每秒次數', r.proc ? 'sfHps' : 'hdHps')}</span><b>${c.hps.toFixed(2)} 次<small>1 ÷ ${r.proc ? `${c.ad0.toFixed(2)}（(200 − ASPD ${r.o.aspd}) ÷ 50）` : c.cast + c.delay >= c.ad0 ? `(${c.cast.toFixed(2)} + ${c.delay.toFixed(2)})` : `${c.ad0.toFixed(2)}（攻速比詠唱＋延遲慢）`}</small></b></li>`;
+  const dpsRows = r.proc
+    ? (r.o.aspd ? hpsRow : '') + `<li><span>${dmgTip('DPS', r.as ? 'asDps' : 'sfDps')}</span><b>${f(Math.round(r.dps))}<small>${c.hps.toFixed(2)} × ${r.rate}% × 平均 ${f(Math.round(r.avg))}</small></b></li>`
+    : `<li><span>${dmgTip('詠唱', 'hdCast')}</span><b>${sec(c.cast)}<small>${DMG_HD.vct} × (1 − √(${c.di} ÷ 530))${pctm(c.ep)}${pctm(c.bp)}${pctm(c.sp)} + ${DMG_HD.fct}${pctm(c.fp)}</small></b></li>` +
+      `<li><span>${dmgTip('延遲', 'hdCast')}</span><b>${sec(c.delay)}<small>max(技能後延遲 ${DMG_HD.gcd}${pctm(c.dp)}, 冷卻 ${DMG_HD.cd})</small></b></li>` +
+      hpsRow + `<li><span>${dmgTip('DPS', 'hdDps')}</span><b>${f(Math.round(r.dps))}<small>${c.hps.toFixed(2)} × 平均 ${f(Math.round(r.avg))}</small></b></li>`;
   // 計算過程：最低／最高逐步列出（每步無條件捨去）
   const mt = (a, b) => `${r.o.matk[0] + r.o.matk[1]}${a}${b}`;
   const flow = `<table class="dmg-flow"><thead><tr><th></th><th></th><th>最低</th><th>最高</th></tr></thead><tbody>` +
     r.L.steps.map(([lab, op, v], i) => `<tr><th>${lab}</th><td>${i ? op : ''}</td><td>${i ? f(v) : `${f(v)}<small>${mt(` − ${r.vr}`, r.ov[1] ? ` + ${r.ov[0]}` : '')}</small>`}</td><td>${i ? f(r.H.steps[i][2]) : `${f(r.H.steps[0][2])}<small>${mt(` + ${r.vr}`, r.ov[1] ? ` + ${r.ov[1]}` : '')}</small>`}</td></tr>`).join('') + `</tbody></table>`;
-  $('dmgOut').innerHTML = `<div class="dmg-res"><span>${r.sf ? '每次發動' : '每次施放'}</span><b>${f(r.lo)}${r.hi !== r.lo ? ` ～ ${f(r.hi)}` : ''}</b><small>${r.sf ? `發動機率 ${r.rate}%　` : ''}DPS ${f(Math.round(r.dps))}</small></div>` +
+  $('dmgOut').innerHTML = `<div class="dmg-res"><span>${r.proc ? '每次發動' : '每次施放'}</span><b>${f(r.lo)}${r.hi !== r.lo ? ` ～ ${f(r.hi)}` : ''}</b><small>${r.proc ? `發動機率 ${r.rate}%　` : ''}DPS ${f(Math.round(r.dps))}</small></div>` +
     `<ul class="tot-list">` +
-    `<li><span>MATK</span><b>${r.o.matk[0]} + ${r.o.matk[1]}${r.vr || r.ov[1] ? `<small>${r.vr ? `武器浮動 ±${r.vr}` : ''}${r.vr && r.ov[1] ? '、' : ''}${r.ov[1] ? `過度精煉 +${r.ov[0]}～+${r.ov[1]}` : ''}</small>` : ''}</b></li>` +
+    `<li><span>${dmgTip('MATK', 'matk')}</span><b>${r.o.matk[0]} + ${r.o.matk[1]}${r.vr || r.ov[1] ? `<small>${r.vr ? `武器浮動 ±${r.vr}` : ''}${r.vr && r.ov[1] ? '、' : ''}${r.ov[1] ? `過度精煉 +${r.ov[0]}～+${r.ov[1]}` : ''}</small>` : ''}</b></li>` +
     `<li><span>MATK %</span><b>${pct(res.tot.MATKp || 0)}</b></li>` +
-    (r.sf ? `<li><span>技能倍率</span><b>MATK ${r.times * 100}%<small>100% × (魔力拳 ${r.lv} + ${r.boltName} ${r.bl})</small></b></li>`
-      : `<li><span>技能倍率</span><b>MATK ${r.ratio * r.times}%<small>${r.ratio}% × ${r.times} 下</small></b></li>`) +
+    (r.sf ? `<li><span>${dmgTip('技能倍率', 'sfRatio')}</span><b>MATK ${r.times * 100}%<small>100% × (魔力拳 ${r.lv} + ${r.boltName} ${r.bl})</small></b></li>`
+      : `<li><span>${dmgTip('技能倍率', r.as ? 'asRatio' : 'hdRatio')}</span><b>MATK ${r.ratio * r.times}%<small>${r.rTxt}</small></b></li>`) +
     grp('my', `${E[r.el]}屬性魔法`) + grp('elem', `對${E[dmg.te]}屬性`) + grp('race', `對${DMG_RACES[dmg.race]}`) + grp('size', `對${DMG_SIZES[dmg.size]}型`) + (dmg.boss ? '' : grp('cls', '對一般敵人')) +
     (dmg.mdef || dmg.smdef ? `<li><span>MDEF</span><b>×${r.mdefMul.toFixed(3)}${dmg.smdef ? `　−${dmg.smdef}` : ''}</b></li>` : '') +
     `<li><span>屬性倍率</span><b>${r.em}%<small>${E[r.el]} → ${E[dmg.te]} Lv ${dmg.tl}</small></b></li>` +
     grp('skill', '技能增傷') + dpsRows + `</ul>` +
-    `<h3 class="dmg-h3">計算過程</h3>` + flow;
-  $('dmgHint').innerHTML = r.sf ? DMG_HINT.sf : DMG_HINT.hd;
+    `<h3 class="dmg-h3">${dmgTip('計算過程', 'flow')}</h3>` + flow;
 }
-const DMG_HINT = {
-  sf: '傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），武器 MATK（含精煉）會浮動，過度精煉另外隨機加。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。DPS＝每秒普攻次數 × 發動機率 × 平均傷害，不含普攻本身和重新施放箭術的時間。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0；「目標」裡的魁儡已經填好實測推估的值。實際數字歡迎回報。',
-  hd: '崩裂術：每下 MATK 200%（地屬性），打 Lv 下，範圍 5×5，傷害是對每個目標。詠唱、延遲遊戲說明沒寫，先用國際服資料（詠唱 Lv 秒，其中 20% 是固定詠唱；技能後延遲 1 秒），還沒實測；DPS＝平均傷害 ÷（變動詠唱＋固定詠唱＋延遲）。實際數字歡迎回報。',
+// 名詞旁的說明（滑鼠移過去／點一下才出現）
+const DMG_TIP = {
+  beta: '照公式和實測推算，實際數字歡迎回報（頁面下方 🐞 回報問題）',
+  matk: '武器 MATK（含精煉）會浮動 ±武器等級 × 10%，過度精煉另外隨機加',
+  smdef: '依怪物素質，資訊視窗看不到，會直接扣傷害；不知道就先填 0。「目標」裡的魁儡已經填好實測推估的值',
+  flow: '每一步都無條件捨去',
+  sfRatio: '傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），倍數最後才乘。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測',
+  sfHps: '一秒普攻幾下＝1 ÷ ((200 − ASPD) ÷ 50)，上限 7.14（同 ROCalculator）',
+  sfDps: '每秒普攻次數 × 發動機率 × 平均傷害；不含普攻本身和重新施放箭術的時間',
+  hdRatio: '每下 MATK (200＋INT)%（地屬性，INT 算總值），打 Lv 下；範圍 5×5，每個目標各自吃這些傷害。和 ROCalculator 同公式，還沒實測',
+  hdCast: '照 ROCalculator（RO Zero）：變動詠唱 0.6 秒、固定詠唱 0.4 秒、技能後延遲 0.3 秒、冷卻 0.5 秒（Lv5 的值，其他等級先共用）。變動詠唱依 DEX × 2＋INT 減少（530 歸零），裝備、Buff、指定技能的變詠 % 分開相乘；延遲取技能後延遲和冷卻比較長的',
+  asRatio: '普攻時有（自動念咒 Lv × 2）% 機率自動施放選的魔法，等級是自動念咒 Lv 的一半（無條件捨去），只能選學過的。箭術每下 MATK (100＋INT÷2)%、地震術／崩裂術每下 (200＋INT)%，INT 算總值（同 ROCalculator），還沒實測',
+  asDps: '每秒普攻次數 × 發動機率 × 平均傷害；不含普攻本身',
+  hdHps: '1 ÷ (詠唱＋延遲)；如果攻速比較慢就用 (200 − ASPD) ÷ 50，上限 7.14（同 ROCalculator）',
+  hdDps: '每秒次數 × 平均傷害，對單一目標',
 };
+const dmgTip = (term, k) => `<span class="dmg-t" tabindex="0">${term}<span class="dmg-tip" role="tooltip">${DMG_TIP[k]}</span></span>`;
 // 素質點數（Renewal）：Lv1 有 48 點；升到 Lv N 時給 ⌊(N−1)÷5⌋＋3（到 Lv99 共 1273）；Lv100 起每級 ⌊(N−1)÷10⌋＋13（遊戲內 Lv120 對過）
 const statPtsAt = lv => { let t = 48; for (let n = 2; n <= lv; n++) t += n < 100 ? Math.floor((n - 1) / 5) + 3 : Math.floor((n - 1) / 10) + 13; return t; };
 // 素質從 x 加到 x＋1 要花的點數：99 以下每 10 點多 1（2～11 花 2）；100 起每 5 點多 4（從 16 起）
