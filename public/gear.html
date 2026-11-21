@@ -434,7 +434,7 @@
     <h2>💥 傷害試算 <small class="dmg-tag">魔力拳・測試中</small></h2>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
-    <div class="hint">依技能說明（MATK 等級×100%）和 Renewal 公式推算，還沒跟遊戲實測對過。打怪的實際數字歡迎回報，會拿來修正。</div>
+    <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），和遊戲內實測對過倍數；浮動範圍還在核對。打怪的實際數字歡迎回報，會拿來修正。</div>
   </div>
   </aside></div>
 
@@ -1295,8 +1295,10 @@ function statusOf(tot) {
   return out;
 }
 // ===== 傷害試算（測試中）：賢者的魔力拳 =====
-// 技能說明：施展火箭術／冰箭術／雷擊術時發動，一般攻擊依機率給予「MATK 等級×100%」的招術魔法傷害（屬性＝用的箭術）
-// 公式同傷害公式頁：(MATK × (1+MATK%) × 技能倍率 × 各種 % 加成 × 後MDEF 乘算 − 前MDEF) × 屬性倍率 × (1+技能增傷%)
+// 技能說明：施展火箭術／冰箭術／雷擊術時發動，一般攻擊依機率給予招術魔法傷害（屬性＝用的箭術）
+// 遊戲內實測（2026/11/21，魁儡 地1）：傷害＝（MATK 100% 的一下）×（魔力拳 Lv＋箭術 Lv），最後才乘；箭術的技能增傷也會算
+//   魔力拳 10＋火箭術 10 → 打出來都是 20 的倍數；魔力拳 10＋火箭術 3 → 都是 13 的倍數
+// 「MATK 100% 的一下」照傷害公式頁：(MATK × (1+MATK%) × 各種 % 加成 × 後MDEF 乘算 − 前MDEF) × 屬性倍率 × (1+技能增傷%)
 const DMG_ELEMS = ['無', '火', '水', '風', '地', '毒', '聖', '闇', '念', '不死'];
 const DMG_RACES = ['無形', '不死', '動物', '植物', '昆蟲', '魚貝', '惡魔', '人類', '天使', '龍族'];
 const DMG_SIZES = ['小', '中', '大'];
@@ -1309,7 +1311,7 @@ const DMG_ELEM_TBL = {
   4: [[100,100,100,100,100,100,100,100,0,100],[100,-50,60,100,200,75,0,25,100,200],[100,200,-50,60,100,75,0,25,100,150],[100,100,200,-50,60,75,0,25,100,100],[100,60,100,200,-50,75,0,25,100,50],[100,75,25,75,75,0,0,-25,25,-100],[100,75,75,75,75,125,-100,200,100,200],[100,75,75,75,75,-25,200,-100,100,-100],[0,25,25,25,25,25,0,0,200,175],[100,25,25,25,25,-25,175,0,100,0]],
 };
 const DMG_KEY = 'roz-gear-dmg-v1';
-const DMG_DEF = { lv: 0, bolt: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
+const DMG_DEF = { lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
 function setDmg(k, v) { dmg[k] = Math.max(0, Math.floor(+v || 0)); try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
 // 技能／條件加成 → 這一下會套到的 % 加成（分組；每組各自相乘）
@@ -1344,22 +1346,23 @@ function dmgBonus(tot, boltName, boltEl) {
 function dmgCalc(res) {
   const tot = res.tot, o = statusOf(tot), w = wornItem('weapon');
   const lv = Math.min(10, dmg.lv || skLv('魔力拳') || 10), [boltName, boltEl] = DMG_BOLTS[dmg.bolt] || DMG_BOLTS[0];
-  // 武器 MATK 浮動：(武器 MATK＋精煉) × 武器等級 × 10%；過度精煉另外隨機加
-  const wm = w ? ((w.b && w.b.MATK) || 0) + (tot.refATK || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
-  const base = o.matk[0] + o.matk[1], ov = res.over || [0, 0];
+  const bl = Math.min(10, dmg.bl || skLv(boltName) || 10), times = lv + bl;   // 倍數＝魔力拳 Lv＋箭術 Lv
+  // 武器 MATK 浮動：武器本身的 MATK × 武器等級 × 10%（精煉的 MATK 不浮動；過度精煉的隨機值只加 ATK，不加 MATK）
+  // 實測：+12 魔法經典（MATK 160、4 級）打出來的範圍寬度約 ±64，和這個算法一致
+  const wm = w ? ((w.b && w.b.MATK) || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
+  const base = o.matk[0] + o.matk[1], ov = [0, 0];
   const g = dmgBonus(tot, boltName, boltEl), sum = k => g[k].reduce((a, [, v]) => a + v, 0);
   const em = DMG_ELEM_TBL[dmg.tl] ? DMG_ELEM_TBL[dmg.tl][boltEl][dmg.te] : 100;
   const h = dmg.mdef, mdefMul = (1000 + h) / (1000 + 10 * h);
   const hit = m => {
     let d = Math.floor(m * (100 + (tot.MATKp || 0)) / 100);
-    d = Math.floor(d * lv);   // MATK 等級×100%
     for (const k of ['my', 'elem', 'race', 'size', 'cls']) d = Math.floor(d * (100 + sum(k)) / 100);
     d = Math.floor(d * mdefMul) - dmg.smdef;
     d = Math.floor(d * em / 100);
-    return Math.floor(d * (100 + sum('skill')) / 100);
+    return Math.floor(d * (100 + sum('skill')) / 100) * times;
   };
-  const lo = hit(base - vr + (ov[1] ? ov[0] : 0)), hi = hit(base + vr + ov[1]);
-  return { o, lv, boltName, boltEl, wm, vr, ov, g, sum, em, mdefMul, lo, hi, rate: lv * 5 };
+  const lo = hit(base - vr), hi = hit(base + vr);
+  return { o, lv, bl, times, boltName, boltEl, wm, vr, ov, g, sum, em, mdefMul, lo, hi, rate: lv * 5 };
 }
 function renderDmg(res) {
   // 還在測試：只在本機（wrangler dev）顯示，正式站先不開
@@ -1373,6 +1376,7 @@ function renderDmg(res) {
   if (!$('dmgIn').contains(document.activeElement) || document.activeElement.tagName !== 'INPUT') $('dmgIn').innerHTML =
     sel('lv', '魔力拳', ['', ...[...Array(10)].map((_, i) => `Lv ${i + 1}`)], r.lv).replace('<option value="0">', '<option value="0" hidden>') +
     sel('bolt', '箭術', DMG_BOLTS.map(([n]) => n), dmg.bolt) +
+    sel('bl', '箭術等級', ['', ...[...Array(10)].map((_, i) => `Lv ${i + 1}`)], r.bl).replace('<option value="0">', '<option value="0" hidden>') +
     sel('te', '目標屬性', DMG_ELEMS, dmg.te) + sel('tl', '屬性等級', ['', 'Lv 1', 'Lv 2', 'Lv 3', 'Lv 4'], dmg.tl).replace('<option value="0">', '<option value="0" hidden>') +
     sel('race', '種族', DMG_RACES, dmg.race) + sel('size', '體型', DMG_SIZES.map(x => x + '型'), dmg.size) +
     sel('boss', '階級', ['一般', '首領'], dmg.boss) + num('mdef', '後 MDEF') + num('smdef', '前 MDEF');
@@ -1382,7 +1386,7 @@ function renderDmg(res) {
     `<ul class="tot-list">` +
     `<li><span>MATK</span><b>${r.o.matk[0]} + ${r.o.matk[1]}${r.vr || r.ov[1] ? `<small>${r.vr ? `武器浮動 ±${r.vr}` : ''}${r.vr && r.ov[1] ? '、' : ''}${r.ov[1] ? `過度精煉 +${r.ov[0]}～+${r.ov[1]}` : ''}</small>` : ''}</b></li>` +
     `<li><span>MATK %</span><b>${pct(res.tot.MATKp || 0)}</b></li>` +
-    `<li><span>技能倍率</span><b>MATK ${r.lv * 100}%<small>魔力拳 Lv ${r.lv}・${r.boltName}</small></b></li>` +
+    `<li><span>技能倍率</span><b>MATK ${r.times * 100}%<small>魔力拳 Lv ${r.lv}＋${r.boltName} Lv ${r.bl}（最後才乘 ×${r.times}）</small></b></li>` +
     grp('my', `${DMG_ELEMS[r.boltEl]}屬性魔法`) + grp('elem', `對${DMG_ELEMS[dmg.te]}屬性`) + grp('race', `對${DMG_RACES[dmg.race]}`) + grp('size', `對${DMG_SIZES[dmg.size]}型`) + (dmg.boss ? '' : grp('cls', '對一般敵人')) +
     (dmg.mdef || dmg.smdef ? `<li><span>MDEF</span><b>×${r.mdefMul.toFixed(3)}${dmg.smdef ? `　−${dmg.smdef}` : ''}</b></li>` : '') +
     `<li><span>屬性倍率</span><b>${r.em}%<small>${DMG_ELEMS[r.boltEl]} → ${DMG_ELEMS[dmg.te]} Lv ${dmg.tl}</small></b></li>` +
