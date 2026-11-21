@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=30">
+<link rel="stylesheet" href="ro.css?v=31">
 <script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -120,9 +120,11 @@
   .sw-r { grid-template-columns: 3.4em minmax(0, 1fr); align-content: start; }
   .sw-l b, .sw-r b { font-size: .85rem; }
   .sw-l input { width: 100%; min-width: 0; padding: 0 6px; min-height: 30px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); font-size: .9rem; }
-  .sw-l .sb { font-size: .82rem; color: var(--green); min-width: 2.6em; }
+  .sw-l .sb { font-size: .82rem; color: var(--green); min-width: 2.2em; }
+  .sw-l { grid-template-columns: 2.9em minmax(2.6em, 1fr) auto 1.2em; }
+  .sw-l .sc { font-size: .75rem; color: var(--dim); min-width: 1.6em; text-align: right; }   /* 下一點要花的點數（同遊戲 Alt+A） */
   .sw-l .ps-left-k { grid-column: 1 / 3; margin-top: 2px; }
-  .sw-l .ps-left { text-align: right; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 2px; }
+  .sw-l .ps-left { grid-column: 3 / 5; text-align: right; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 2px; }
   .sw-l .ps-left small { color: var(--dim); font-weight: 400; font-size: .78rem; }
   .sw-l .ps-left .over { color: var(--danger); }
   .sw-r span { text-align: right; font-weight: 700; color: var(--primary); }
@@ -830,7 +832,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），滑過素質欄看下一點要花幾點；素質上限 99；設定加「啟用裝備」開關'],
+  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），素質旁邊顯示再加 1 點要花幾點；素質上限 99；設定加「啟用裝備」開關'],
   ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
@@ -1392,7 +1394,7 @@ function renderStatus(res) {
   for (const s of PS) { const b = o.S[s] - (st.ps[s] || 0); $('sb-' + s).textContent = b ? sgn(b) : ''; }
   // 剩餘點數（和遊戲 Alt+A 一樣）；滑過素質欄看下一點要花幾點
   const total = statPtsAt(st.lv), used = PS.reduce((a, s) => a + statUsed(Math.max(1, st.ps[s] || 1)), 0), left = total - used;
-  for (const s of PS) { const el = document.querySelector(`[data-ps="${s}"]`); if (el) el.title = (st.ps[s] || 0) >= PS_MAX ? `${s} 已達上限 ${PS_MAX}` : `${s} 再加 1 點要花 ${statCost(Math.max(1, st.ps[s] || 1))} 點`; }
+  for (const s of PS) { const max = (st.ps[s] || 0) >= PS_MAX; $('sc-' + s).textContent = max ? '' : statCost(Math.max(1, st.ps[s] || 1)); $('sc-' + s).title = max ? '' : `${s} 再加 1 點要花 ${statCost(Math.max(1, st.ps[s] || 1))} 點`; }
   $('psLeft').innerHTML = `<span class="${left < 0 ? 'over' : ''}">${left < 0 ? `超過 ${-left}` : left}</span><small>／${total}</small>`;
   $('psLeft').title = `Base Lv ${st.lv} 共 ${total} 點，已用 ${used} 點`;
   const row = (k, v) => `<b>${k}</b><span>${v}</span>`, pair = ([a, b]) => `${a} <small>${sgn(b)}</small>`;
@@ -1932,7 +1934,7 @@ $('runeLv').addEventListener('change', e => { st.rl = Math.max(0, Math.min(15, p
 $('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
-$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="99" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('') + `<b class="ps-left-k">剩餘點數</b><span class="ps-left" id="psLeft"></span>`;
+$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="99" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span><span class="sc" id="sc-${s}"></span>`).join('') + `<b class="ps-left-k">剩餘點數</b><span class="ps-left" id="psLeft"></span>`;
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; const v = parseInt(e.target.value) || 0; st.ps[s] = Math.max(0, Math.min(PS_MAX, v)); if (v > PS_MAX) e.target.value = PS_MAX; save(); refreshSlots(); });
 // ===== 人物狀態：固定／漂浮（漂浮時拖曳標題列移動，位置記在這台裝置；勾 Buff、加技能點時不用捲回去看）=====
 const STAT_FLOAT_KEY = 'gear-stat-float';
