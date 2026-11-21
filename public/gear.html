@@ -1374,8 +1374,8 @@ function renderDmg(res) {
     `<li><span>屬性倍率</span><b>${r.em}%<small>${DMG_ELEMS[r.boltEl]} → ${DMG_ELEMS[dmg.te]} Lv ${dmg.tl}</small></b></li>` +
     grp('skill', '技能增傷') + `</ul>`;
 }
-// 素質點數（Renewal）：Lv1 有 48 點；升到 Lv N 時給 ⌊(N−1)÷5⌋＋3（到 Lv99 共 1273）；Lv100 起每級 ⌊N÷10⌋＋13（待和遊戲內確認）
-const statPtsAt = lv => { let t = 48; for (let n = 2; n <= lv; n++) t += n < 100 ? Math.floor((n - 1) / 5) + 3 : Math.floor(n / 10) + 13; return t; };
+// 素質點數（Renewal）：Lv1 有 48 點；升到 Lv N 時給 ⌊(N−1)÷5⌋＋3（到 Lv99 共 1273）；Lv100 起每級 ⌊(N−1)÷10⌋＋13（遊戲內 Lv120 對過）
+const statPtsAt = lv => { let t = 48; for (let n = 2; n <= lv; n++) t += n < 100 ? Math.floor((n - 1) / 5) + 3 : Math.floor((n - 1) / 10) + 13; return t; };
 // 素質從 x 加到 x＋1 要花的點數：99 以下每 10 點多 1（2～11 花 2）；100 起每 5 點多 4（從 16 起）
 const statCost = x => x < 100 ? Math.floor((x - 1) / 10) + 2 : Math.floor((x - 100) / 5) * 4 + 16;
 const statUsed = v => { let c = 0; for (let x = 1; x < v; x++) c += statCost(x); return c; };
