@@ -296,8 +296,16 @@
   #dmgCard.floating { resize: both; min-width: 300px; min-height: 160px; container-type: inline-size; }
   /* 視窗夠寬（展開）時：左邊設定、右邊結果 */
   @container (min-width: 720px) {
-    .dmg-body { display: grid; grid-template-columns: minmax(300px, 2fr) 3fr; gap: 16px; align-items: start; }
-    .dmg-l { position: sticky; top: 52px; }
+    .dmg-body { display: grid; grid-template-columns: minmax(300px, 2fr) 3fr; gap: 0 16px; align-items: start; }
+    .dmg-l { position: sticky; top: 52px; grid-row: span 2; }
+    #dmgFlow { grid-column: 2; }
+  }
+  /* 再寬：計算過程變第三欄 */
+  @container (min-width: 1100px) {
+    .dmg-body { grid-template-columns: minmax(300px, 4fr) 5fr 5fr; }
+    .dmg-l { grid-row: auto; }
+    #dmgFlow { grid-column: 3; }
+    #dmgFlow .dmg-h3 { margin-top: 0; }
   }
   #dmgMax { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; margin-right: 6px; }
   html[data-ui="ro"] #dmgMax { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
@@ -434,7 +442,7 @@
     <div class="dmg-body"><div class="dmg-l">
     <div class="stash-tabs dmg-sk" id="dmgSk" role="tablist" aria-label="技能"></div>
     <div class="dmg-in" id="dmgIn"></div></div>
-    <div id="dmgOut"></div></div>
+    <div id="dmgOut"></div><div id="dmgFlow"></div></div>
   </div>
 
   <div class="gear-layout"><div class="gear-main">
@@ -1468,7 +1476,7 @@ function toggleDmgMax() {
   const c = $('dmgCard');
   if (dmgSize) { dmgSize = null; localStorage.removeItem('gear-dmg-size'); c.style.width = c.style.height = ''; }
   else {
-    dmgSize = { w: Math.min(860, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
+    dmgSize = { w: Math.min(1240, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
     dmgPos = { x: Math.min(dmgPos ? dmgPos.x : innerWidth, innerWidth - dmgSize.w - 8), y: 8 }; localStorage.setItem('gear-dmg-float', JSON.stringify(dmgPos));
   }
   placeDmg(); track('gear_dmg_max', { on: !!dmgSize });
@@ -1520,6 +1528,7 @@ function renderDmg(res) {
     // 各技能照自己分頁的設定算，DPS 直接相加
     const rs = sks.filter(([id]) => (dmg.mix || []).includes(id)).map(([id, n]) => [id, n, dmgCalc(res, id)]), total = rs.reduce((a, [, , x]) => a + x.dps, 0), tLo = rs.reduce((a, [, , x]) => a + x.dpsLo, 0), tHi = rs.reduce((a, [, , x]) => a + x.dpsHi, 0);
     const rg = (a, b) => `${f(Math.round(a))}${Math.round(a) !== Math.round(b) ? ` ～ ${f(Math.round(b))}` : ''}`;
+    $('dmgFlow').innerHTML = '';
     $('dmgOut').innerHTML = `<div class="dmg-res"><span>${dmgTip('合計 DPS', 'mix')}</span><b>${rg(tLo, tHi)}</b><small>平均 ${f(Math.round(total))}</small></div>` +
       (rs.length ? `<ul class="tot-list">` + rs.map(([id, n, x]) => `<li><span><button type="button" class="dmg-go" onclick="setDmg('sk', '${id}')" title="到「${n}」改設定">${n}</button></span><b>${rg(x.dpsLo, x.dpsHi)}${total && rs.length > 1 ? `<i class="dmg-pct">（${Math.round(x.dps / total * 100)}%）</i>` : ''}<small>平均 ${f(Math.round(x.dps))}・每次 ${f(x.lo)}${x.hi !== x.lo ? `～${f(x.hi)}` : ''}${x.proc ? `・發動 ${x.rate}%` : ''}・每秒 ${x.cyc.hps.toFixed(2)} 次${x.dcP ? `・雙倍投擲 ${x.dcP}%` : ''}</small></b></li>`).join('') + `</ul>` : `<p class="hint">勾選要一起算的技能</p>`);
     return;
@@ -1548,7 +1557,8 @@ function renderDmg(res) {
     (dmg.mdef || dmg.smdef ? `<li><span>MDEF</span><b>×${r.mdefMul.toFixed(3)}${dmg.smdef ? `　−${dmg.smdef}` : ''}</b></li>` : '') +
     `<li><span>屬性倍率</span><b>${r.em}%<small>${E[r.el]} → ${E[dmg.te]} Lv ${dmg.tl}</small></b></li>` +
     grp('skill', '技能增傷') + dpsRows + `</ul>` +
-    `<h3 class="dmg-h3">${dmgTip('計算過程', 'flow')}</h3>` + flow;
+    '';
+  $('dmgFlow').innerHTML = `<h3 class="dmg-h3">${dmgTip('計算過程', 'flow')}</h3>` + flow;
 }
 // 名詞旁的說明（滑鼠移過去／點一下才出現）
 const DMG_TIP = {
