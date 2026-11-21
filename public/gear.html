@@ -366,7 +366,7 @@
     <label class="sw"><input type="checkbox" id="useSkill" switch role="switch"> 啟用技能樹</label>
     <div class="sk-box hidden" id="skBox"><div class="field"><label>技能等級</label><div class="ps-grid" id="skGrid"></div></div></div>
     <div class="field note-field"><label for="buildNote">配置說明</label><textarea id="buildNote" rows="3" maxlength="300" placeholder="例如：打 MVP 用、還缺哪件、技能怎麼點⋯（分享時會一起帶上）"></textarea></div>
-    <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button></div>
+    <div class="btns"><button class="btn-ghost" onclick="clearAll()">↺ 全部重置</button><button class="btn-ghost" onclick="share(this)">🔗 分享這組配裝</button></div>
   </div>
 
   <div class="card" id="statCard">
@@ -428,7 +428,6 @@
     <ul class="tot-list notes-list" id="notes"></ul>
     <div class="sec-title">套裝／搭配</div>
     <div class="sets" id="sets"></div>
-    <button class="btn-share" onclick="share(this)">🔗 分享這組配裝</button>
   </div>
   <!-- 傷害試算（測試中）：目前只有賢者的魔力拳 -->
   <div class="card hidden" id="dmgCard">
