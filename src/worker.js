@@ -45,7 +45,7 @@ export default {
 
     const title = kind === 'auto' ? '⚠️ 自動錯誤回報' : '🐞 使用者回報';
     const payload = {
-      username: 'RO樂園工具回報',
+      username: 'RO樂園工具箱回報',
       embeds: [{
         title,
         description: text || '（無描述）',

@@ -1,4 +1,4 @@
-# RO樂園工具：歡迎一般搜尋引擎，不允許 AI 爬蟲（訓練、AI 搜尋、AI 代理）
+# RO樂園工具箱：歡迎一般搜尋引擎，不允許 AI 爬蟲（訓練、AI 搜尋、AI 代理）
 # 內容訊號（https://contentsignals.org/）：可以出現在搜尋結果，不可用於 AI 訓練或 AI 回答
 User-agent: *
 Content-Signal: search=yes, ai-train=no, ai-input=no
