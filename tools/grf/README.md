@@ -82,3 +82,13 @@ python3 -I tools/grf/build-hpsp.py <rathena>/db/pre-re/job_basepoints.yml <rathe
 ```bash
 python -I tools/grf/build-skills.py <data.grf> public/skill-data.js public/skill-desc.json public/skillicons
 ```
+
+## 技能詠唱／延遲
+
+配裝「傷害試算」的 `DMG_CAST`（`public/gear.html`）：`skilldelaylist.lub` 每級的變動詠唱、固定詠唱、技能後延遲、冷卻：
+
+```bash
+python3 -I tools/grf/grf.py <data.grf> get 'data\luafiles514\lua files\skillinfoz\skilldelaylist.lub' /tmp/sk/skilldelaylist.lub
+python3 -I tools/grf/grf.py <data.grf> get 'data\luafiles514\lua files\skillinfoz\skillid.lub' /tmp/sk/skillid.lub
+<有 lupa 的 python> -I tools/grf/skill-delay.py /tmp/sk 火箭術:MG_FIREBOLT,雷爆術:MG_THUNDERSTORM,…
+```
