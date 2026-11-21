@@ -295,6 +295,7 @@
   #dmgCard.floating { position: fixed; z-index: 44; width: min(400px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
   #dmgCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
   #dmgBtn[aria-expanded="true"], html[data-ui] #dmgBtn[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+  .dmg-sk { margin: -2px 0 10px; }
   .dmg-in { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 12px; margin-bottom: 12px; }
   .dmg-in .ench-row label { min-inline-size: 4.2em; }
   .dmg-in .dmg-pre { grid-column: 1 / -1; }
@@ -406,7 +407,8 @@
 
   <!-- 傷害試算：設定區「💥 傷害試算」按鈕開關的漂浮視窗（目前只有賢者的魔力拳） -->
   <div class="card hidden" id="dmgCard">
-    <h2>💥 傷害試算 <small class="dmg-tag">賢者・魔力拳（Beta）</small><span class="h2-act"><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
+    <h2>💥 傷害試算 <small class="dmg-tag">Beta</small><span class="h2-act"><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
+    <div class="stash-tabs dmg-sk" id="dmgSk" role="tablist" aria-label="技能"></div>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
     <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），武器 MATK（含精煉）會浮動，過度精煉另外隨機加。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0，結果會偏高一點；「目標」裡的魁儡已經填好實測推估的值。實際數字歡迎回報。</div>
@@ -1323,9 +1325,11 @@ const DMG_TGT = ['te', 'tl', 'race', 'size', 'boss', 'mdef', 'smdef'];
 const dmgPreset = () => DMG_PRESETS.findIndex(p => DMG_TGT.every(k => p[k] === dmg[k]));
 function setDmgPreset(i) { const p = DMG_PRESETS[+i - 1]; if (!p) return; for (const k of DMG_TGT) dmg[k] = p[k]; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} $('dmgIn').innerHTML = ''; renderDmg(compute()); }
 const DMG_KEY = 'roz-gear-dmg-v1';
-const DMG_DEF = { lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
+// 可以試算的技能（照職業列出；之後加技能就加在這裡）
+const DMG_SKILLS = { 賢者: [['sf', '魔力拳']] };
+const DMG_DEF = { sk: 'sf', lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
-function setDmg(k, v) { dmg[k] = Math.max(0, Math.floor(+v || 0)); try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
+function setDmg(k, v) { dmg[k] = k === 'sk' ? String(v) : Math.max(0, Math.floor(+v || 0)); if (k === 'sk') $('dmgIn').innerHTML = ''; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
 // 技能／條件加成 → 這一下會套到的 % 加成（分組；每組各自相乘）
 function dmgBonus(tot, boltName, boltEl) {
   const E = DMG_ELEMS, te = E[dmg.te], race = DMG_RACES[dmg.race], size = DMG_SIZES[dmg.size];
@@ -1398,6 +1402,9 @@ function renderDmg(res) {
   $('dmgCard').classList.toggle('hidden', !show || !dmgOpen);
   if (!show || !dmgOpen) return;
   placeDmg();
+  const sks = DMG_SKILLS[st.job] || [];
+  if (!sks.some(([id]) => id === dmg.sk)) dmg.sk = sks[0][0];
+  $('dmgSk').innerHTML = sks.map(([id, n]) => `<button type="button" class="btn-ghost" role="tab" aria-selected="${dmg.sk === id}" onclick="setDmg('sk', '${id}')">${n}</button>`).join('');
   const r = dmgCalc(res), opt = (list, cur) => list.map((x, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${x}</option>`).join('');
   const sel = (k, label, list, cur) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><select id="dmg-${k}" onchange="setDmg('${k}', this.value)">${opt(list, cur)}</select></div>`;
   const num = (k, label) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><input type="number" id="dmg-${k}" min="0" max="9999" value="${dmg[k]}" onchange="setDmg('${k}', this.value)"></div>`;
