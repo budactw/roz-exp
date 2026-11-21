@@ -474,7 +474,7 @@
 <script src="enchant-data.js?v=5"></script>
 <script src="addon-data.js?v=5"></script>
 <script src="slot-data.js?v=2"></script>
-<script src="aspd-data.js?v=1"></script>
+<script src="aspd-data.js?v=2"></script>
 <script src="job-bonus.js?v=1"></script>
 <script src="hpsp-data.js?v=2"></script>
 <script src="skill-data.js?v=1"></script>
@@ -1240,7 +1240,8 @@ const NOTE_RE = /待補|查無|掉落$|以遊戲內為準|不可破壞|無法破
 // 職業名稱 → 攻速資料的職業名稱；武器類型 → 攻速資料的武器名稱
 const ASPD_CLS = { 吟遊詩人: '詩人', 武道家: '武僧', 鍊金術師: '煉金' };
 const ASPD_WT = { 風魔飛鏢: '手裏劍', '短劍（左手）': '短劍', 盾牌: '盾' };
-const DEX_ATK_TYPES = ['弓', '樂器', '鞭子', '手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍'];   // 素質 ATK 的 STR 與 DEX 對調
+const GUN_TYPES = ['手槍', '來福槍', '格林機槍', '霰彈槍', '榴彈槍'];
+const DEX_ATK_TYPES = ['弓', '樂器', '鞭子', ...GUN_TYPES];   // 素質 ATK 的 STR 與 DEX 對調
 // Job 素質加成：job-bonus.js（韓服 Ragnarok Zero 官方表；二轉用進階二轉的表，Job 1～70）
 function jobStat(s) {
   const t = st.job && typeof JOB_BONUS !== 'undefined' && JOB_BONUS[st.job] && JOB_BONUS[st.job][s];
@@ -1278,10 +1279,10 @@ function statusOf(tot) {
     const wk = w ? (ASPD_WT[wt] || wt) : '無', lk = left ? (ASPD_WT[left.type] || left.type) : '無';
     const wpen = wk === '無' ? 0 : ac.pen[wk], spen = lk === '無' ? 0 : ((left.s === 'weapon' && ac.left ? ac.left[lk] : ac.pen[lk]) ?? 0);
     if (wpen !== undefined) {
-      const statB = Math.sqrt(S.DEX * S.DEX / (['弓', '樂器', '鞭子'].includes(wt) ? 7 : 5) + S.AGI * S.AGI / 2) / 4;
-      // 被動技能的狀態修正（和攻速計算頁一樣）：賢者拿書時，進化之書每 Lv 修正 +0.5 → AGI × 修正 ÷ 200
+      const statB = Math.sqrt(S.DEX * S.DEX / (ranged ? 7 : 5) + S.AGI * S.AGI / 2) / 4;
+      // 被動技能的狀態修正（和攻速計算頁一樣）：賢者拿書時，進化之書每 Lv 修正 +0.5；神槍手拿槍時，單槍射擊每 2 級 +1 → AGI × 修正 ÷ 200
       // Buff 的狀態修正（_amod：雙手劍加速、速度激發等）一起加
-      const mod = (st.job === '賢者' && wt === '書' ? 0.5 * skLv('進化之書') : 0) + (tot._amod || 0);
+      const mod = (st.job === '賢者' && wt === '書' ? 0.5 * skLv('進化之書') : 0) + (st.job === '神槍手' && GUN_TYPES.includes(wt) ? Math.floor((skLv('單槍射擊') + 1) / 2) : 0) + (tot._amod || 0);
       const a1 = Math.floor(ac.base + wpen + spen + statB + mod * S.AGI / 200);
       // 上限：Base 99 以下 190、100 以上 191（樂園目前最高 191，同攻速計算頁）
       out.aspd = Math.min(st.lv >= 100 ? 191 : 190, Math.floor(a1 + (195 - a1) * ((tot.aspd || 0) + (tot.aspdP || 0)) / 100 + (tot.aspdFlat || 0)));
