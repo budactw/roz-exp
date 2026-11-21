@@ -360,7 +360,7 @@
 
   <div class="share-bar hidden" id="shareBar">
     <span class="t" id="shareMsg">👀 正在檢視分享的配裝，修改不會儲存</span>
-    <span class="acts"><button class="btn-sm" onclick="saveShared()">存成我的配裝</button><button class="btn-ghost" onclick="closeShared()">關閉</button></span>
+    <span class="acts"><button class="btn-sm" onclick="saveShared()">存成新角色</button><button class="btn-ghost" onclick="closeShared()">關閉</button></span>
   </div>
 
   <div class="card" id="charCard">
@@ -739,9 +739,14 @@ async function share(btn) {
   }
   copyText(`${text}\n${url}`, btn); track('gear_share', { method: 'copy' });
 }
+// 分享的配裝存成「新角色」，不動原本的角色
 async function saveShared() {
-  if (!await dialog({ title: '存成我的配裝？', msg: `會取代${who === 'char' ? `「${curChar().name}」` : '你目前'}的配裝。`, okText: '存檔' })) return;
-  shared = false; clearHash(); save(); syncShared(); render(); track('gear_share_save');
+  const def = (sharedFrom || '分享的配裝') + (st.job ? `（${st.job}）` : '');
+  const name = (await dialog({ title: '存成新角色', msg: '會新增一個角色存這組配裝，原本的角色不會變。', input: def, okText: '存檔' }) || '').trim(); if (!name) return;
+  const x = readChars(), id = 'c' + Date.now().toString(36);
+  x.chars[id] = { name: name.slice(0, 20), gear: JSON.parse(JSON.stringify(st)) }; x.cur = id;
+  localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, 'char'); useNow();
+  track('gear_share_save', { chars: Object.keys(x.chars).length });
 }
 function closeShared() { useNow(); }
 function syncShared() {
