@@ -348,6 +348,7 @@
       <div class="field"><label>Base 等級（只列出等級夠的裝備）</label><input type="number" id="baseLv" min="1" max="200" value="120" inputmode="numeric"></div>
       <div class="field"><label>Job 等級</label><input type="number" id="jobLv" min="1" max="70" value="70" inputmode="numeric"></div>
     </div>
+    <label class="sw"><input type="checkbox" id="useEq" switch role="switch"> 啟用裝備</label>
     <label class="sw"><input type="checkbox" id="useEnch" switch role="switch"> 啟用附魔</label>
     <label class="sw"><input type="checkbox" id="useCard" switch role="switch"> 啟用卡片</label>
     <label class="sw"><input type="checkbox" id="useRune" switch role="switch"> 啟用符文</label>
@@ -492,6 +493,7 @@ const STAT_INFO = Object.fromEntries(GEAR_STAT.map(([k, label, unit, sign]) => [
 const KEY = 'roz-gear-v1';
 const DEF_SLOTS = ['shield', 'headTop', 'headMid', 'headLow', 'armor', 'garment', 'shoes', 'accR', 'accL'];   // 有精煉防禦的部位
 const PS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK'];
+const PS_MAX = 99;   // 純素質上限（樂園二轉）
 const JOBS = ['騎士', '十字軍', '巫師', '賢者', '獵人', '吟遊詩人', '舞孃', '祭司', '武道家', '鐵匠', '鍊金術師', '刺客', '流氓', '忍者', '神槍手'];
 const JOB_LINE = { 武僧: ['武道家'], 煉金術師: ['鍊金術師'], 煉金術士: ['鍊金術師'], 劍士: ['騎士', '十字軍'], 魔法師: ['巫師', '賢者'], 弓箭手: ['獵人', '吟遊詩人', '舞孃'], 服事: ['祭司', '武道家'], 商人: ['鐵匠', '鍊金術師'], 盜賊: ['刺客', '流氓'], 初學者: [] };
 // 裝備的職業欄（例：「劍士／商人系列」）→ 可裝備的二轉職業；沒寫＝全職業
@@ -505,7 +507,7 @@ const jobOk = it => !st.job || jobsOf(it).includes(st.job);
 const LEFT_TYPES = ['短劍', '單手劍', '單手斧'];
 const leftOk = it => st.job === '刺客' && it.s === 'weapon' && LEFT_TYPES.includes(it.type);
 
-const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, rune: false, rs: 0, rl: 0, buff: false, bf: {}, cs: {}, sk: false, skl: {}, note: '' });
+const DEFAULT = () => ({ skt: {}, lv: 120, jl: 70, job: '', all: 0, ps: {}, slots: {}, ench: false, card: false, rune: false, rs: 0, rl: 0, buff: false, bf: {}, cs: {}, sk: false, skl: {}, note: '', eq: true });
 let st, shared = false;   // shared：正在檢視分享連結，不儲存
 const maxRef = it => (it && it.maxRef) || 20;   // 精煉上限（典藏板是 +10）
 // 服飾附魔石：st.cs[部位] = 石頭名稱
@@ -596,8 +598,8 @@ function setBuff(id, lv) {
   save(); render(); if (lv > 0) track('gear_buff_pick', { buff: id });
 }
 function fixState() {
-  st.skt = st.skt && typeof st.skt === 'object' ? st.skt : {};
-  st.ps = st.ps || {}; st.cs = st.cs && typeof st.cs === 'object' ? st.cs : {}; st.skl = st.skl && typeof st.skl === 'object' ? st.skl : {};
+  st.skt = st.skt && typeof st.skt === 'object' ? st.skt : {}; st.eq = st.eq !== false;
+  st.ps = st.ps && typeof st.ps === 'object' ? st.ps : {}; for (const k of Object.keys(st.ps)) st.ps[k] = Math.max(0, Math.min(PS_MAX, +st.ps[k] || 0)); st.cs = st.cs && typeof st.cs === 'object' ? st.cs : {}; st.skl = st.skl && typeof st.skl === 'object' ? st.skl : {};
   for (const [k] of COSTUME_POS) if (!stoneOf(k)) st.cs[k] = '';
   if (!runeSet(st.rs)) st.rs = 0; st.rl = Math.max(0, Math.min(15, +st.rl || 0));
   st.bf = cleanBuff(st.bf);
@@ -655,6 +657,7 @@ function packState() {
   if (st.buff) o.b = st.bf;
   if (COSTUME_POS.some(([k]) => st.cs[k])) o.c = COSTUME_POS.map(([k, , pos]) => st.cs[k] ? COSTUME_STONE[pos].findIndex(x => x.n === st.cs[k]) + 1 : 0);
   if (st.sk) o.k = 1;
+  if (!st.eq) o.q = 0;
   if (st.note) o.d = st.note;
   if (st.job) { const t = treeIds(st.job).map(sid => SkillTree.lvOf(st.skt, sid).toString(36)).join('').replace(/0+$/, ''); if (t) o.t = t; }
   const kl = Object.fromEntries(Object.entries(st.skl).filter(([, v]) => v)); if (Object.keys(kl).length) o.kl = kl;
@@ -685,6 +688,7 @@ function unpackState(code) {
   if (Array.isArray(o.c)) COSTUME_POS.forEach(([k, , pos], i) => { const x = o.c[i]; s.cs[k] = typeof x === 'number' ? (COSTUME_STONE[pos][x - 1] || {}).n || '' : typeof x === 'string' ? x : ''; });
   if (o.b && typeof o.b === 'object') { s.buff = true; s.bf = cleanBuff(o.b); }
   s.sk = !!o.k;
+  s.eq = o.q !== 0;
   s.note = typeof o.d === 'string' ? o.d.slice(0, 300) : '';
   if (typeof o.t === 'string' && s.job) treeIds(s.job).forEach((sid, i) => { const lv = parseInt(o.t[i] || '0', 36) || 0; if (lv) s.skt[sid] = Math.min(SKILLS[sid].m, lv); });
   else if (o.t && typeof o.t === 'object') for (const [sid, v] of Object.entries(o.t)) if (SKILLS[sid]) s.skt[sid] = n(v, 0, 0, SKILLS[sid].m);
@@ -806,7 +810,7 @@ async function deleteChar() {
   localStorage.setItem(CHAR_KEY, JSON.stringify(x)); localStorage.setItem(WHO_KEY, x.cur ? 'char' : 'free'); useNow();
 }
 function syncInputs() {
-  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useRune').checked = !!st.rune; $('useBuff').checked = !!st.buff; $('useSkill').checked = !!st.sk; skKey = null; $('buildNote').value = st.note || '';
+  $('job').value = st.job; buildQuickSet(); $('baseLv').value = st.lv; $('jobLv').value = st.jl; $('useEq').checked = st.eq !== false; $('useEnch').checked = !!st.ench; $('useCard').checked = !!st.card; $('useRune').checked = !!st.rune; $('useBuff').checked = !!st.buff; $('useSkill').checked = !!st.sk; skKey = null; $('buildNote').value = st.note || '';
   document.querySelectorAll('[data-ps]').forEach(el => el.value = st.ps[el.dataset.ps] || '');
   syncShared();
 }
@@ -828,7 +832,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），滑過素質欄看下一點要花幾點'],
+  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），滑過素質欄看下一點要花幾點；素質上限 99；設定加「啟用裝備」開關'],
   ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
@@ -934,14 +938,17 @@ const overRange = (wl, r) => { const o = WEAPON_OVER[wl]; if (!o) return null; c
 const refAtk = (wl, r) => { const [a, b] = WEAPON_REFINE[wl] || [0, 0]; return a * r + b * Math.max(0, r - 15); };
 
 const occupiedBy = k => { for (const [o] of GEAR_SLOTS) { const it = BY_NAME[st.slots[o].n]; if (it && (it.occ || []).includes(k)) return it; } return null; };
+// 有算進能力的裝備（「啟用裝備」關掉時一件都不算）
+const wornList = () => st.eq === false ? [] : equipped();
+const wornItem = k => st.eq === false ? null : BY_NAME[st.slots[k].n];
 function equipped() { return GEAR_SLOTS.map(([k]) => ({ slot: k, it: BY_NAME[st.slots[k].n], r: st.slots[k].r })).filter(x => x.it && !occupiedBy(x.slot)); }
 const refOf = n => { const e = equipped().find(x => x.it.n === n); return e && e.it.ref ? e.r : 0; };
 
 function compute() {
   const cardNames = [];
-  const all = {}, notes = [], names = equipped().map(x => x.it.n), combos = [], per = {}, over = [0, 0];
-  const wornCards = equipped().flatMap(({ slot, it }) => cardsOn(slot, it).map(([, id]) => CARDS[id].n));   // 身上所有部位插著的卡片
-  for (const { slot, it, r } of equipped()) {
+  const all = {}, notes = [], names = wornList().map(x => x.it.n), combos = [], per = {}, over = [0, 0];
+  const wornCards = wornList().flatMap(({ slot, it }) => cardsOn(slot, it).map(([, id]) => CARDS[id].n));   // 身上所有部位插著的卡片
+  for (const { slot, it, r } of wornList()) {
     curRef = r;
     const nt = [], tot = per[slot] = {};
     add(tot, it.b, nt);
@@ -970,7 +977,7 @@ function compute() {
     add(all, tot);
   }
   // 服飾附魔石與搭配
-  const cs = costumeOn();
+  const cs = st.eq === false ? { stones: [], combos: [] } : costumeOn();
   for (const x of cs.stones) { const nt = []; add(all, x.e, nt); nt.forEach(t => notes.push(`${x.n}(${x.pos})：${t}`)); }
   for (const c of cs.combos) if (c.ok) add(all, c.e, null);
   const ru = runeOn(); if (ru) add(all, ru.e, null);
@@ -1243,7 +1250,7 @@ function statusOf(tot) {
   // 心神凝聚（_ac）：純素質＋Job 的 AGI、DEX 加 %（和攻速計算頁一樣四捨五入）
   const acM = 1 + (tot._ac || 0) / 100, base = s => (st.ps[s] || 0) + jobStat(s);
   const S = Object.fromEntries(PS.map(s => [s, (tot._ac && (s === 'AGI' || s === 'DEX') ? Math.round(base(s) * acM) : base(s)) + (tot[s] || 0)]));
-  const lv = st.lv, c = splitC(tot._c), w = BY_NAME[st.slots.weapon.n], left = BY_NAME[st.slots.shield.n];
+  const lv = st.lv, c = splitC(tot._c), w = wornItem('weapon'), left = wornItem('shield');
   const wt = w && w.type, ranged = DEX_ATK_TYPES.includes(wt);
   const out = {
     S,
@@ -1330,7 +1337,7 @@ function dmgBonus(tot, boltName, boltEl) {
   return g;
 }
 function dmgCalc(res) {
-  const tot = res.tot, o = statusOf(tot), w = BY_NAME[st.slots.weapon.n];
+  const tot = res.tot, o = statusOf(tot), w = wornItem('weapon');
   const lv = Math.min(10, dmg.lv || skLv('魔力拳') || 10), [boltName, boltEl] = DMG_BOLTS[dmg.bolt] || DMG_BOLTS[0];
   // 武器 MATK 浮動：(武器 MATK＋精煉) × 武器等級 × 10%；過度精煉另外隨機加
   const wm = w ? ((w.b && w.b.MATK) || 0) + (tot.refATK || 0) : 0, vr = w ? Math.floor(wm * (w.wl || 0) / 10) : 0;
@@ -1386,7 +1393,7 @@ function renderStatus(res) {
   for (const s of PS) { const b = o.S[s] - (st.ps[s] || 0); $('sb-' + s).textContent = b ? sgn(b) : ''; }
   // 剩餘點數（和遊戲 Alt+A 一樣）；滑過素質欄看下一點要花幾點
   const total = statPtsAt(st.lv), used = PS.reduce((a, s) => a + statUsed(Math.max(1, st.ps[s] || 1)), 0), left = total - used;
-  for (const s of PS) { const el = document.querySelector(`[data-ps="${s}"]`); if (el) el.title = `${s} 再加 1 點要花 ${statCost(Math.max(1, st.ps[s] || 1))} 點`; }
+  for (const s of PS) { const el = document.querySelector(`[data-ps="${s}"]`); if (el) el.title = (st.ps[s] || 0) >= PS_MAX ? `${s} 已達上限 ${PS_MAX}` : `${s} 再加 1 點要花 ${statCost(Math.max(1, st.ps[s] || 1))} 點`; }
   $('psLeft').innerHTML = `<span class="${left < 0 ? 'over' : ''}">${left < 0 ? `超過 ${-left}` : left}</span><small>／${total}</small>`;
   $('psLeft').title = `Base Lv ${st.lv} 共 ${total} 點，已用 ${used} 點`;
   const row = (k, v) => `<b>${k}</b><span>${v}</span>`, pair = ([a, b]) => `${a} <small>${sgn(b)}</small>`;
@@ -1899,12 +1906,14 @@ $('allRef').addEventListener('input', e => {
 $('job').innerHTML = `<option value="">全部職業</option>` + JOBS.map(j => `<option${j === st.job ? ' selected' : ''}>${j}</option>`).join('');
 $('job').addEventListener('change', e => { st.job = e.target.value; save(); buildQuickSet(); render(); track('gear_job', { job: st.job }); });
 $('baseLv').value = st.lv;
-if (!('switch' in HTMLInputElement.prototype)) { $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useRune').classList.add('sw-fb'); $('useBuff').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
+if (!('switch' in HTMLInputElement.prototype)) { $('useEq').classList.add('sw-fb'); $('useEnch').classList.add('sw-fb'); $('useCard').classList.add('sw-fb'); $('useRune').classList.add('sw-fb'); $('useBuff').classList.add('sw-fb'); $('useSkill').classList.add('sw-fb'); }
 $('useSkill').checked = !!st.sk;
 $('buildNote').value = st.note || '';
 $('buildNote').addEventListener('input', e => { st.note = e.target.value.slice(0, 300); save(); });
 $('useSkill').addEventListener('change', e => { st.sk = e.target.checked; save(); render(); track('gear_skill', { on: st.sk }); });
 $('skGrid').addEventListener('input', e => { const k = e.target.dataset.sk; if (!k) return; st.skl[k] = Math.max(0, Math.min(99, parseInt(e.target.value) || 0)); save(); refreshSlots(); });
+$('useEq').checked = st.eq !== false;
+$('useEq').addEventListener('change', e => { st.eq = e.target.checked; save(); render(); track('gear_eq', { on: st.eq }); });
 $('useEnch').checked = !!st.ench;
 $('useEnch').addEventListener('change', e => { st.ench = e.target.checked; save(); render(); track('gear_ench', { on: st.ench }); });
 $('useCard').checked = !!st.card;
@@ -1924,8 +1933,8 @@ $('runeLv').addEventListener('change', e => { st.rl = Math.max(0, Math.min(15, p
 $('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
-$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('') + `<b class="ps-left-k">剩餘點數</b><span class="ps-left" id="psLeft"></span>`;
-$('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });
+$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="99" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('') + `<b class="ps-left-k">剩餘點數</b><span class="ps-left" id="psLeft"></span>`;
+$('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; const v = parseInt(e.target.value) || 0; st.ps[s] = Math.max(0, Math.min(PS_MAX, v)); if (v > PS_MAX) e.target.value = PS_MAX; save(); refreshSlots(); });
 // ===== 人物狀態：固定／漂浮（漂浮時拖曳標題列移動，位置記在這台裝置；勾 Buff、加技能點時不用捲回去看）=====
 const STAT_FLOAT_KEY = 'gear-stat-float';
 let statPos = (() => { try { const p = JSON.parse(localStorage.getItem(STAT_FLOAT_KEY)); return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null; } catch (e) { return null; } })();
