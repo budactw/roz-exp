@@ -67,7 +67,6 @@
   </div>
 
   <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
-  <div class="page-note">ℹ️ 整理自巴哈姆特〈<a href="https://forum.gamer.com.tw/C.php?bsn=4212&snA=424078" target="_blank" rel="noopener" style="color:var(--primary)">TWRO 攻擊力和防禦力的計算方式系統整合介紹</a>〉。原文為 RO 本傳（台服 2020）的實測公式，RO樂園可能有差異，僅供參考。</div>
 
   <div class="card">
     <h2>📑 目錄</h2>
@@ -349,7 +348,7 @@ applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: 
 renderElem();
 // 更新紀錄（新的放最上面）
 const FORMULA_LOG = [
-  ['2026/11/03', '傷害公式整理上線：物理／魔法、防禦、減傷作用範圍（附 RO樂園可用的減傷卡片）、屬性倍率表、體型修正、精煉加值（RO樂園官方資料）、捨入規則'],
+  ['2026/11/03', '傷害公式整理上線：物理／魔法、防禦、減傷作用範圍（附 RO樂園可用的減傷卡片）、屬性倍率表、體型修正、精煉加值（RO樂園官方資料）、捨入規則。整理自巴哈姆特〈<a href="https://forum.gamer.com.tw/C.php?bsn=4212&snA=424078" target="_blank" rel="noopener">TWRO 攻擊力和防禦力的計算方式系統整合介紹</a>〉，原文為 RO 本傳（台服 2020）的實測公式，RO樂園可能有差異，僅供參考'],
 ];
 document.getElementById('logLatest').innerText = FORMULA_LOG[0][0] + '　' + FORMULA_LOG[0][1].replace(/<[^>]+>/g, '');
 document.getElementById('logList').innerHTML = FORMULA_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');

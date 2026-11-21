@@ -53,6 +53,8 @@
     </div>
   </div>
 
+  <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
+
   <div class="card">
     <h2>📖 目錄</h2>
     <ul class="toc">
@@ -278,6 +280,13 @@
 <script>
 // 夜間模式：沿用其他頁面存的設定
 if ((localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+// 更新紀錄（新的放最上面）
+const GUIDE_LOG = [
+  ['2026/11/21', '補上剩餘點數、素質上限 99、「啟用裝備」開關'],
+  ['2026/11/19', '使用說明上線：角色、設定、人物狀態、Buff、技能樹、裝備視窗、倉庫、搜尋、能力加總、分享；配置說明、左右飾品選擇'],
+];
+document.getElementById('logLatest').innerText = GUIDE_LOG[0][0] + '　' + GUIDE_LOG[0][1].replace(/<[^>]+>/g, '');
+document.getElementById('logList').innerHTML = GUIDE_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');
 </script>
 </body>
 </html>

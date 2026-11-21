@@ -50,6 +50,8 @@
     </div>
   </div>
 
+  <div class="page-note"><details class="log"><summary>📝 更新紀錄　<span id="logLatest"></span></summary><ul id="logList"></ul></details></div>
+
   <div class="share-bar hidden" id="shareBar">
     <span class="t">👀 正在檢視分享的技能樹，修改不會儲存</span>
     <span class="row"><button class="btn-sm" onclick="saveShared()">存成我的技能樹</button><button class="btn-ghost" onclick="useNow()">關閉</button></span>
@@ -225,6 +227,12 @@ if ((localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)'
 window.addEventListener('hashchange', () => { if (readHash()) { sync(); render(); } });
 
 load(); readHash(); sync(); render();
+// 更新紀錄（新的放最上面）
+const SKILL_LOG = [
+  ['2026/11/19', '技能樹上線：一轉／二轉分頁、前置技能自動補上（依職業各自的條件）、技能說明、點數上限、分享連結；和配裝模擬器同一份資料，角色名單和每日任務等頁分開'],
+];
+document.getElementById('logLatest').innerText = SKILL_LOG[0][0] + '　' + SKILL_LOG[0][1].replace(/<[^>]+>/g, '');
+document.getElementById('logList').innerHTML = SKILL_LOG.map(([d, t]) => `<li><b>${d}</b>${t}</li>`).join('');
 </script>
 <script src="report.js?v=5"></script>
 </body>
