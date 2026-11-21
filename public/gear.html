@@ -1349,7 +1349,8 @@ const DMG_ELEM_TBL = {
 // 常用目標（前 MDEF 遊戲內看不到，是用實測傷害推估的）
 const DMG_PRESETS = [
   // 各屬性的魁儡：種族、體型、MDEF 先照地屬性那隻（前 MDEF 實測：火打 20 下都沒到 8 萬 → 約 75 以上，平均回推約 100）
-  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(te => ({ n: `魁儡（${DMG_ELEMS[te]}屬性）`, te, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 100 })),
+  // 風屬性：火箭術 Lv10 打很久都沒有 5 萬、最高 49,420 → 前 MDEF 約 155～168
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(te => ({ n: `魁儡（${DMG_ELEMS[te]}屬性）`, te, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: te === 3 ? 160 : 100 })),
   // 無屬性 MDEF 200：中型實測 8 下 → 前 MDEF 約 39～72；小型、大型先照中型
   ...[0, 1, 2].map(size => ({ n: `魁儡 ${DMG_SIZES[size]}型（MDEF 200）`, te: 0, tl: 1, race: 0, size, boss: 0, mdef: 200, smdef: 55 })),
 ];
