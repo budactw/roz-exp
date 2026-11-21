@@ -300,13 +300,6 @@
     .dmg-l { position: sticky; top: 52px; grid-row: span 2; }
     #dmgFlow { grid-column: 2; }
   }
-  /* 再寬：計算過程變第三欄 */
-  @container (min-width: 1100px) {
-    .dmg-body { grid-template-columns: minmax(300px, 4fr) 5fr 5fr; }
-    .dmg-l { grid-row: auto; }
-    #dmgFlow { grid-column: 3; }
-    #dmgFlow .dmg-h3 { margin-top: 0; }
-  }
   #dmgMax { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; margin-right: 6px; }
   html[data-ui="ro"] #dmgMax { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   #dmgCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -1372,7 +1365,8 @@ const DMG_AS = [['火箭術', 1, i => 100 + Math.floor(i / 2), 1], ['冰箭術',
 // 詠唱／延遲照 ROCalculator（RO Zero）：變動 0.6 秒、固定 0.4 秒、冷卻 0.5 秒、技能後延遲 0.3 秒（Lv5 的值，其他等級沒資料先共用）
 const DMG_HD = { el: 4, vct: 0.6, fct: 0.4, cd: 0.5, gcd: 0.3 };
 // 雙倍投擲（PF_DOUBLECASTING）：施放箭術時 (30＋Lv×10)% 機率再放一次（技能說明）；dc：0＝照技能樹、9＝不開
-const DMG_DEF = { sk: 'sf', mix: ['sf', 'as'], hl: 0, asl: 0, asp: 0, dc: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
+// 二刀連擊：普攻 (Lv×5)% 機率打兩下，魔力拳也會跟著打兩下；da：0＝自動（技能樹＋身上「可使用／觸發二刀連擊 LvN」取最高）、9＝不算
+const DMG_DEF = { sk: 'sf', mix: ['sf', 'as'], hl: 0, asl: 0, asp: 0, dc: 0, da: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
 // 合計 DPS：勾選要一起算的技能
 function setDmgMix(id, on) { dmg.mix = (dmg.mix || []).filter(x => x !== id).concat(on ? [id] : []); try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
@@ -1405,6 +1399,14 @@ function dmgBonus(tot, names, boltEl) {
     if (s.replace(/型$/, '') === race) put('race', l, v);
   }
   return g;
+}
+function dmgDaAuto(res) {
+  let lv = skLv('二刀連擊');
+  for (const n of res.notes || []) {
+    if (/（[^）]*(後自動計算|後加總|才加總|點數不足)）/.test(n)) continue;   // 條件沒達成的不算
+    const m = n.match(/(?:可使用|觸發)\s*\[?二刀連擊\]?\s*Lv\.?\s*(\d+)/); if (m) lv = Math.max(lv, +m[1]);
+  }
+  return Math.min(10, lv);
 }
 function dmgCalc(res, sk = dmg.sk) {
   const tot = res.tot, o = statusOf(tot), w = wornItem('weapon'), sf = sk === 'sf', as = sk === 'as', proc = sf || as;
@@ -1458,9 +1460,10 @@ function dmgCalc(res, sk = dmg.sk) {
   }
   cyc.hps = cyc.t > 0 ? Math.min(7.14, Math.floor(1 / cyc.t * 100) / 100) : 0;
   const bolt = as && asSp[2](2) - asSp[2](0) === 1, dcLv = dmg.dc === 9 ? 0 : Math.min(5, dmg.dc || skLv('雙倍投擲')), dcP = bolt && dcLv ? 30 + dcLv * 10 : 0;
-  const dps = cyc.hps * (proc ? rate / 100 : 1) * avg * (1 + dcP / 100);
+  const daAuto = dmgDaAuto(res), daLv = !sf || dmg.da === 9 ? 0 : Math.min(10, dmg.da || daAuto), daP = daLv * 5;
+  const dps = cyc.hps * (proc ? rate / 100 : 1) * avg * (1 + dcP / 100) * (1 + daP / 100);
   const dpsLo = avg ? dps * lo / avg : 0, dpsHi = avg ? dps * hi / avg : 0;   // 每下都打最低／最高時
-  return { o, dpsLo, dpsHi, sf, as, proc, bolt, dcLv, dcP, asl, asSp, rTxt, lv, bl, times, ratio, boltName, el, wm, vr, ov, g, sum, em, mdefMul, lo, hi, L, H, avg, dps, cyc, rate };
+  return { o, dpsLo, dpsHi, sf, as, proc, bolt, dcLv, dcP, daAuto, daLv, daP, asl, asSp, rTxt, lv, bl, times, ratio, boltName, el, wm, vr, ov, g, sum, em, mdefMul, lo, hi, L, H, avg, dps, cyc, rate };
 }
 // 漂浮視窗：開關、位置存在 localStorage；拖標題列移動
 let dmgOpen = localStorage.getItem('gear-dmg-open') === '1';
@@ -1476,7 +1479,7 @@ function toggleDmgMax() {
   const c = $('dmgCard');
   if (dmgSize) { dmgSize = null; localStorage.removeItem('gear-dmg-size'); c.style.width = c.style.height = ''; }
   else {
-    dmgSize = { w: Math.min(1240, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
+    dmgSize = { w: Math.min(860, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
     dmgPos = { x: Math.min(dmgPos ? dmgPos.x : innerWidth, innerWidth - dmgSize.w - 8), y: 8 }; localStorage.setItem('gear-dmg-float', JSON.stringify(dmgPos));
   }
   placeDmg(); track('gear_dmg_max', { on: !!dmgSize });
@@ -1517,7 +1520,8 @@ function renderDmg(res) {
       (r.bolt ? `<div class="ench-row"><label for="dmg-dc">${dmgTip('雙倍投擲', 'dc')}</label><select id="dmg-dc" onchange="setDmg('dc', this.value)"><option value="9">無</option>${[1, 2, 3, 4, 5].map(l => `<option value="${l}"${l === r.dcLv ? ' selected' : ''}>Lv ${l}（${30 + l * 10}%）</option>`).join('')}</select></div>` : '')
     : r.sf ? sel('lv', '魔力拳', lvs(10), r.lv).replace('<option value="0">', '<option value="0" hidden>') +
     sel('bolt', '箭術', DMG_BOLTS.map(([n]) => n), dmg.bolt) +
-    sel('bl', '箭術等級', lvs(10), r.bl).replace('<option value="0">', '<option value="0" hidden>')
+    sel('bl', '箭術等級', lvs(10), r.bl).replace('<option value="0">', '<option value="0" hidden>') +
+    `<div class="ench-row"><label for="dmg-da">${dmgTip('二刀連擊', 'da')}</label><select id="dmg-da" onchange="setDmg('da', this.value)"><option value="9">無</option>${[...Array(10)].map((_, i) => `<option value="${i + 1}"${i + 1 === r.daLv ? ' selected' : ''}>Lv ${i + 1}（${(i + 1) * 5}%）${i + 1 === r.daAuto ? ' ✓' : ''}</option>`).join('')}</select></div>`
     : sel('hl', '崩裂術', lvs(5), r.lv).replace('<option value="0">', '<option value="0" hidden>')) +
     sel('te', '目標屬性', DMG_ELEMS, dmg.te) + sel('tl', '屬性等級', ['', 'Lv 1', 'Lv 2', 'Lv 3', 'Lv 4'], dmg.tl).replace('<option value="0">', '<option value="0" hidden>') +
     sel('race', '種族', DMG_RACES, dmg.race) + sel('size', '體型', DMG_SIZES.map(x => x + '型'), dmg.size) +
@@ -1530,7 +1534,7 @@ function renderDmg(res) {
     const rg = (a, b) => `${f(Math.round(a))}${Math.round(a) !== Math.round(b) ? ` ～ ${f(Math.round(b))}` : ''}`;
     $('dmgFlow').innerHTML = '';
     $('dmgOut').innerHTML = `<div class="dmg-res"><span>${dmgTip('合計 DPS', 'mix')}</span><b>${rg(tLo, tHi)}</b><small>平均 ${f(Math.round(total))}</small></div>` +
-      (rs.length ? `<ul class="tot-list">` + rs.map(([id, n, x]) => `<li><span><button type="button" class="dmg-go" onclick="setDmg('sk', '${id}')" title="到「${n}」改設定">${n}</button></span><b>${rg(x.dpsLo, x.dpsHi)}${total && rs.length > 1 ? `<i class="dmg-pct">（${Math.round(x.dps / total * 100)}%）</i>` : ''}<small>平均 ${f(Math.round(x.dps))}・每次 ${f(x.lo)}${x.hi !== x.lo ? `～${f(x.hi)}` : ''}${x.proc ? `・發動 ${x.rate}%` : ''}・每秒 ${x.cyc.hps.toFixed(2)} 次${x.dcP ? `・雙倍投擲 ${x.dcP}%` : ''}</small></b></li>`).join('') + `</ul>` : `<p class="hint">勾選要一起算的技能</p>`);
+      (rs.length ? `<ul class="tot-list">` + rs.map(([id, n, x]) => `<li><span><button type="button" class="dmg-go" onclick="setDmg('sk', '${id}')" title="到「${n}」改設定">${n}</button></span><b>${rg(x.dpsLo, x.dpsHi)}${total && rs.length > 1 ? `<i class="dmg-pct">（${Math.round(x.dps / total * 100)}%）</i>` : ''}<small>平均 ${f(Math.round(x.dps))}・每次 ${f(x.lo)}${x.hi !== x.lo ? `～${f(x.hi)}` : ''}${x.proc ? `・發動 ${x.rate}%` : ''}・每秒 ${x.cyc.hps.toFixed(2)} 次${x.dcP ? `・雙倍投擲 ${x.dcP}%` : ''}${x.daP ? `・二刀連擊 ${x.daP}%` : ''}</small></b></li>`).join('') + `</ul>` : `<p class="hint">勾選要一起算的技能</p>`);
     return;
   }
   const sec = n => `${n.toFixed(2)} 秒`, c = r.cyc, E = DMG_ELEMS;
@@ -1538,8 +1542,8 @@ function renderDmg(res) {
   const dpsRg = `${f(Math.round(r.dpsLo))}${Math.round(r.dpsLo) !== Math.round(r.dpsHi) ? ` ～ ${f(Math.round(r.dpsHi))}` : ''}`;
   const hpsRow = `<li><span>${dmgTip('每秒次數', r.proc ? 'sfHps' : 'hdHps')}</span><b>${c.hps.toFixed(2)} 次<small>1 ÷ ${r.proc ? `${c.ad0.toFixed(2)}（(200 − ASPD ${r.o.aspd}) ÷ 50）` : c.cast + c.delay >= c.ad0 ? `(${c.cast.toFixed(2)} + ${c.delay.toFixed(2)})` : `${c.ad0.toFixed(2)}（攻速比詠唱＋延遲慢）`}</small></b></li>`;
   const dpsRows = r.proc
-    ? (r.o.aspd ? hpsRow : '') + (r.dcP ? `<li><span>雙倍投擲</span><b>${r.dcP}%<small>Lv ${r.dcLv}：箭術有 ${r.dcP}% 機率再放一次</small></b></li>` : '') +
-      `<li><span>${dmgTip('DPS', r.as ? 'asDps' : 'sfDps')}</span><b>${dpsRg}<small>平均 ${f(Math.round(r.dps))}＝${c.hps.toFixed(2)} × ${r.rate}% × 平均 ${f(Math.round(r.avg))}${r.dcP ? ` × (1 + ${r.dcP}%)` : ''}</small></b></li>`
+    ? (r.o.aspd ? hpsRow : '') + (r.daP ? `<li><span>二刀連擊</span><b>${r.daP}%<small>Lv ${r.daLv}：普攻有 ${r.daP}% 機率打兩下，魔力拳也打兩次</small></b></li>` : '') + (r.dcP ? `<li><span>雙倍投擲</span><b>${r.dcP}%<small>Lv ${r.dcLv}：箭術有 ${r.dcP}% 機率再放一次</small></b></li>` : '') +
+      `<li><span>${dmgTip('DPS', r.as ? 'asDps' : 'sfDps')}</span><b>${dpsRg}<small>平均 ${f(Math.round(r.dps))}＝${c.hps.toFixed(2)} × ${r.rate}% × 平均 ${f(Math.round(r.avg))}${r.dcP ? ` × (1 + ${r.dcP}%)` : ''}${r.daP ? ` × (1 + ${r.daP}%)` : ''}</small></b></li>`
     : `<li><span>${dmgTip('詠唱', 'hdCast')}</span><b>${sec(c.cast)}<small>${DMG_HD.vct} × (1 − √(${c.di} ÷ 530))${pctm(c.ep)}${pctm(c.bp)}${pctm(c.sp)} + ${DMG_HD.fct}${pctm(c.fp)}</small></b></li>` +
       `<li><span>${dmgTip('延遲', 'hdCast')}</span><b>${sec(c.delay)}<small>max(技能後延遲 ${DMG_HD.gcd}${pctm(c.dp)}, 冷卻 ${DMG_HD.cd})</small></b></li>` +
       hpsRow + `<li><span>${dmgTip('DPS', 'hdDps')}</span><b>${dpsRg}<small>平均 ${f(Math.round(r.dps))}＝${c.hps.toFixed(2)} × 平均 ${f(Math.round(r.avg))}</small></b></li>`;
@@ -1574,6 +1578,7 @@ const DMG_TIP = {
   asRatio: '普攻時有（自動念咒 Lv × 2）% 機率自動施放選的魔法，等級是自動念咒 Lv 的一半（無條件捨去），只能選學過的。箭術每下 MATK (100＋INT÷2)%、地震術／崩裂術每下 (200＋INT)%，INT 算總值',
   mix: '範圍＝每下都打最低／最高時，平均＝長時間打下來的期望值。勾選的技能各自照自己分頁的設定（等級、念咒技能、雙倍投擲⋯）算 DPS 再相加，目標共用。魔力拳、自動念咒都是普攻時發動，直接相加；崩裂術要站著詠唱，和普攻發動的技能其實不能同時，一起勾會偏高。點技能名稱可以到它的分頁改設定',
   asDps: '範圍＝每下都打最低／最高時；平均＝每秒普攻次數 × 發動機率 × 平均傷害（開雙倍投擲再 × (1＋機率)）；不含普攻本身',
+  da: '普攻有 (Lv×5)% 機率打兩下，魔力拳發動時也跟著打兩次，DPS 乘上 (1＋機率)。預設照技能樹和身上「可使用／觸發二刀連擊」的裝備、卡片、服飾取最高，✓ 是偵測到的等級',
   dc: '雙倍投擲：施放火箭術、冰箭術、雷擊術時有 (30＋Lv×10)% 機率再放一次（自動念咒放的也算）。每次發動的傷害不變，DPS 乘上 (1＋機率)',
   hdHps: '1 ÷ (詠唱＋延遲)；如果攻速比較慢就用 (200 − ASPD) ÷ 50，上限 7.14',
   hdDps: '範圍＝每下都打最低／最高時；平均＝每秒次數 × 平均傷害，對單一目標',
