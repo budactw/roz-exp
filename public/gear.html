@@ -293,7 +293,12 @@
   .dmg-tag { font-size: .72rem; font-weight: 400; color: var(--dim); }
   #dmgCard > h2 .h2-act { margin-left: auto; display: flex; align-items: center; }
   #dmgCard.floating { position: fixed; z-index: 44; width: min(400px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; margin: 0; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
-  #dmgCard.floating { resize: both; min-width: 300px; min-height: 160px; }
+  #dmgCard.floating { resize: both; min-width: 300px; min-height: 160px; container-type: inline-size; }
+  /* 視窗夠寬（展開）時：左邊設定、右邊結果 */
+  @container (min-width: 720px) {
+    .dmg-body { display: grid; grid-template-columns: minmax(300px, 2fr) 3fr; gap: 16px; align-items: start; }
+    .dmg-l { position: sticky; top: 52px; }
+  }
   #dmgMax { font-size: .78rem; padding: 2px 10px; min-height: 0; white-space: nowrap; font-weight: 400; margin-right: 6px; }
   html[data-ui="ro"] #dmgMax { height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
   #dmgCard.floating > h2 { position: sticky; top: 0; z-index: 1; cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -426,9 +431,10 @@
   <!-- 傷害試算：設定區「💥 傷害試算」按鈕開關的漂浮視窗（目前賢者：魔力拳、崩裂術） -->
   <div class="card hidden" id="dmgCard">
     <h2>💥 傷害試算 <small class="dmg-tag" id="dmgTag"></small><span class="h2-act"><button type="button" class="btn-ghost" id="dmgMax" onclick="toggleDmgMax()" aria-pressed="false"></button><button type="button" class="btn-ghost dmg-close ro-close" onclick="toggleDmgWin(false)" title="關閉" aria-label="關閉">關閉</button></span></h2>
+    <div class="dmg-body"><div class="dmg-l">
     <div class="stash-tabs dmg-sk" id="dmgSk" role="tablist" aria-label="技能"></div>
-    <div class="dmg-in" id="dmgIn"></div>
-    <div id="dmgOut"></div>
+    <div class="dmg-in" id="dmgIn"></div></div>
+    <div id="dmgOut"></div></div>
   </div>
 
   <div class="gear-layout"><div class="gear-main">
@@ -1462,7 +1468,7 @@ function toggleDmgMax() {
   const c = $('dmgCard');
   if (dmgSize) { dmgSize = null; localStorage.removeItem('gear-dmg-size'); c.style.width = c.style.height = ''; }
   else {
-    dmgSize = { w: Math.min(640, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
+    dmgSize = { w: Math.min(860, innerWidth - 16), h: innerHeight - 16 }; localStorage.setItem('gear-dmg-size', JSON.stringify(dmgSize));
     dmgPos = { x: Math.min(dmgPos ? dmgPos.x : innerWidth, innerWidth - dmgSize.w - 8), y: 8 }; localStorage.setItem('gear-dmg-float', JSON.stringify(dmgPos));
   }
   placeDmg(); track('gear_dmg_max', { on: !!dmgSize });
