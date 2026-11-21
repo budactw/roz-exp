@@ -837,10 +837,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/22', '倉庫新增「套裝」：把身上整套裝備（含服飾附魔石）取名存起來，按「套用」一次換上'],
-  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），素質旁邊顯示再加 1 點要花幾點（同遊戲 Alt+A）；素質上限 99；設定加「啟用裝備」開關'],
-  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
-  ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
+  ['2026/11/21', '倉庫新增「套裝」：把身上整套裝備（含服飾附魔石）取名存起來，按「套用」一次換上；人物狀態加「剩餘點數」（依 Base Lv 計算），素質旁邊顯示再加 1 點要花幾點（同遊戲 Alt+A）；素質上限 99；設定加「啟用裝備」開關'],
+  ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正；新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
 ];
@@ -1780,7 +1778,8 @@ function outfitNow() { const o = { s: {} }; for (const k of wornSlots()) o.s[k] 
 const outfitSig = o => JSON.stringify([GEAR_SLOTS.map(([k]) => o.s[k] ? stashSig(o.s[k]) : ''), o.cs || {}]);
 async function outfitAdd() {
   if (!wornSlots().length) { await dialog({ title: '身上還沒有裝備', msg: '先穿好裝備，再把整套存起來。', cancel: false }); return; }
-  const list = readOutfits(), def = `${st.job || '套裝'} ${list.length + 1}`;
+  // 檢視別人的分享連結時，預設名稱用分享者的角色名（例如「師爺（賢者）」），收藏別人的配裝比較好認
+  const list = readOutfits(), def = shared && sharedFrom ? `${sharedFrom}${st.job ? `（${st.job}）` : ''}` : `${st.job || '套裝'} ${list.length + 1}`;
   const nm = await dialog({ title: '存成套裝：輸入名稱', msg: '會存下目前身上所有部位（精煉、附魔、附加能力、卡片）和服飾附魔石。', input: def, okText: '儲存' });
   if (nm === null) return;
   const o = outfitNow(); o.nm = (nm || def).slice(0, 30); o.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
