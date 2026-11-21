@@ -274,3 +274,10 @@ html[data-ui="ro"] .st-name { font-size: 11.5px; }
 html[data-ui="ro"] .st-lv { font-size: 12px; }
 html[data-ui="ro"] .st-cell .st-lv button { width: 16px; height: 16px; line-height: 14px; border: 1px solid #a5a8b6; border-radius: 50%; background: linear-gradient(#fff, #e8eaf0); font-size: 11px; }
 html[data-ui="ro"] .st-cell .st-lv button:hover { background: linear-gradient(#cbd5e9, #9db0d4 35%, #a8c0ef 60%, #dae4f7); }
+/* 技能說明下面的詠唱／延遲表（skill-delay.json） */
+.sk-delay { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.sk-delay th, .sk-delay td { padding: 2px 5px; border-bottom: 1px solid #e3e7f0; text-align: end; white-space: nowrap; }
+.sk-delay thead th { color: #5a6380; font-weight: 600; }
+.sk-delay tbody th { text-align: start; font-weight: 400; color: #5a6380; }
+.sk-delay tr.cur { background: #fff3c4; }
+.sk-delay-n { margin-top: 4px; font-size: 11px; color: #7a8299; }

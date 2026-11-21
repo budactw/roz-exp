@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=34">
+<link rel="stylesheet" href="ro.css?v=35">
 <script>{ // 版面：和配裝頁同一個設定（預設遊戲版面）
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -105,7 +105,7 @@
 </div>
 
 <script src="skill-data.js?v=1"></script>
-<script src="skill-tree.js?v=2"></script>
+<script src="skill-tree.js?v=3"></script>
 <script src="short-link.js?v=1"></script>
 <script src="gear-chars.js?v=1"></script>
 <script>
@@ -186,10 +186,10 @@ function descHtml(lines) {
 const infoPop = 'popover' in HTMLElement.prototype;
 function hideInfo() { const el = $('roInfo'); if (infoPop) { if (el.matches(':popover-open')) el.hidePopover(); } else if (el.open) el.close(); }
 async function showSkillInfo(sid, x, y) {
-  if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } }
+  if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } } await SkillTree.loadDelay();
   const el = $('roInfo'), s = SKILLS[sid];
   $('roInfoName').textContent = `${s.n}　Lv ${SkillTree.lvOf(g.skt, sid)} / ${s.m}`;
-  $('roInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SkillTree.descFor(SKDESC[sid], g.job)) : '（沒有說明）'}</div>`;
+  $('roInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SkillTree.descFor(SKDESC[sid], g.job)) : '（沒有說明）'}</div>` + SkillTree.delayHtml(sid, SkillTree.lvOf(g.skt, sid), s.m);
   if (infoPop) { hideInfo(); el.showPopover(); } else if (!el.open) el.show();
   const r = el.getBoundingClientRect();
   el.style.left = Math.max(8, Math.min(x + 12, innerWidth - r.width - 8)) + 'px';
@@ -229,6 +229,7 @@ window.addEventListener('hashchange', () => { if (readHash()) { sync(); render()
 load(); readHash(); sync(); render();
 // 更新紀錄（新的放最上面）
 const SKILL_LOG = [
+  ['2026/11/21', '技能說明下面加上每一級的變動詠唱、固定詠唱、技能後延遲、冷卻（取自遊戲客戶端資料），目前等級會標出來'],
   ['2026/11/19', '技能樹上線：一轉／二轉分頁、前置技能自動補上（依職業各自的條件）、技能說明、點數上限、分享連結；和配裝模擬器同一份資料，角色名單和每日任務等頁分開'],
 ];
 document.getElementById('logLatest').innerText = SKILL_LOG[0][0] + '　' + SKILL_LOG[0][1].replace(/<[^>]+>/g, '');

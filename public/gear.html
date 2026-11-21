@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=34">
+<link rel="stylesheet" href="ro.css?v=35">
 <script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -514,7 +514,7 @@
 <script src="job-bonus.js?v=1"></script>
 <script src="hpsp-data.js?v=2"></script>
 <script src="skill-data.js?v=1"></script>
-<script src="skill-tree.js?v=2"></script>
+<script src="skill-tree.js?v=3"></script>
 <script src="short-link.js?v=1"></script>
 <script src="gear-chars.js?v=1"></script>
 <script src="icon-data.js?v=2"></script>
@@ -1734,10 +1734,10 @@ function toggleTree() { treeOpen = !treeOpen; localStorage.setItem('gear-tree-cl
 let infoSkill = null;
 async function showSkillInfo(sid, x, y) {
   infoSkill = sid;
-  if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } }
+  if (!SKDESC) { try { SKDESC = await (await fetch('skill-desc.json?v=1')).json(); } catch (e) { SKDESC = {}; } } await SkillTree.loadDelay();
   const s = SKILLS[sid], lv = SkillTree.lvOf(st.skt, sid);
   $('skInfoName').textContent = `${s.n}　Lv ${lv} / ${s.m}`;
-  $('skInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SkillTree.descFor(SKDESC[sid], st.job)) : '（沒有說明）'}</div>`;
+  $('skInfoBody').innerHTML = (s.i ? `<img class="sk-ico" src="skillicons/${sid}.png" alt="" width="24" height="24">` : '') + `<div class="ro-desc">${SKDESC[sid] ? descHtml(SkillTree.descFor(SKDESC[sid], st.job)) : '（沒有說明）'}</div>` + SkillTree.delayHtml(sid, SkillTree.lvOf(st.skt, sid), s.m);
   $('skInfo').querySelector('.ro-info-b').scrollTop = 0;
   openInfo('skInfo', x, y);
 }

@@ -94,5 +94,17 @@ const SkillTree = (() => {
   }
   // 分享連結用：只留有點的技能
   const pack = state => Object.fromEntries(Object.entries(state || {}).filter(([sid, v]) => v > 0 && SKILLS[sid] && fixedLv(+sid) == null));
-  return { render, used, caps, lvOf, lvByName, raise, lower, pack, fixedLv, pagesOf, needOf, descFor };
+  // 詠唱／延遲（skill-delay.json，取自客戶端 skilldelaylist.lub）：row＝[變動詠唱, 固定詠唱, 技能後延遲, 冷卻]，每項是數字（每級相同）或每級的陣列（毫秒）
+  let DELAY = null;
+  async function loadDelay() { if (!DELAY) { try { DELAY = await (await fetch('skill-delay.json?v=1')).json(); } catch (e) { DELAY = {}; } } return DELAY; }
+  function delayHtml(sid, lv, max) {
+    const row = DELAY && DELAY[sid]; if (!row) return '';
+    const at = (x, l) => Array.isArray(x) ? x[Math.min(l, x.length) - 1] : x, sec = ms => ms ? `${+(ms / 1000).toFixed(2)} 秒` : '—';
+    const H = ['變動詠唱', '固定詠唱', '技能後延遲', '冷卻'], vary = row.some(Array.isArray);
+    const one = l => row.map(x => `<td>${sec(at(x, l))}</td>`).join('');
+    const body = vary ? [...Array(max)].map((_, i) => `<tr${i + 1 === lv ? ' class="cur"' : ''}><th>Lv ${i + 1}</th>${one(i + 1)}</tr>`).join('') : `<tr class="cur"><th>每級</th>${one(1)}</tr>`;
+    return `<table class="sk-delay"><thead><tr><th></th>${H.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>` +
+      `<div class="sk-delay-n">變動詠唱會依 DEX、INT 和裝備減少；技能後延遲期間不能放任何技能，冷卻只限這個技能</div>`;
+  }
+  return { render, used, caps, lvOf, lvByName, raise, lower, pack, fixedLv, pagesOf, needOf, descFor, loadDelay, delayHtml };
 })();
