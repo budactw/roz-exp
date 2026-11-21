@@ -119,6 +119,10 @@
   .sw-l b, .sw-r b { font-size: .85rem; }
   .sw-l input { width: 100%; min-width: 0; padding: 0 6px; min-height: 30px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); font-size: .9rem; }
   .sw-l .sb { font-size: .82rem; color: var(--green); min-width: 2.6em; }
+  .sw-l .ps-left-k { grid-column: 1 / 3; margin-top: 2px; }
+  .sw-l .ps-left { text-align: right; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 2px; }
+  .sw-l .ps-left small { color: var(--dim); font-weight: 400; font-size: .78rem; }
+  .sw-l .ps-left .over { color: var(--danger); }
   .sw-r span { text-align: right; font-weight: 700; color: var(--primary); }
   .sw-r small { color: var(--dim); font-weight: 400; }
   @media (max-width: 340px) { .stat-win { grid-template-columns: 1fr; gap: 10px; } }
@@ -1370,9 +1374,19 @@ function renderDmg(res) {
     `<li><span>屬性倍率</span><b>${r.em}%<small>${DMG_ELEMS[r.boltEl]} → ${DMG_ELEMS[dmg.te]} Lv ${dmg.tl}</small></b></li>` +
     grp('skill', '技能增傷') + `</ul>`;
 }
+// 素質點數（Renewal）：Lv1 有 48 點；升到 Lv N 時給 ⌊(N−1)÷5⌋＋3（到 Lv99 共 1273）；Lv100 起每級 ⌊N÷10⌋＋13（待和遊戲內確認）
+const statPtsAt = lv => { let t = 48; for (let n = 2; n <= lv; n++) t += n < 100 ? Math.floor((n - 1) / 5) + 3 : Math.floor(n / 10) + 13; return t; };
+// 素質從 x 加到 x＋1 要花的點數：99 以下每 10 點多 1（2～11 花 2）；100 起每 5 點多 4（從 16 起）
+const statCost = x => x < 100 ? Math.floor((x - 1) / 10) + 2 : Math.floor((x - 100) / 5) * 4 + 16;
+const statUsed = v => { let c = 0; for (let x = 1; x < v; x++) c += statCost(x); return c; };
 function renderStatus(res) {
   const o = statusOf(res.tot), sgn = n => n >= 0 ? `+ ${n}` : `− ${-n}`;
   for (const s of PS) { const b = o.S[s] - (st.ps[s] || 0); $('sb-' + s).textContent = b ? sgn(b) : ''; }
+  // 剩餘點數（和遊戲 Alt+A 一樣）；滑過素質欄看下一點要花幾點
+  const total = statPtsAt(st.lv), used = PS.reduce((a, s) => a + statUsed(Math.max(1, st.ps[s] || 1)), 0), left = total - used;
+  for (const s of PS) { const el = document.querySelector(`[data-ps="${s}"]`); if (el) el.title = `${s} 再加 1 點要花 ${statCost(Math.max(1, st.ps[s] || 1))} 點`; }
+  $('psLeft').innerHTML = `<span class="${left < 0 ? 'over' : ''}">${left < 0 ? `超過 ${-left}` : left}</span><small>／${total}</small>`;
+  $('psLeft').title = `Base Lv ${st.lv} 共 ${total} 點，已用 ${used} 點`;
   const row = (k, v) => `<b>${k}</b><span>${v}</span>`, pair = ([a, b]) => `${a} <small>${sgn(b)}</small>`;
   const approx = o.hpsure ? '' : '<small title="這個職業、等級的 HP／SP 還沒和遊戲內對照確認">約 </small>';
   $('swR').innerHTML = (o.hp != null ? row('HP', approx + o.hp) + row('SP', approx + o.sp) : '') + row('ATK', pair(o.atk)) + row('MATK', pair(o.matk)) + row('HIT', o.hit) + row('CRI', o.cri) +
@@ -1908,7 +1922,7 @@ $('runeLv').addEventListener('change', e => { st.rl = Math.max(0, Math.min(15, p
 $('useCard').addEventListener('change', e => { st.card = e.target.checked; save(); render(); track('gear_card', { on: st.card }); });
 $('jobLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.jl = Math.max(1, Math.min(70, v)); save(); render(); });
 $('baseLv').addEventListener('input', e => { const v = parseInt(e.target.value); if (!v) return; st.lv = Math.max(1, Math.min(200, v)); save(); buildQuickSet(); render(); });
-$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('');
+$('psGrid').innerHTML = PS.map(s => `<b>${s}</b><input type="number" min="0" max="300" inputmode="numeric" data-ps="${s}" value="${st.ps[s] || ''}" placeholder="0" aria-label="純 ${s}"><span class="sb" id="sb-${s}"></span>`).join('') + `<b class="ps-left-k">剩餘點數</b><span class="ps-left" id="psLeft"></span>`;
 $('psGrid').addEventListener('input', e => { const s = e.target.dataset.ps; if (!s) return; st.ps[s] = Math.max(0, parseInt(e.target.value) || 0); save(); refreshSlots(); });
 // ===== 人物狀態：固定／漂浮（漂浮時拖曳標題列移動，位置記在這台裝置；勾 Buff、加技能點時不用捲回去看）=====
 const STAT_FLOAT_KEY = 'gear-stat-float';
