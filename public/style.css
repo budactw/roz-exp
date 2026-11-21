@@ -289,7 +289,7 @@ details.log summary { cursor: pointer; font-weight: 700; color: var(--text); }
 details.log summary span { font-weight: 400; color: var(--dim); }
 details.log ul { margin: 6px 0 0; padding-left: 18px; }
 details.log li b { color: var(--text); margin-right: 6px; }
-details.log .log-note { margin-top: 6px; }
+details.log li a { color: var(--primary); }
 
 /* 頁面分頁：不換行；窄螢幕排成 4 欄兩列，全部一次看得到 */
 .tabs a { white-space: nowrap; }
