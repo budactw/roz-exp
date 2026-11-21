@@ -307,6 +307,7 @@
   .dmg-sk { margin: -2px 0 10px; }
   .dmg-sk .dmg-mix-tab { margin-left: auto; }
   .dmg-mix { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .dmg-need { color: var(--red, #c0392b) !important; font-size: .85em; }
   .dmg-pct { font-style: normal; font-weight: 400; color: var(--dim); font-size: .85em; }
   .dmg-in .dmg-mix label { display: inline-flex; align-items: center; gap: 5px; min-inline-size: 0; cursor: pointer; }
   #dmgCard button.dmg-go { min-height: 0; padding: 0; border-radius: 0; box-shadow: none; border: 0; background: none; color: var(--primary); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -1357,7 +1358,40 @@ const dmgPreset = () => DMG_PRESETS.findIndex(p => DMG_TGT.every(k => p[k] === d
 function setDmgPreset(i) { const p = DMG_PRESETS[+i - 1]; if (!p) return; for (const k of DMG_TGT) dmg[k] = p[k]; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} $('dmgIn').innerHTML = ''; renderDmg(compute()); }
 const DMG_KEY = 'roz-gear-dmg-v1';
 // 可以試算的技能（照職業列出；之後加技能就加在這裡）
-const DMG_SKILLS = { 賢者: [['sf', '魔力拳'], ['as', '自動念咒'], ['hd', '崩裂術']] };
+const DMG_SKILLS = { 賢者: [['sf', '魔力拳'], ['as', '自動念咒'], ['hd', '崩裂術'], ['eq', '裝備施放']] };
+// 裝備、卡片、套卡「攻擊時（一定機率）施放／發動 魔法」：從效果文字抓魔法和等級，機率自己填（dmg.eqr[魔法]＝%）
+// 每下倍率(INT, Lv)、下數(Lv)；隕石術：Lv1～10 顆數 2,3,3,4,4,5,5,6,6,7 × 每顆下數 1,1,2,2,3,3,4,4,5,5（Lv10＝7 顆 × 5 下）
+const DMG_EQ = [
+  { n: '雷擊術', el: 3, r: i => 100 + Math.floor(i / 2), f: i => `100 + INT ${i} ÷ 2`, hits: l => l },
+  { n: '火箭術', el: 1, r: i => 100 + Math.floor(i / 2), f: i => `100 + INT ${i} ÷ 2`, hits: l => l },
+  { n: '冰箭術', el: 2, r: i => 100 + Math.floor(i / 2), f: i => `100 + INT ${i} ÷ 2`, hits: l => l },
+  { n: '暴風雪', el: 2, r: (i, l) => 70 + l * 50 + i, f: (i, l) => `70 + ${l} × 50 + INT ${i}`, hits: () => 10 },
+  { n: '隕石術', el: 1, r: i => 125 + i, f: i => `125 + INT ${i}`, hits: l => [2, 3, 3, 4, 4, 5, 5, 6, 6, 7][l - 1] * [1, 1, 2, 2, 3, 3, 4, 4, 5, 5][l - 1] },
+];
+function dmgEqProcs(res) {
+  const out = [];
+  for (const n of res.notes || []) {
+    if (/（[^）]*(後自動計算|後加總|才加總|點數不足)）/.test(n)) continue;
+    const i = n.indexOf('：'), body = i > 0 ? n.slice(i + 1) : n;
+    let src = i > 0 ? n.slice(0, i) : '';
+    if (src === '套卡') { const cs = (res.cardSets || []).find(x => x.ok && x.cs.b && x.cs.b._t === body); if (cs) src = cs.cs.cards.join('＋'); }
+    for (const seg of body.split(/[；;]/)) {
+      if (!/攻擊時/.test(seg) || /受(到)?[^，、]*攻擊時/.test(seg)) continue;
+      for (const sp of DMG_EQ) {
+        const m = seg.match(new RegExp(sp.n + '\\s*(?:Lv\\.?\\s*(\\d+)|(\\d+)\\s*(?:Lv|級|技能))'));
+        if (m && !out.some(x => x.n === sp.n && x.src === src)) out.push({ ...sp, lv: Math.min(10, +(m[1] || m[2])), src, txt: seg.trim() });
+      }
+    }
+  }
+  return out;
+}
+function setDmgEqRate(n, v) { dmg.eqr = { ...(dmg.eqr || {}), [n]: Math.max(0, Math.min(100, +v || 0)) }; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
+// 裝備施放全部加總（合計 DPS 用）
+function dmgEqAll(res) {
+  const items = dmgEqProcs(res).map(sp => ({ sp, r: dmgCalc(res, 'eq', sp) }));
+  const sum = k => items.reduce((a, x) => a + x.r[k], 0);
+  return { items, dps: sum('dps'), dpsLo: sum('dpsLo'), dpsHi: sum('dpsHi') };
+}
 // 自動念咒（SA_AUTOSPELL）：普攻時 Lv × 2% 機率自動施放選的魔法，等級＝自動念咒 Lv 的一半（技能說明）
 // [名稱, 屬性, 每下倍率(INT), 自動念咒要幾級才能選]；倍率同 ROCalculator（箭術 100＋INT÷2、地震術／崩裂術 200＋INT），每下 × 施放等級
 const DMG_AS = [['火箭術', 1, i => 100 + Math.floor(i / 2), 1], ['冰箭術', 2, i => 100 + Math.floor(i / 2), 1], ['雷擊術', 3, i => 100 + Math.floor(i / 2), 1], ['地震術', 4, i => 200 + i, 7], ['崩裂術', 4, i => 200 + i, 10]];
@@ -1366,7 +1400,7 @@ const DMG_AS = [['火箭術', 1, i => 100 + Math.floor(i / 2), 1], ['冰箭術',
 const DMG_HD = { el: 4, vct: 0.6, fct: 0.4, cd: 0.5, gcd: 0.3 };
 // 雙倍投擲（PF_DOUBLECASTING）：施放箭術時 (30＋Lv×10)% 機率再放一次（技能說明）；dc：0＝照技能樹、9＝不開
 // 二刀連擊：普攻 (Lv×5)% 機率打兩下，魔力拳也會跟著打兩下；da：0＝自動（技能樹＋身上「可使用／觸發二刀連擊 LvN」取最高）、9＝不算
-const DMG_DEF = { sk: 'sf', mix: ['sf', 'as'], hl: 0, asl: 0, asp: 0, dc: 0, da: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
+const DMG_DEF = { sk: 'sf', mix: ['sf', 'as', 'eq'], eqr: {}, hl: 0, asl: 0, asp: 0, dc: 0, da: 0, lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
 // 合計 DPS：勾選要一起算的技能
 function setDmgMix(id, on) { dmg.mix = (dmg.mix || []).filter(x => x !== id).concat(on ? [id] : []); try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} renderDmg(compute()); }
@@ -1383,7 +1417,7 @@ function dmgBonus(tot, names, boltEl) {
   if (!dmg.boss) put('cls', '對一般敵人魔法傷害', tot.normalM);
   for (const [l, v] of Object.entries(splitC(tot._c))) {
     if (l.endsWith('#')) continue;
-    let m = l.match(/^(魔力拳|火箭術|冰箭術|雷擊術|崩裂術|地震術)的?傷害$/);
+    let m = l.match(/^(魔力拳|火箭術|冰箭術|雷擊術|崩裂術|地震術|暴風雪|隕石術)的?傷害$/);
     if (m) { if (names.includes(m[1])) put('skill', l, v); continue; }
     m = l.match(/^(.+?)屬性魔法(?:傷害|攻擊力)$/);
     if (m) { if (m[1].replace('暗', '闇') === E[boltEl]) put('my', l, v); continue; }
@@ -1408,10 +1442,13 @@ function dmgDaAuto(res) {
   }
   return Math.min(10, lv);
 }
-function dmgCalc(res, sk = dmg.sk) {
-  const tot = res.tot, o = statusOf(tot), w = wornItem('weapon'), sf = sk === 'sf', as = sk === 'as', proc = sf || as;
+function dmgCalc(res, sk = dmg.sk, spec = null) {
+  const tot = res.tot, o = statusOf(tot), w = wornItem('weapon'), sf = sk === 'sf', as = sk === 'as', proc = sf || as || !!spec;
   let lv, bl = 0, times, ratio, el, names, boltName = '', rate = 0, asl = 0, asSp = null, rTxt = '';
-  if (as) {
+  if (spec) {
+    lv = spec.lv; times = spec.hits(lv); ratio = spec.r(o.S.INT, lv); el = spec.el; names = [spec.n]; boltName = spec.n; rate = (dmg.eqr || {})[spec.n] || 0;
+    rTxt = `(${spec.f(o.S.INT, lv)})% × ${times} 下`;
+  } else if (as) {
     asl = Math.min(10, dmg.asl || skLv('自動念咒') || 10); rate = asl * 2;
     asSp = DMG_AS[dmg.asp] && DMG_AS[dmg.asp][3] <= asl ? DMG_AS[dmg.asp] : DMG_AS[0];
     lv = Math.max(1, Math.floor(asl / 2)); if (asSp[0] === '地震術' || asSp[0] === '崩裂術') lv = Math.min(5, lv);
@@ -1503,9 +1540,9 @@ function renderDmg(res) {
   placeDmg();
   const sks = DMG_SKILLS[st.job] || [];
   if (dmg.sk !== 'mix' && !sks.some(([id]) => id === dmg.sk)) dmg.sk = sks[0][0];
-  const mix = dmg.sk === 'mix', tab = (id, n, cls = '') => `<button type="button" class="btn-ghost${cls}" role="tab" aria-selected="${dmg.sk === id}" onclick="setDmg('sk', '${id}')">${n}</button>`;
+  const mix = dmg.sk === 'mix', eqm = dmg.sk === 'eq', eqs = eqm ? dmgEqAll(res) : null, tab = (id, n, cls = '') => `<button type="button" class="btn-ghost${cls}" role="tab" aria-selected="${dmg.sk === id}" onclick="setDmg('sk', '${id}')">${n}</button>`;
   $('dmgSk').innerHTML = sks.map(([id, n]) => tab(id, n)).join('') + (sks.length > 1 ? tab('mix', '合計 DPS', ' dmg-mix-tab') : '');
-  const r = dmgCalc(res, mix ? sks[0][0] : dmg.sk), opt = (list, cur) => list.map((x, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${x}</option>`).join('');
+  const r = dmgCalc(res, mix || eqm ? sks[0][0] : dmg.sk), opt = (list, cur) => list.map((x, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${x}</option>`).join('');
   const sel = (k, label, list, cur) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><select id="dmg-${k}" onchange="setDmg('${k}', this.value)">${opt(list, cur)}</select></div>`;
   const num = (k, label) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><input type="number" id="dmg-${k}" min="0" max="9999" value="${dmg[k]}" onchange="setDmg('${k}', this.value)"></div>`;
   $('dmgTag').innerHTML = dmgTip('Beta', 'beta');
@@ -1514,7 +1551,8 @@ function renderDmg(res) {
   const pi = dmgPreset();
   if (!$('dmgIn').contains(document.activeElement) || document.activeElement.tagName !== 'INPUT') $('dmgIn').innerHTML =
     `<div class="ench-row dmg-pre"><label for="dmg-pre">目標</label><select id="dmg-pre" onchange="setDmgPreset(this.value)"><option value="0">自訂</option>${DMG_PRESETS.map((p, i) => `<option value="${i + 1}"${i === pi ? ' selected' : ''}>${p.n}</option>`).join('')}</select></div>` +
-    (mix ? `<div class="ench-row dmg-pre dmg-mix">${sks.map(([id, n]) => `<label><input type="checkbox"${(dmg.mix || []).includes(id) ? ' checked' : ''} onchange="setDmgMix('${id}', this.checked)">${n}</label>`).join('')}</div>`
+    (eqm ? eqs.items.map(({ sp }) => `<div class="ench-row"><label for="dmg-eq-${sp.n}">${sp.n}機率</label><input type="number" id="dmg-eq-${sp.n}" min="0" max="100" step="0.1" placeholder="%" value="${(dmg.eqr || {})[sp.n] || ''}" onchange="setDmgEqRate('${sp.n}', this.value)"></div>`).join('')
+    : mix ? `<div class="ench-row dmg-pre dmg-mix">${sks.map(([id, n]) => `<label><input type="checkbox"${(dmg.mix || []).includes(id) ? ' checked' : ''} onchange="setDmgMix('${id}', this.checked)">${n}</label>`).join('')}</div>`
     : r.as ? sel('asl', '自動念咒', lvs(10), r.asl).replace('<option value="0">', '<option value="0" hidden>') +
       `<div class="ench-row"><label for="dmg-asp">念咒技能</label><select id="dmg-asp" onchange="setDmg('asp', this.value)">${DMG_AS.map(([n, , , m], i) => `<option value="${i}"${n === r.asSp[0] ? ' selected' : ''}${m > r.asl ? ' disabled' : ''}>${n} Lv ${n === '地震術' || n === '崩裂術' ? Math.min(5, r.lv) : Math.max(1, Math.floor(r.asl / 2))}${m > r.asl ? `（Lv ${m} 起）` : ''}</option>`).join('')}</select></div>` +
       (r.bolt ? `<div class="ench-row"><label for="dmg-dc">${dmgTip('雙倍投擲', 'dc')}</label><select id="dmg-dc" onchange="setDmg('dc', this.value)"><option value="9">無</option>${[1, 2, 3, 4, 5].map(l => `<option value="${l}"${l === r.dcLv ? ' selected' : ''}>Lv ${l}（${30 + l * 10}%）</option>`).join('')}</select></div>` : '')
@@ -1528,13 +1566,21 @@ function renderDmg(res) {
     sel('boss', '階級', ['一般', '首領'], dmg.boss) + num('mdef', '後 MDEF') + num('smdef', dmgTip('前 MDEF', 'smdef'));
   const pct = n => `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`, f = n => n.toLocaleString();
   const grp = (k, label) => { const n = r.sum(k); return `<li><span>${label}</span><b>${pct(n)}${r.g[k].length ? `<small>${r.g[k].map(([l, v]) => `${l} ${pct(v)}`).join('、')}</small>` : ''}</b></li>`; };
+  const rg = (a, b) => `${f(Math.round(a))}${Math.round(a) !== Math.round(b) ? ` ～ ${f(Math.round(b))}` : ''}`;
+  if (eqm) {
+    $('dmgFlow').innerHTML = '';
+    $('dmgOut').innerHTML = !eqs.items.length ? `<p class="hint">身上沒有「攻擊時施放魔法」的裝備或卡片（目前認得：${DMG_EQ.map(x => x.n).join('、')}）</p>` :
+      `<div class="dmg-res"><span>${dmgTip('DPS', 'eq')}</span><b>${rg(eqs.dpsLo, eqs.dpsHi)}</b><small>平均 ${f(Math.round(eqs.dps))}</small></div><ul class="tot-list">` +
+      eqs.items.map(({ sp, r: x }) => `<li><span>${sp.n} Lv ${sp.lv}</span><b>${x.rate ? rg(x.dpsLo, x.dpsHi) : '<small class="dmg-need">填機率</small>'}<small>${escHtml(sp.src)}：${escHtml(sp.txt)}</small>` +
+        `<small>每次 ${f(x.lo)}～${f(x.hi)}・${x.rTxt}・${DMG_ELEMS[sp.el]}屬性 ${x.em}%${x.rate ? `・${x.cyc.hps.toFixed(2)} × ${x.rate}%` : ''}</small></b></li>`).join('') + `</ul>`;
+    return;
+  }
   if (mix) {
-    // 各技能照自己分頁的設定算，DPS 直接相加
-    const rs = sks.filter(([id]) => (dmg.mix || []).includes(id)).map(([id, n]) => [id, n, dmgCalc(res, id)]), total = rs.reduce((a, [, , x]) => a + x.dps, 0), tLo = rs.reduce((a, [, , x]) => a + x.dpsLo, 0), tHi = rs.reduce((a, [, , x]) => a + x.dpsHi, 0);
-    const rg = (a, b) => `${f(Math.round(a))}${Math.round(a) !== Math.round(b) ? ` ～ ${f(Math.round(b))}` : ''}`;
+    // 各技能照自己分頁的設定算，DPS 直接相加；裝備施放＝全部加總
+    const rs = sks.filter(([id]) => (dmg.mix || []).includes(id)).map(([id, n]) => [id, n, id === 'eq' ? (a => ({ ...a, lo: 0, hi: 0, eq: a.items.length, cyc: { hps: 0 } }))(dmgEqAll(res)) : dmgCalc(res, id)]), total = rs.reduce((a, [, , x]) => a + x.dps, 0), tLo = rs.reduce((a, [, , x]) => a + x.dpsLo, 0), tHi = rs.reduce((a, [, , x]) => a + x.dpsHi, 0);
     $('dmgFlow').innerHTML = '';
     $('dmgOut').innerHTML = `<div class="dmg-res"><span>${dmgTip('合計 DPS', 'mix')}</span><b>${rg(tLo, tHi)}</b><small>平均 ${f(Math.round(total))}</small></div>` +
-      (rs.length ? `<ul class="tot-list">` + rs.map(([id, n, x]) => `<li><span><button type="button" class="dmg-go" onclick="setDmg('sk', '${id}')" title="到「${n}」改設定">${n}</button></span><b>${rg(x.dpsLo, x.dpsHi)}${total && rs.length > 1 ? `<i class="dmg-pct">（${Math.round(x.dps / total * 100)}%）</i>` : ''}<small>平均 ${f(Math.round(x.dps))}・每次 ${f(x.lo)}${x.hi !== x.lo ? `～${f(x.hi)}` : ''}${x.proc ? `・發動 ${x.rate}%` : ''}・每秒 ${x.cyc.hps.toFixed(2)} 次${x.dcP ? `・雙倍投擲 ${x.dcP}%` : ''}${x.daP ? `・二刀連擊 ${x.daP}%` : ''}</small></b></li>`).join('') + `</ul>` : `<p class="hint">勾選要一起算的技能</p>`);
+      (rs.length ? `<ul class="tot-list">` + rs.map(([id, n, x]) => `<li><span><button type="button" class="dmg-go" onclick="setDmg('sk', '${id}')" title="到「${n}」改設定">${n}</button></span><b>${rg(x.dpsLo, x.dpsHi)}${total && rs.length > 1 ? `<i class="dmg-pct">（${Math.round(x.dps / total * 100)}%）</i>` : ''}<small>平均 ${f(Math.round(x.dps))}${x.eq !== undefined ? `・${x.eq} 種${x.eq ? '' : '（身上沒有）'}</small>` : `・每次 ${f(x.lo)}${x.hi !== x.lo ? `～${f(x.hi)}` : ''}${x.proc ? `・發動 ${x.rate}%` : ''}・每秒 ${x.cyc.hps.toFixed(2)} 次${x.dcP ? `・雙倍投擲 ${x.dcP}%` : ''}${x.daP ? `・二刀連擊 ${x.daP}%` : ''}</small>`}</b></li>`).join('') + `</ul>` : `<p class="hint">勾選要一起算的技能</p>`);
     return;
   }
   const sec = n => `${n.toFixed(2)} 秒`, c = r.cyc, E = DMG_ELEMS;
@@ -1578,6 +1624,7 @@ const DMG_TIP = {
   asRatio: '普攻時有（自動念咒 Lv × 2）% 機率自動施放選的魔法，等級是自動念咒 Lv 的一半（無條件捨去），只能選學過的。箭術每下 MATK (100＋INT÷2)%、地震術／崩裂術每下 (200＋INT)%，INT 算總值',
   mix: '範圍＝每下都打最低／最高時，平均＝長時間打下來的期望值。勾選的技能各自照自己分頁的設定（等級、念咒技能、雙倍投擲⋯）算 DPS 再相加，目標共用。魔力拳、自動念咒都是普攻時發動，直接相加；崩裂術要站著詠唱，和普攻發動的技能其實不能同時，一起勾會偏高。點技能名稱可以到它的分頁改設定',
   asDps: '範圍＝每下都打最低／最高時；平均＝每秒普攻次數 × 發動機率 × 平均傷害（開雙倍投擲再 × (1＋機率)）；不含普攻本身',
+  eq: '身上的裝備、卡片、套卡寫「攻擊時（一定機率）施放／發動 某魔法」的，照普攻次數 × 你填的機率 × 平均傷害算 DPS。遊戲說明大多沒寫機率，要自己填（%）。目前認得雷擊術、火箭術、冰箭術、暴風雪、隕石術',
   da: '普攻有 (Lv×5)% 機率打兩下，魔力拳發動時也跟著打兩次，DPS 乘上 (1＋機率)。預設照技能樹和身上「可使用／觸發二刀連擊」的裝備、卡片、服飾取最高，✓ 是偵測到的等級',
   dc: '雙倍投擲：施放火箭術、冰箭術、雷擊術時有 (30＋Lv×10)% 機率再放一次（自動念咒放的也算）。每次發動的傷害不變，DPS 乘上 (1＋機率)',
   hdHps: '1 ÷ (詠唱＋延遲)；如果攻速比較慢就用 (200 − ASPD) ÷ 50，上限 7.14',
