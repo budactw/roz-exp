@@ -250,7 +250,8 @@ html[data-ui="ro"] .sw-l { border-right: 1px solid #b4b4bc; background: #f6f7fa;
 html[data-ui="ro"] .sw-l b, html[data-ui="ro"] .sw-r b { color: var(--ro-navy); font-size: 13.5px; }
 html[data-ui="ro"] .sw-l input { min-height: 24px; height: 24px; font-size: 13.5px; }
 html[data-ui="ro"] .sw-l .sb { color: #15171c; font-size: 13.5px; }
-html[data-ui="ro"] .sw-l .sc { color: #6b6f7a; font-size: 12px; }
+html[data-ui="ro"] .sw-l .sc { color: #15171c; font-size: 12.5px; border-color: #b4b4bc; border-radius: 0; background: #fff; }
+html[data-ui="ro"] .sw-l button.ps-up, html[data-ui="ro"] .sw-l button.ps-up:hover { color: #5b7bc4; background: none; border: 0; box-shadow: none; min-height: 0; padding: 0; }
 html[data-ui="ro"] .sw-r span { color: #15171c; font-weight: 400; font-size: 13.5px; }
 html[data-ui="ro"] .sw-r small { color: #15171c; font-size: 13.5px; }
 @media (max-width: 340px) { html[data-ui="ro"] .sw-l { border-right: 0; border-bottom: 1px solid #b4b4bc; } }
