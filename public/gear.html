@@ -828,7 +828,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('dlg').c
 
 // 更新紀錄（新的放最上面）
 const GEAR_LOG = [
-  ['2026/11/20', '傷害試算（測試中，先做賢者的魔力拳）；新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
+  ['2026/11/21', '人物狀態加「剩餘點數」（依 Base Lv 計算），滑過素質欄看下一點要花幾點'],
+  ['2026/11/20', '新增卡片（分一般／Boss／MVP，套卡自動加總）、符文石碑、技能樹（另有獨立頁面）、人物狀態（含 HP／SP）、Buff（料理、技能、天地樹）、角色（可複製）、倉庫（存下設定好的裝備）、Job 等級；搜尋可直接穿裝備、插卡片；分享連結縮短'],
   ['2026/11/19', '新版面：遊戲版面；新增特殊裝備（服飾附魔石、典藏板、寵物戒指、幸運髮飾）與使用說明；精髓、盔甲精煉加成自動計算；多件裝備數值照遊戲內說明修正'],
   ['2026/11/18', '新增附魔與附加能力；新增靈幻、死靈、神器、異世之靈、城戰公會員等裝備；能力加總固定顯示、裝備搜尋'],
   ['2026/11/17', '配裝模擬器 Beta 上線'],
@@ -1349,7 +1350,8 @@ function dmgCalc(res) {
   return { o, lv, boltName, boltEl, wm, vr, ov, g, sum, em, mdefMul, lo, hi, rate: lv * 5 };
 }
 function renderDmg(res) {
-  const show = st.job === '賢者';
+  // 還在測試：只在本機（wrangler dev）顯示，正式站先不開
+  const show = st.job === '賢者' && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   $('dmgCard').classList.toggle('hidden', !show);
   if (!show) return;
   const r = dmgCalc(res), opt = (list, cur) => list.map((x, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${x}</option>`).join('');
