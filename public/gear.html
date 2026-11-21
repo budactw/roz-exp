@@ -293,6 +293,7 @@
   .dmg-tag { font-size: .72rem; font-weight: 400; color: var(--dim); }
   .dmg-in { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 12px; margin-bottom: 12px; }
   .dmg-in .ench-row label { min-inline-size: 4.2em; }
+  .dmg-in .dmg-pre { grid-column: 1 / -1; }
   .dmg-in .ench-row input[type=number] { flex: 1; inline-size: auto; min-width: 0; }
   .dmg-res { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 10px 12px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); margin-bottom: 10px; }
   .dmg-res b { font-size: 1.35rem; color: var(--primary); font-variant-numeric: tabular-nums; }
@@ -434,7 +435,7 @@
     <h2>💥 傷害試算 <small class="dmg-tag">賢者・魔力拳（Beta）</small></h2>
     <div class="dmg-in" id="dmgIn"></div>
     <div id="dmgOut"></div>
-    <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），武器 MATK（含精煉）會浮動，過度精煉另外隨機加。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0，結果會偏高一點。實際數字歡迎回報。</div>
+    <div class="hint">傷害＝MATK 100% 的一下 ×（魔力拳 Lv＋箭術 Lv），武器 MATK（含精煉）會浮動，過度精煉另外隨機加。已用魔力拳 Lv10 配火箭術 Lv10、Lv3 實測對過；其他等級、屬性還沒實測。怪物的「前 MDEF」（依素質，資訊視窗看不到）會直接扣傷害，不知道就先填 0，結果會偏高一點；「目標」裡的魁儡已經填好實測推估的值。實際數字歡迎回報。</div>
   </div>
   </aside></div>
 
@@ -1310,6 +1311,14 @@ const DMG_ELEM_TBL = {
   3: [[100,100,100,100,100,100,100,100,0,100],[100,-25,70,100,200,100,25,50,100,175],[100,200,-25,70,100,100,25,50,100,125],[100,100,200,-25,70,100,25,50,100,100],[100,70,100,200,-25,100,25,50,100,75],[100,100,50,100,100,0,25,0,50,-75],[100,100,100,100,100,125,-50,175,100,200],[100,100,100,100,100,0,175,-50,100,-75],[0,50,50,50,50,50,25,25,175,150],[100,50,50,50,50,0,150,0,100,0]],
   4: [[100,100,100,100,100,100,100,100,0,100],[100,-50,60,100,200,75,0,25,100,200],[100,200,-50,60,100,75,0,25,100,150],[100,100,200,-50,60,75,0,25,100,100],[100,60,100,200,-50,75,0,25,100,50],[100,75,25,75,75,0,0,-25,25,-100],[100,75,75,75,75,125,-100,200,100,200],[100,75,75,75,75,-25,200,-100,100,-100],[0,25,25,25,25,25,0,0,200,175],[100,25,25,25,25,-25,175,0,100,0]],
 };
+// 常用目標（前 MDEF 遊戲內看不到，是用實測傷害推估的）
+const DMG_PRESETS = [
+  { n: '魁儡（地屬性）', te: 4, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 100 },   // 實測：火打 20 下都沒到 8 萬 → 前 MDEF 約 75 以上，平均回推約 100
+  { n: '魁儡 中型（MDEF 200）', te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 200, smdef: 55 },   // 實測 8 下 → 前 MDEF 約 39～72
+];
+const DMG_TGT = ['te', 'tl', 'race', 'size', 'boss', 'mdef', 'smdef'];
+const dmgPreset = () => DMG_PRESETS.findIndex(p => DMG_TGT.every(k => p[k] === dmg[k]));
+function setDmgPreset(i) { const p = DMG_PRESETS[+i - 1]; if (!p) return; for (const k of DMG_TGT) dmg[k] = p[k]; try { localStorage.setItem(DMG_KEY, JSON.stringify(dmg)); } catch (e) {} $('dmgIn').innerHTML = ''; renderDmg(compute()); }
 const DMG_KEY = 'roz-gear-dmg-v1';
 const DMG_DEF = { lv: 0, bolt: 0, bl: 0, te: 0, tl: 1, race: 0, size: 1, boss: 0, mdef: 0, smdef: 0 };
 let dmg = (() => { try { return { ...DMG_DEF, ...JSON.parse(localStorage.getItem(DMG_KEY) || '{}') }; } catch (e) { return { ...DMG_DEF }; } })();
@@ -1372,7 +1381,9 @@ function renderDmg(res) {
   const sel = (k, label, list, cur) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><select id="dmg-${k}" onchange="setDmg('${k}', this.value)">${opt(list, cur)}</select></div>`;
   const num = (k, label) => `<div class="ench-row"><label for="dmg-${k}">${label}</label><input type="number" id="dmg-${k}" min="0" max="9999" value="${dmg[k]}" onchange="setDmg('${k}', this.value)"></div>`;
   // 輸入框正在打字時不要整個重畫（會跳掉游標）
+  const pi = dmgPreset();
   if (!$('dmgIn').contains(document.activeElement) || document.activeElement.tagName !== 'INPUT') $('dmgIn').innerHTML =
+    `<div class="ench-row dmg-pre"><label for="dmg-pre">目標</label><select id="dmg-pre" onchange="setDmgPreset(this.value)"><option value="0">自訂</option>${DMG_PRESETS.map((p, i) => `<option value="${i + 1}"${i === pi ? ' selected' : ''}>${p.n}</option>`).join('')}</select></div>` +
     sel('lv', '魔力拳', ['', ...[...Array(10)].map((_, i) => `Lv ${i + 1}`)], r.lv).replace('<option value="0">', '<option value="0" hidden>') +
     sel('bolt', '箭術', DMG_BOLTS.map(([n]) => n), dmg.bolt) +
     sel('bl', '箭術等級', ['', ...[...Array(10)].map((_, i) => `Lv ${i + 1}`)], r.bl).replace('<option value="0">', '<option value="0" hidden>') +
