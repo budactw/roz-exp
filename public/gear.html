@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=33">
+<link rel="stylesheet" href="ro.css?v=34">
 <script>{ // 版面：預設遊戲版面；選過「一般版面」（std）才用一般版面。網址加 ?ui=ro 或 ?ui=std 可指定
   const u = new URLSearchParams(location.search).get('ui'); if (u === 'ro' || u === 'std') localStorage.setItem('gear-ui', u);
   if (localStorage.getItem('gear-ui') !== 'std') document.documentElement.dataset.ui = 'ro'; }</script>
@@ -1517,9 +1517,10 @@ const EQ_SP_KEYS = ['costume', 'spBoard', 'spPet', 'spLucky'];   // 放在特殊
 function renderEquipWin(res) {
   if (document.documentElement.dataset.ui !== 'ro') return;
   const tot = res.tot, ref = tot.refATK || 0, num = v => (v || 0) >= 0 ? '+' + (v || 0) : '−' + Math.abs(v);
+  const curOutfit = wornSlots().length ? (sig => readOutfits().find(o => outfitSig(o) === sig))(outfitSig(outfitNow())) : null;
   const tabs = `<div class="eq-tabs"><span class="eq-tl" role="tablist">` + [['main', '一般裝備'], ['sp', '特殊裝備']].map(([t, l]) =>
     `<button type="button" role="tab" aria-selected="${eqTab === t}" onclick="setEqTab('${t}')">${l}</button>`).join('') +
-    `</span><button type="button" class="eq-save" onclick="outfitAdd()" title="把身上整套裝備存進倉庫的「套裝」">＋ 存成套裝</button></div>`;
+    `</span>` + (curOutfit ? `<span class="eq-cur" title="身上的裝備和倉庫裡的這組套裝一模一樣">✓ ${escHtml(curOutfit.nm)} 套裝套用中</span>` : `<button type="button" class="eq-save" onclick="outfitAdd()" title="把身上整套裝備存進倉庫的「套裝」">＋ 存成套裝</button>`) + `</div>`;
   const ch = `<div class="eq-ch"><b>${st.job || '全部職業'}</b><small>Base Lv ${st.lv}</small>
     <dl><dt>ATK</dt><dd>${num((tot.ATK || 0) + ref)}</dd><dt>MATK</dt><dd>${num((tot.MATK || 0) + ref)}</dd><dt>DEF</dt><dd>${num(tot.DEF)}</dd></dl></div>`;
   const sp = eqTab === 'sp';
@@ -1786,6 +1787,7 @@ async function outfitAdd() {
   list.push(o); if (list.length > OUTFIT_MAX) list.splice(0, list.length - OUTFIT_MAX); writeOutfits(list);
   stashTab = 'set'; localStorage.setItem('gear-stash-tab', 'set');
   if (!stashOpen) toggleStashWin(true); else renderStash();
+  renderEquipWin(compute());
   const el = document.querySelector(`.stash-it[data-oid="${o.id}"]`); if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   track('gear_outfit_add', { n: Object.keys(o.s).length });
 }
@@ -1809,12 +1811,12 @@ async function outfitRename(id) {
   const o = readOutfits().find(y => y.id === id); if (!o) return;
   const v = ((await dialog({ title: '套裝改名', input: o.nm, okText: '儲存' })) || '').trim(); if (!v) return;
   const list = readOutfits(), y = list.find(z => z.id === id); if (!y) return;
-  y.nm = v.slice(0, 30); writeOutfits(list); renderStash();
+  y.nm = v.slice(0, 30); writeOutfits(list); renderStash(); renderEquipWin(compute());
 }
 async function outfitDel(id) {
   const o = readOutfits().find(y => y.id === id); if (!o) return;
   if (!await dialog({ title: '刪除套裝？', msg: o.nm, okText: '刪除' })) return;
-  writeOutfits(readOutfits().filter(y => y.id !== id)); renderStash(); track('gear_outfit_del');
+  writeOutfits(readOutfits().filter(y => y.id !== id)); renderStash(); renderEquipWin(compute()); track('gear_outfit_del');
 }
 function outfitHtml(o, cur) {
   const items = GEAR_SLOTS.map(([k]) => o.s[k]).filter(x => x && BY_NAME[stashName(x)]);

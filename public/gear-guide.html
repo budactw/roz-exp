@@ -8,7 +8,7 @@
 <meta property="og:site_name" content="RO樂園工具箱">
 <meta name="author" content="凌雲閣－師爺">
 <link rel="stylesheet" href="style.css?v=29">
-<link rel="stylesheet" href="ro.css?v=33">
+<link rel="stylesheet" href="ro.css?v=34">
 <script src="ro-ui.js?v=3"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WEJKY0CV80"></script>
@@ -98,8 +98,8 @@
       <li>舊版配裝和每日任務共用角色；更新後第一次打開時，有配裝的角色會自動搬到配裝的名單，名稱和配裝都保留。</li>
     </ul>
     <div class="two">
-      <figure><img src="guide/g-settings.webp?v=2" width="796" height="579" alt="設定區：職業、Base 等級、Job 等級，啟用附魔／卡片／符文／Buff／技能樹開關" loading="lazy"><figcaption>設定</figcaption></figure>
-      <figure><img src="guide/g-status.webp?v=2" width="392" height="369" alt="人物狀態：六項素質與 HP、SP、ATK、MATK、HIT、CRI、DEF、MDEF、FLEE、ASPD" loading="lazy"><figcaption>人物狀態</figcaption></figure>
+      <figure><img src="guide/g-settings.webp?v=3" width="796" height="736" alt="設定區：職業、Base 等級、Job 等級，啟用裝備／附魔／卡片／符文／Buff／技能樹開關、配置說明" loading="lazy"><figcaption>設定</figcaption></figure>
+      <figure><img src="guide/g-status.webp?v=3" width="392" height="369" alt="人物狀態：六項素質、再加 1 點要花的點數、剩餘點數，與 HP、SP、ATK、MATK、HIT、CRI、DEF、MDEF、FLEE、ASPD" loading="lazy"><figcaption>人物狀態</figcaption></figure>
     </div>
     <h3 class="sub-h">設定</h3>
     <ul>
@@ -133,7 +133,7 @@
   <div class="card" id="equip">
     <h2>3. 裝備視窗</h2>
     <figure><img src="guide/g-tools.webp" width="798" height="72" alt="裝備上方：搜尋裝備、一鍵套裝、整套精煉" loading="lazy"><figcaption>裝備上方：搜尋、一鍵套裝、整套精煉</figcaption></figure>
-    <figure><img src="guide/g-equip.webp" width="798" height="248" alt="裝備視窗：左右兩欄共十格，部位名稱後面是插著的卡片，中間是職業與 ATK、MATK、DEF" loading="lazy"><figcaption>一般裝備（10 格）</figcaption></figure>
+    <figure><img src="guide/g-equip.webp?v=2" width="794" height="244" alt="裝備視窗：上面是一般／特殊裝備分頁與「存成套裝」，左右兩欄共十格，中間是職業與 ATK、MATK、DEF" loading="lazy"><figcaption>一般裝備（10 格）</figcaption></figure>
     <ul>
       <li>格子的位置和遊戲的裝備視窗一樣：左欄是頭上、頭下、武器、披肩、飾品（右）；右欄是頭中、鎧甲、左手、鞋子、飾品（左）。</li>
       <li><b>點一下格子</b>：下方會顯示這個部位的詳細設定。</li>
@@ -145,11 +145,12 @@
     </ul>
     <figure><img src="guide/g-search.webp" width="356" height="432" alt="搜尋結果：上面是裝備，下面是卡片，右邊是會放到的部位" loading="lazy" style="max-width:360px"><figcaption>搜尋「波利」：裝備和卡片都會列出來</figcaption></figure>
     <h3 class="sub-h" id="stash">倉庫</h3>
+    <figure><img src="guide/g-stash.webp" width="798" height="333" alt="倉庫視窗：分類列（全部、套裝、武器…），上面是兩組套裝，下面是單件裝備，每件有套用、備註／改名、刪除" loading="lazy"><figcaption>倉庫：套裝和單件裝備</figcaption></figure>
     <ul>
       <li>部位標題右邊的 <b>「📦 存倉」</b>：把這件裝備連同精煉、附魔、附加能力、卡片存進倉庫（附魔、卡片沒開啟時不會存）。一模一樣的不會重複存。</li>
       <li>裝備標題列「↺ 重置裝備」旁邊的 <b>「📦 倉庫」</b>（後面的數字是件數）：打開倉庫視窗，再按一次、按「關閉」或 Esc 關掉。</li>
       <li>倉庫上面那排是<b>分類</b>（全部、套裝、武器、左手、頭飾、鎧甲、披肩、鞋子、飾品、特殊，後面的數字是件數），點一下只看那一類。按<b>「套用」</b>就穿回原本的部位（需要時會自動開啟附魔、卡片）；目前穿著的會標「✓ 穿著中」，職業或等級穿不了的不能套用。按「備註」加備註（例如「打 MVP 用」，最多 40 字，清空就是刪除），按 ✕ 刪除。<b>按右鍵</b>可以看物品資訊（和裝備視窗一樣）。</li>
-      <li><b>套裝</b>：分類列第一個。按「＋ 把身上的裝備存成套裝」（遊戲版面的裝備視窗，分頁右邊也有「＋ 存成套裝」），取個名字，就會存下目前所有部位（精煉、附魔、附加能力、卡片）和服飾附魔石。按<b>「套用」</b>一次換上整套（原本身上的會換掉；目前職業或等級不能穿的那幾件會略過並列出來）；「改名」「✕」可以改名、刪除。</li>
+      <li><b>套裝</b>：分類列第一個。按「＋ 把身上的裝備存成套裝」（遊戲版面的裝備視窗，分頁右邊也有「＋ 存成套裝」），取個名字，就會存下目前所有部位（精煉、附魔、附加能力、卡片）和服飾附魔石。按<b>「套用」</b>一次換上整套（原本身上的會換掉；目前職業或等級不能穿的那幾件會略過並列出來）；「改名」「✕」可以改名、刪除。身上的裝備和某組套裝一模一樣時，裝備視窗分頁右邊會顯示「✓ ○○ 套裝套用中」，倉庫裡那組顯示「✓ 穿著中」。</li>
       <li>倉庫預設是<b>浮在畫面上的視窗</b>：拖標題列移動、拖右下角調整大小，位置和大小會記住。按「📌 固定」改成放在技能樹和裝備中間，按「🪟 漂浮」再浮起來。版面夠寬時，好幾件會並排顯示。</li>
       <li>倉庫<b>所有角色共用</b>，和配裝一樣只存在這台裝置的瀏覽器，不會放進分享連結。</li>
     </ul>
